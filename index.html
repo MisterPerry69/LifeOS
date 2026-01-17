@@ -179,35 +179,23 @@ function openHabit(name) {
     document.getElementById('dateStr').innerText = d.toLocaleDateString();
   }, 1000);
 
-    // Gestione Input
-    function sendCmd(e) {
-      if(e.key === 'Enter') {
-        const val = e.target.value;
-        google.script.run.withSuccessHandler(res => {
-          e.target.value = '';
-          alert(res);
-          loadStats();
-        }).processInput(val);
-      }
-    }
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCywiaNzlvKMREjX9KDwIaUfw2QGKjvzDEwVKiuJ4X6xyJxCsyq4k40NssqjtrU-UL/exec"
 
-    // Caricamento Dati
-    function loadStats() {
-      google.script.run.withSuccessHandler(s => {
-        document.getElementById('h_val').innerText = s.habits;
-        document.getElementById('d_val').innerText = s.dumps;
-        document.getElementById('a_val').innerText = s.nextTask;
-      }).getDashboardStats();
-    }
-
-    window.onload = loadStats;
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }, 1000);
-
-    function nextHabit() {
-    activeHabitIndex = (activeHabitIndex + 1) % myHabits.length;
-    updateHabitUI();
-  }
-
+  // Caricamento Dati (GET)
+function loadStats() {
+  fetch(`${SCRIPT_URL}?action=getStats`)
+    .then(response => response.json())
+    .then(s => {
+      document.getElementById('h_val').innerText = s.habits;
+      document.getElementById('d_val').innerText = s.dumps;
+      document.getElementById('a_val').innerText = s.nextTask;
+      // Una volta caricato, disegna i pixel
+      drawPixels();
+    })
+    .catch(err => console.error("Errore caricamento:", err));
+}
+  
+  
   function prevHabit() {
     activeHabitIndex = (activeHabitIndex - 1 + myHabits.length) % myHabits.length;
     updateHabitUI();
