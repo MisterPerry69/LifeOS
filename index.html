@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+  :root { --bg: #0b0b0b; --card: #161616; --accent: #00ff41; --text: #eee; --dim: #555; }
+  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; overflow: hidden; }
+  
+  .page { display: none; height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* Header richiesto: h1 a sinistra, data+ora a destra */
+  .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+  .header h1 { font-size: 14px; margin: 0; color: var(--accent); text-transform: uppercase; }
+  .header .info { font-size: 10px; color: var(--dim); text-align: right; }
+
+  /* Input stile precedente */
+  input { 
+    width: 100%; background: #000; border: 1px solid #333; border-radius: 4px; 
+    padding: 15px; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 14px; 
+    outline: none; box-sizing: border-box; margin-bottom: 20px;
+  }
+  
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+  }
+
+  /* Grid Home */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+  .widget { background: var(--card); padding: 15px; border: 1px solid #222; border-radius: 4px; }
+  .widget.full { grid-column: span 2; }
+  .label { font-size: 9px; color: var(--dim); text-transform: uppercase; margin-bottom: 10px; display: block; }
+  .value { font-size: 20px; }
+
+/* Contenitore flessibile */
+.pixel-container { 
+    display: flex;
+    flex-wrap: wrap; /* Se non ci stanno, vanno a capo */
+    gap: 8px;
+    width: 100%;
+    max-width: 350px; /* Misura di sicurezza per i telefoni */
+    margin: 20px auto;
+    justify-content: flex-start;
+  }
+/* Pixel con misura FISSA */
+  .pixel { 
+    background: #1a1a1a; 
+    border-radius: 2px;
+    width: 40px;  /* Misura fissa per Settimana/Mese */
+    height: 40px;
+    box-sizing: border-box;
+  }
+
+  /* SETTIMANA: 7 colonne (circa 12% l'una) */
+  .grid-7 { grid-template-columns: repeat(7, 12%); }
+
+  /* MESE: 7 colonne (circa 12% l'una) */
+  .grid-30 { grid-template-columns: repeat(7, 12%); }
+
+  /* ANNO: 15 colonne (circa 5.5% l'una) */
+.grid-365 .pixel { 
+    width: 12px; 
+    height: 12px;
+    gap: 4px;
+    }
+    
+        /* Navigazione tra Habit nell'Header */
+  .habit-selector { display: flex; align-items: center; gap: 15px; }
+  .arrow { color: var(--accent); cursor: pointer; font-size: 18px; user-select: none; }
+  /* Classi per riempimento */
+  .grid-7 { grid-template-columns: repeat(1, 1fr); grid-template-rows: repeat(7, 1fr); }
+  .grid-30 { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(6, 1fr); }
+  .grid-365 { grid-template-columns: repeat(15, 1fr); }
+
+  /* Footer con bottoni richiesti */
+  .footer { 
+    position: fixed; bottom: 0; left: 0; right: 0; 
+    background: #000; border-top: 1px solid #222; 
+    display: flex; justify-content: space-around; padding: 15px; 
+  }
+  .btn { background: none; border: none; color: var(--text); font-family: inherit; font-size: 16px; cursor: pointer; }
+  .view-toggle { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 3px; }
+</style>
+
+<body>
+  <div id="home" class="page active">
+    <div class="header">
+      <h1>SYSTEM_OS</h1>
+      <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
+    </div>
+    <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
+    <div class="grid">
+      <div class="widget" onclick="openHabit('Palestra')"><span class="label">Habits</span><div class="value" id="h_val">--</div></div>
+      <div class="widget" onclick="nav('dump')"><span class="label">Notes</span><div class="value" id="d_val">--</div></div>
+      <div class="widget full" onclick="nav('agenda')"><span class="label">Next</span><div class="value" id="a_val" style="font-size:14px">...</div></div>
+    </div>
+  </div>
+
+<div id="habit" class="page">
+    <div class="header">
+      <div class="habit-selector">
+        <span class="arrow" onclick="prevHabit()"> < </span>
+        <h1 id="habitTitle">PALESTRA</h1>
+        <span class="arrow" onclick="nextHabit()"> > </span>
+      </div>
+      <div class="info" onclick="nav('home')">ESC [X]</div>
+    </div>
+    <div id="viewLabel" class="view-label">GENNAIO</div>
+    <div id="pixels" class="pixel-container"></div>
+    
+    <div class="footer">
+      <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
+      <button class="btn">📅</button>
+      <button class="btn">⚙️</button>
+      <button class="btn">🗑️</button>
+    </div>
+  </div>
+
+<script>
+  let activeHabitIndex = 0;
+  let myHabits = ["Palestra", "Meditazione", "Lettura", "Acqua"]; // Placeholder, poi verranno dal foglio Config
+  
+  let currentView = 30; // Standard Mese
+  const views = [7, 30, 365];
+  const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+
+  function nav(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+function openHabit(name) {
+    activeHabitIndex = myHabits.indexOf(name);
+    if(activeHabitIndex === -1) activeHabitIndex = 0;
+    updateHabitUI();
+    nav('habit');
+  }
+  function cycleView() {
+    let idx = views.indexOf(currentView);
+    currentView = views[(idx + 1) % views.length];
+    drawPixels();
+  }
+
+  function drawPixels() {
+    const container = document.getElementById('pixels');
+    const label = document.getElementById('viewLabel');
+    const btn = document.getElementById('cycleBtn');
+    
+    container.className = 'pixel-container grid-' + currentView;
+    container.innerHTML = '';
+    
+    const now = new Date();
+    
+    if (currentView === 7) {
+      btn.innerText = "SETT";
+      label.innerText = "12 GEN - 18 GEN"; // Qui poi metteremo il calcolo reale
+    } else if (currentView === 30) {
+      btn.innerText = "MESE";
+      label.innerText = months[now.getMonth()];
+    } else {
+      btn.innerText = "ANNO";
+      label.innerText = now.getFullYear();
+    }
+
+    for(let i=0; i < currentView; i++) {
+      const p = document.createElement('div');
+      p.className = 'pixel' + (Math.random() > 0.8 ? ' on' : '');
+      // Qui aggiungeremo: p.style.backgroundColor = habitColor;
+      container.appendChild(p);
+    }
+  }
+
+  // Timer e orologio
+  setInterval(() => {
+    const d = new Date();
+    document.getElementById('clock').innerText = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    document.getElementById('dateStr').innerText = d.toLocaleDateString();
+  }, 1000);
+
+    // Gestione Input
+    function sendCmd(e) {
+      if(e.key === 'Enter') {
+        const val = e.target.value;
+        google.script.run.withSuccessHandler(res => {
+          e.target.value = '';
+          alert(res);
+          loadStats();
+        }).processInput(val);
+      }
+    }
+
+    // Caricamento Dati
+    function loadStats() {
+      google.script.run.withSuccessHandler(s => {
+        document.getElementById('h_val').innerText = s.habits;
+        document.getElementById('d_val').innerText = s.dumps;
+        document.getElementById('a_val').innerText = s.nextTask;
+      }).getDashboardStats();
+    }
+
+    window.onload = loadStats;
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); }, 1000);
+
+    function nextHabit() {
+    activeHabitIndex = (activeHabitIndex + 1) % myHabits.length;
+    updateHabitUI();
+  }
+
+  function prevHabit() {
+    activeHabitIndex = (activeHabitIndex - 1 + myHabits.length) % myHabits.length;
+    updateHabitUI();
+  }
+
+  function updateHabitUI() {
+    document.getElementById('habitTitle').innerText = myHabits[activeHabitIndex].toUpperCase();
+    drawPixels();
+  }
+
+function drawPixels() {
+  const container = document.getElementById('pixels');
+  const label = document.getElementById('viewLabel');
+  
+  container.innerHTML = '';
+  // Togliamo le classi grid-X vecchie, usiamo solo quella per l'anno
+  container.className = 'pixel-container' + (currentView === 365 ? ' grid-365' : '');
+
+  const now = new Date();
+  
+  if (currentView === 7) {
+    label.innerText = "SETTIMANA";
+  } else if (currentView === 30) {
+    label.innerText = months[now.getMonth()].toUpperCase();
+  } else {
+    label.innerText = now.getFullYear();
+  }
+
+  // Creazione pixel con colori placeholder
+  for(let i=0; i < currentView; i++) {
+    const p = document.createElement('div');
+    p.className = 'pixel';
+    
+    // Simula accensione
+    if (Math.random() > 0.8) {
+      p.style.backgroundColor = "#00ff41";
+      p.style.boxShadow = "0 0 5px #00ff41";
+    }
+    container.appendChild(p);
+  }
+}    </script>
+</body>
+</html>
