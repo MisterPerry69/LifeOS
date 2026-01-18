@@ -126,9 +126,7 @@
 <body>
     <div id="boot-screen">
      <div id="boot-text"></div>
-     <div id="boot-logo-container">
-        <div class="xp-loader"></div> 
-    </div>
+      <span class="cursor"></span>
   </div>    
   <div id="home" class="page active">
     <div class="header">
@@ -209,26 +207,31 @@
     });
 }
 
-  function drawPixels() {
+// Supponiamo che 'data' sia l'oggetto che arriva dal fetch di Google
+  function drawPixels(history = []) {
     const container = document.getElementById('pixels');
-    const label = document.getElementById('viewLabel');
     container.innerHTML = '';
-    container.className = 'pixel-container' + (currentView === 365 ? ' grid-365' : '');
-
-    const now = new Date();
-    label.innerText = currentView === 30 ? months[now.getMonth()].toUpperCase() : (currentView === 7 ? "SETTIMANA" : now.getFullYear());
-
-    for(let i=0; i < currentView; i++) {
+    
+    // Creiamo i pixel per gli ultimi 30 giorni (o la vista corrente)
+    for(let i = 0; i < currentView; i++) {
       const p = document.createElement('div');
       p.className = 'pixel';
-      if (Math.random() > 0.8) {
+      
+      // Calcoliamo la data di questo pixel (i giorni fa)
+      let d = new Date();
+      d.setDate(d.getDate() - (currentView - 1 - i));
+      let dateStr = d.toISOString().split('T')[0];
+
+      // Se la data è presente nella history di Google, accendi il pixel!
+      if (history.includes(dateStr)) {
         p.style.backgroundColor = "#00ff41";
-        p.style.boxShadow = "0 0 5px #00ff41";
+        p.style.boxShadow = "0 0 8px #00ff41";
       }
+      
       container.appendChild(p);
     }
   }
-
+  
   function cycleView() {
     if(currentView === 30) currentView = 365;
     else if(currentView === 365) currentView = 7;
