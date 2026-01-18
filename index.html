@@ -172,66 +172,54 @@
     if(pageId === 'habit') drawPixels();
   }
 
-  function loadStats() {
-  const bootText = document.getElementById('boot-text');
-  const lines = [
-    "> INITIALIZING LIFE_OS...",
-    "> CONNECTING TO NEURAL_LINK...",
-    "> ACCESSING GOOGLE_SHEETS_DATABASE...",
-    "> DECRYPTING HABIT_LOGS..."
-  ];
-  
-  // Effetto scrittura automatica per il boot
-  lines.forEach((line, i) => {
-    setTimeout(() => {
-      bootText.innerHTML += line + "<br>";
-    }, i * 500);
-  });
-
+function loadStats() {
   fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
     .then(res => res.json())
     .then(data => {
-      // Quando i dati sono pronti, mostriamo l'ultima riga e chiudiamo il boot
-      bootText.innerHTML += "> SYSTEM ONLINE. WELCOME.<br>";
+      if(data.error) {
+        console.error("Errore script:", data.error);
+        return;
+      }
       
+      // Aggiorna i widget
       document.getElementById('h_val').innerText = data.habits;
       document.getElementById('d_val').innerText = data.dumps;
       document.getElementById('a_val').innerText = data.nextTask;
       
+      // Passa le date alla funzione che disegna i pixel
+      drawPixels(data.history); 
+
+      // Rimuovi il boot screen
       setTimeout(() => {
         document.getElementById('boot-screen').style.display = 'none';
-      }, 1000); // Ti lascia il tempo di leggere "System Online"
+      }, 1000);
     })
     .catch(err => {
-      bootText.innerHTML += "<span style='color:red'>> CONNECTION FAILED.</span>";
+      console.error("Errore Fetch:", err);
     });
 }
 
-// Supponiamo che 'data' sia l'oggetto che arriva dal fetch di Google
-  function drawPixels(history = []) {
-    const container = document.getElementById('pixels');
-    container.innerHTML = '';
-    
-    // Creiamo i pixel per gli ultimi 30 giorni (o la vista corrente)
-    for(let i = 0; i < currentView; i++) {
-      const p = document.createElement('div');
-      p.className = 'pixel';
-      
-      // Calcoliamo la data di questo pixel (i giorni fa)
-      let d = new Date();
-      d.setDate(d.getDate() - (currentView - 1 - i));
-      let dateStr = d.toISOString().split('T')[0];
-
-      // Se la data è presente nella history di Google, accendi il pixel!
-      if (history.includes(dateStr)) {
-        p.style.backgroundColor = "#00ff41";
-        p.style.boxShadow = "0 0 8px #00ff41";
-      }
-      
-      container.appendChild(p);
-    }
-  }
+function drawPixels(history = []) {
+  const container = document.getElementById('pixels');
+  container.innerHTML = '';
   
+  for(let i = 0; i < currentView; i++) {
+    const p = document.createElement('div');
+    p.className = 'pixel';
+    
+    let d = new Date();
+    d.setDate(d.getDate() - (currentView - 1 - i));
+    let dateStr = d.toISOString().split('T')[0];
+
+    // Se in quella data hai loggato almeno un habit, il pixel si accende
+    if (history.includes(dateStr)) {
+      p.classList.add('active'); // Assicurati di avere .active nel CSS con il colore verde
+    }
+    
+    container.appendChild(p);
+  }
+}
+
   function cycleView() {
     if(currentView === 30) currentView = 365;
     else if(currentView === 365) currentView = 7;
