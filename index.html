@@ -119,134 +119,70 @@
   </div>
 
 <script>
-  let activeHabitIndex = 0;
-  let myHabits = ["Palestra", "Meditazione", "Lettura", "Acqua"]; // Placeholder, poi verranno dal foglio Config
-  
-  let currentView = 30; // Standard Mese
-  const views = [7, 30, 365];
+  const SCRIPT_URL = "AKfycbwCywiaNzlvKMREjX9KDwIaUfw2QGKjvzDEwVKiuJ4X6xyJxCsyq4k40NssqjtrU-UL";
+  let currentView = 30;
   const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
 
-  function nav(id) {
+  function nav(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    document.getElementById(pageId).classList.add('active');
+    if(pageId === 'habit') drawPixels();
   }
 
-function openHabit(name) {
-    activeHabitIndex = myHabits.indexOf(name);
-    if(activeHabitIndex === -1) activeHabitIndex = 0;
-    updateHabitUI();
-    nav('habit');
-  }
-  function cycleView() {
-    let idx = views.indexOf(currentView);
-    currentView = views[(idx + 1) % views.length];
-    drawPixels();
+  function loadStats() {
+    fetch(SCRIPT_URL + "?action=getStats&t=" + new Date().getTime())
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('h_val').innerText = data.habits || "--";
+        document.getElementById('d_val').innerText = data.dumps || "--";
+        document.getElementById('a_val').innerText = data.nextTask || "Pronto";
+      })
+      .catch(err => console.error("Errore Caricamento:", err));
   }
 
   function drawPixels() {
     const container = document.getElementById('pixels');
     const label = document.getElementById('viewLabel');
-    const btn = document.getElementById('cycleBtn');
-    
-    container.className = 'pixel-container grid-' + currentView;
     container.innerHTML = '';
-    
+    container.className = 'pixel-container' + (currentView === 365 ? ' grid-365' : '');
+
     const now = new Date();
-    
-    if (currentView === 7) {
-      btn.innerText = "SETT";
-      label.innerText = "12 GEN - 18 GEN"; // Qui poi metteremo il calcolo reale
-    } else if (currentView === 30) {
-      btn.innerText = "MESE";
-      label.innerText = months[now.getMonth()];
-    } else {
-      btn.innerText = "ANNO";
-      label.innerText = now.getFullYear();
-    }
+    label.innerText = currentView === 30 ? months[now.getMonth()].toUpperCase() : (currentView === 7 ? "SETTIMANA" : now.getFullYear());
 
     for(let i=0; i < currentView; i++) {
       const p = document.createElement('div');
-      p.className = 'pixel' + (Math.random() > 0.8 ? ' on' : '');
-      // Qui aggiungeremo: p.style.backgroundColor = habitColor;
+      p.className = 'pixel';
+      if (Math.random() > 0.8) {
+        p.style.backgroundColor = "#00ff41";
+        p.style.boxShadow = "0 0 5px #00ff41";
+      }
       container.appendChild(p);
     }
   }
 
-  // Timer e orologio
-  setInterval(() => {
-    const d = new Date();
-    document.getElementById('clock').innerText = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    document.getElementById('dateStr').innerText = d.toLocaleDateString();
-  }, 1000);
-
-
-  // Caricamento Dati (GET)
-function loadStats() {
-  const SCRIPT_URL = "AKfycbwCywiaNzlvKMREjX9KDwIaUfw2QGKjvzDEwVKiuJ4X6xyJxCsyq4k40NssqjtrU-UL"; 
-  
-  // Aggiungiamo un parametro casuale per evitare che il browser usi dati vecchi (cache)
-  fetch(SCRIPT_URL + "?t=" + new Date().getTime()) // Questo forza il browser a scaricare dati nuovi
-  .then(response => response.json())
-  .then(data => {
-  
-  fetch(SCRIPT_URL + "?cache=" + Math.random())
-    .then(response => {
-      if (!response.ok) throw new Error('Errore di rete');
-      return response.json();
-    })
-    .then(data => {
-      console.log("Dati ricevuti:", data); // Controlla nella console del browser (F12)
-      document.getElementById('h_val').innerText = data.habits;
-      document.getElementById('d_val').innerText = data.dumps;
-      document.getElementById('a_val').innerText = data.nextTask;
-      drawPixels();
-    })
-    .catch(error => {
-      console.error("Errore fetch:", error);
-      document.getElementById('a_val').innerText = "Errore Connessione";
-    });
-}
-  
-  function prevHabit() {
-    activeHabitIndex = (activeHabitIndex - 1 + myHabits.length) % myHabits.length;
-    updateHabitUI();
-  }
-
-  function updateHabitUI() {
-    document.getElementById('habitTitle').innerText = myHabits[activeHabitIndex].toUpperCase();
+  function cycleView() {
+    if(currentView === 30) currentView = 365;
+    else if(currentView === 365) currentView = 7;
+    else currentView = 30;
     drawPixels();
   }
 
-function drawPixels() {
-  const container = document.getElementById('pixels');
-  const label = document.getElementById('viewLabel');
-  
-  container.innerHTML = '';
-  // Togliamo le classi grid-X vecchie, usiamo solo quella per l'anno
-  container.className = 'pixel-container' + (currentView === 365 ? ' grid-365' : '');
+  // Avvio automatico
+  window.onload = () => {
+    loadStats();
+    // Aggiorna data e ora
+    const ora = new Date();
+    document.getElementById('dateStr').innerText = ora.toLocaleDateString('it-IT');
+    setInterval(() => {
+      const d = new Date();
+      document.getElementById('clock').innerText = d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
+    }, 1000);
+  };
 
-  const now = new Date();
-  
-  if (currentView === 7) {
-    label.innerText = "SETTIMANA";
-  } else if (currentView === 30) {
-    label.innerText = months[now.getMonth()].toUpperCase();
-  } else {
-    label.innerText = now.getFullYear();
+  // Registrazione Service Worker per PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log("SW non registrato:", err));
   }
-
-  // Creazione pixel con colori placeholder
-  for(let i=0; i < currentView; i++) {
-    const p = document.createElement('div');
-    p.className = 'pixel';
-    
-    // Simula accensione
-    if (Math.random() > 0.8) {
-      p.style.backgroundColor = "#00ff41";
-      p.style.boxShadow = "0 0 5px #00ff41";
-    }
-    container.appendChild(p);
-  }
-}    </script>
+</script>
 </body>
 </html>
