@@ -179,20 +179,28 @@ function openHabit(name) {
     document.getElementById('dateStr').innerText = d.toLocaleDateString();
   }, 1000);
 
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCywiaNzlvKMREjX9KDwIaUfw2QGKjvzDEwVKiuJ4X6xyJxCsyq4k40NssqjtrU-UL/exec"
 
   // Caricamento Dati (GET)
 function loadStats() {
-  fetch(`${SCRIPT_URL}?action=getStats`)
-    .then(response => response.json())
-    .then(s => {
-      document.getElementById('h_val').innerText = s.habits;
-      document.getElementById('d_val').innerText = s.dumps;
-      document.getElementById('a_val').innerText = s.nextTask;
-      // Una volta caricato, disegna i pixel
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCywiaNzlvKMREjX9KDwIaUfw2QGKjvzDEwVKiuJ4X6xyJxCsyq4k40NssqjtrU-UL/exec"
+  
+  // Aggiungiamo un parametro casuale per evitare che il browser usi dati vecchi (cache)
+  fetch(SCRIPT_URL + "?cache=" + Math.random())
+    .then(response => {
+      if (!response.ok) throw new Error('Errore di rete');
+      return response.json();
+    })
+    .then(data => {
+      console.log("Dati ricevuti:", data); // Controlla nella console del browser (F12)
+      document.getElementById('h_val').innerText = data.habits;
+      document.getElementById('d_val').innerText = data.dumps;
+      document.getElementById('a_val').innerText = data.nextTask;
       drawPixels();
     })
-    .catch(err => console.error("Errore caricamento:", err));
+    .catch(error => {
+      console.error("Errore fetch:", error);
+      document.getElementById('a_val').innerText = "Errore Connessione";
+    });
 }
   
   
