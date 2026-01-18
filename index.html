@@ -185,7 +185,11 @@ function loadStats() {
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCywiaNzlvKMREjX9KDwIaUfw2QGKjvzDEwVKiuJ4X6xyJxCsyq4k40NssqjtrU-UL/exec"
   
   // Aggiungiamo un parametro casuale per evitare che il browser usi dati vecchi (cache)
-  fetch(SCRIPT_URL + "?cache=" + Math.random())
+  fetch(SCRIPT_URL + "?t=" + new Date().getTime()) // Questo forza il browser a scaricare dati nuovi
+  .then(response => response.json())
+  .then(data => {
+  
+    fetch(SCRIPT_URL + "?cache=" + Math.random())
     .then(response => {
       if (!response.ok) throw new Error('Errore di rete');
       return response.json();
