@@ -2,8 +2,11 @@
 <html>
 <head>
   <base target="_top">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
   /*Schermata di boot*/
 
@@ -83,24 +86,28 @@
   .value { font-size: 20px; }
 
 /* Contenitore flessibile */
-.pixel-container { 
-    display: flex;
-    flex-wrap: wrap; /* Se non ci stanno, vanno a capo */
+.pixel-container {
+    display: grid;
+    /* Crea colonne quadrate che si adattano alla larghezza dello schermo */
+    grid-template-columns: repeat(7, 1fr); 
     gap: 8px;
     width: 100%;
-    max-width: 350px; /* Misura di sicurezza per i telefoni */
+    max-width: 400px;
     margin: 20px auto;
-    justify-content: flex-start;
-  }
-/* Pixel con misura FISSA */
-  .pixel { 
-    background: #1a1a1a; 
-    border-radius: 2px;
-    width: 40px;  /* Misura fissa per Settimana/Mese */
-    height: 40px;
-    box-sizing: border-box;
-  }
+}
 
+.pixel {
+    aspect-ratio: 1 / 1; /* Forza il pixel a restare un quadrato perfetto */
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 2px;
+}
+
+.pixel.active {
+    background: #00ff41;
+    box-shadow: 0 0 10px #00ff41;
+    border: none;
+}
   /* SETTIMANA: 7 colonne (circa 12% l'una) */
   .grid-7 { grid-template-columns: repeat(7, 12%); }
 
