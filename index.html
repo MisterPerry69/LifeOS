@@ -37,7 +37,6 @@
     width: 60px; /* Piccolino e discreto */
     height: 60px;
     filter: drop-shadow(0 0 10px var(--accent)); /* Effetto glow verde */
-    margin-bottom: 15px;
 }
 
 /* Un piccolo loader rotante sotto il logo stile XP */
@@ -105,18 +104,34 @@
     .btn { background: none; border: none; color: var(--text); font-size: 16px; cursor: pointer; }
     .view-toggle { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 3px; }
 
-    input { 
-      width: 100%; background: #000; border: 1px solid #333; padding: 15px; 
-      color: var(--accent); font-family: inherit; margin-bottom: 20px; outline: none;
-    }
-  </style>
+input { 
+    width: 100%; 
+    background: #000; 
+    border: 1px solid #333; 
+    border-radius: 4px; 
+    padding: 15px; 
+    color: var(--accent); 
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 14px; 
+    outline: none; 
+    box-sizing: border-box; /* QUESTO risolve lo strabordamento */
+    margin-bottom: 20px;
+    display: block; /* Assicura che si comporti bene nel layout */
+}  
+ input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+  }
+
+</style>
+
 </head>
 
 <body>
   <div id="boot-screen">
     <div id="boot-text"></div>
     <div id="boot-logo-container">
-        <div style="font-size: 40px; margin-bottom: 10px;">⚡</div>
+        <img src="icon.png" id="boot-logo" alt="Logo">
         
         <div class="boot-spinner"></div>
     </div>
