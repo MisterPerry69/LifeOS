@@ -11,29 +11,24 @@
   /*Schermata di boot*/
 
 #boot-screen {
-  /* Diventa uno scudo totale */
-  position: fixed; 
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #000; /* Nero assoluto */
-  color: #00ff41;
-  font-family: 'Courier New', monospace;
-  z-index: 99999; /* Numero altissimo per stare SOPRA a tutto */
-  
-  /* Layout per le scritte e il logo */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* Scritte sopra, logo centro, spazio sotto */
-  padding: 20px;
-  box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #000 !important; /* Forza il nero */
+    color: #00ff41;
+    font-family: 'Courier New', monospace;
+    z-index: 999999; /* Sopra a ogni cosa */
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
 }
 
 #boot-text {
-  text-align: left;
-  font-size: 14px;
-  line-height: 1.4;
+    font-size: 12px;
+    text-transform: uppercase;
+    white-space: pre-wrap; /* Mantiene gli a capo */
 }
 
 #boot-logo-container {
@@ -88,21 +83,18 @@
 /* Contenitore flessibile */
 .pixel-container {
     display: grid;
-    /* Crea colonne quadrate che si adattano alla larghezza dello schermo */
-    grid-template-columns: repeat(7, 1fr); 
-    gap: 8px;
+    grid-template-columns: repeat(7, 1fr); /* 7 giorni per riga su mobile */
+    gap: 5px;
     width: 100%;
-    max-width: 400px;
-    margin: 20px auto;
+    margin-top: 20px;
 }
 
 .pixel {
-    aspect-ratio: 1 / 1; /* Forza il pixel a restare un quadrato perfetto */
-    background: #1a1a1a;
-    border: 1px solid #333;
-    border-radius: 2px;
+    width: 100%;
+    aspect-ratio: 1/1; /* Quadrati perfetti sempre */
+    background: #111;
+    border: 1px solid #222;
 }
-
 .pixel.active {
     background: #00ff41;
     box-shadow: 0 0 10px #00ff41;
@@ -248,16 +240,12 @@ function drawPixels(history = []) {
   }
 
   // Avvio automatico
-  window.onload = () => {
+window.onload = () => {
+    console.log("Sistema avviato...");
+    // Forza la visibilità del boot se per sbaglio è nascosto
+    document.getElementById('boot-screen').style.display = 'flex';
     loadStats();
-    // Aggiorna data e ora
-    const ora = new Date();
-    document.getElementById('dateStr').innerText = ora.toLocaleDateString('it-IT');
-    setInterval(() => {
-      const d = new Date();
-      document.getElementById('clock').innerText = d.getHours() + ":" + String(d.getMinutes()).padStart(2, '0');
-    }, 1000);
-  };
+};
 
   // Registrazione Service Worker per PWA
   if ('serviceWorker' in navigator) {
