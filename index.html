@@ -130,14 +130,25 @@
   }
 
   function loadStats() {
-    fetch(SCRIPT_URL + "?action=getStats&t=" + new Date().getTime())
-      .then(res => res.json())
+    // 2. Creiamo l'indirizzo completo prima, così se c'è un errore lo vediamo meglio
+    const finalUrl = SCRIPT_URL + "?action=getStats&t=" + Date.now();
+    
+    console.log("Tentativo di connessione a:", finalUrl);
+
+    fetch(finalUrl)
+      .then(res => {
+        if (!res.ok) throw new Error('Risposta del server non valida');
+        return res.json();
+      })
       .then(data => {
         document.getElementById('h_val').innerText = data.habits || "--";
         document.getElementById('d_val').innerText = data.dumps || "--";
         document.getElementById('a_val').innerText = data.nextTask || "Pronto";
       })
-      .catch(err => console.error("Errore Caricamento:", err));
+      .catch(err => {
+        console.error("Errore dettagliato:", err);
+        document.getElementById('a_val').innerText = "Errore Link!";
+      });
   }
 
   function drawPixels() {
