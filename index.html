@@ -3,6 +3,7 @@
 <head>
   <base target="_top">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
   /*Schermata di boot*/
 
@@ -46,6 +47,14 @@
   :root { --bg: #0b0b0b; --card: #161616; --accent: #00ff41; --text: #eee; --dim: #555; }
   body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; overflow: hidden; }
   
+.container {
+    width: 100%; /* Si adatta allo schermo */
+    max-width: 500px; /* Ma non diventa gigante su desktop */
+    margin: 0 auto;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
   .page { display: none; height: 100vh; }
   .page.active { display: flex; flex-direction: column; }
 
@@ -121,6 +130,10 @@
   }
   .btn { background: none; border: none; color: var(--text); font-family: inherit; font-size: 16px; cursor: pointer; }
   .view-toggle { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 3px; }
+  .widget {
+    min-height: 80px;
+    margin-bottom: 15px;
+}
 </style>
 
 <body>
