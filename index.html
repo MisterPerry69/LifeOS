@@ -4,6 +4,25 @@
   <base target="_top">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+  /*Schermata di boot*/
+  #boot-screen {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: #000;
+  color: #00ff41;
+  font-family: 'Courier New', Courier, monospace;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 20px;
+  z-index: 10000;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.cursor { display: inline-block; width: 8px; height: 15px; background: #00ff41; animation: blink 0.8s infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+    
   :root { --bg: #0b0b0b; --card: #161616; --accent: #00ff41; --text: #eee; --dim: #555; }
   body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; overflow: hidden; }
   
@@ -85,6 +104,10 @@
 </style>
 
 <body>
+    <div id="boot-screen">
+      <div id="boot-text"></div>
+      <span class="cursor"></span>
+    </div>
   <div id="home" class="page active">
     <div class="header">
       <h1>SYSTEM_OS</h1>
@@ -92,7 +115,7 @@
     </div>
     <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
     <div class="grid">
-      <div class="widget" onclick="openHabit('Palestra')"><span class="label">Habits</span><div class="value" id="h_val">--</div></div>
+      <div class="widget" onclick="nav('habit')" style="cursor:pointer"><span class="label">Habits</span><div class="value" id="h_val">--</div></div>
       <div class="widget" onclick="nav('dump')"><span class="label">Notes</span><div class="value" id="d_val">--</div></div>
       <div class="widget full" onclick="nav('agenda')"><span class="label">Next</span><div class="value" id="a_val" style="font-size:14px">...</div></div>
     </div>
@@ -130,26 +153,39 @@
   }
 
   function loadStats() {
-    // 2. Creiamo l'indirizzo completo prima, così se c'è un errore lo vediamo meglio
-    const finalUrl = SCRIPT_URL + "?action=getStats&t=" + Date.now();
-    
-    console.log("Tentativo di connessione a:", finalUrl);
+  const bootText = document.getElementById('boot-text');
+  const lines = [
+    "> INITIALIZING LIFE_OS...",
+    "> CONNECTING TO NEURAL_LINK...",
+    "> ACCESSING GOOGLE_SHEETS_DATABASE...",
+    "> DECRYPTING HABIT_LOGS..."
+  ];
+  
+  // Effetto scrittura automatica per il boot
+  lines.forEach((line, i) => {
+    setTimeout(() => {
+      bootText.innerHTML += line + "<br>";
+    }, i * 500);
+  });
 
-    fetch(finalUrl)
-      .then(res => {
-        if (!res.ok) throw new Error('Risposta del server non valida');
-        return res.json();
-      })
-      .then(data => {
-        document.getElementById('h_val').innerText = data.habits || "--";
-        document.getElementById('d_val').innerText = data.dumps || "--";
-        document.getElementById('a_val').innerText = data.nextTask || "Pronto";
-      })
-      .catch(err => {
-        console.error("Errore dettagliato:", err);
-        document.getElementById('a_val').innerText = "Errore Link!";
-      });
-  }
+  fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
+    .then(res => res.json())
+    .then(data => {
+      // Quando i dati sono pronti, mostriamo l'ultima riga e chiudiamo il boot
+      bootText.innerHTML += "> SYSTEM ONLINE. WELCOME.<br>";
+      
+      document.getElementById('h_val').innerText = data.habits;
+      document.getElementById('d_val').innerText = data.dumps;
+      document.getElementById('a_val').innerText = data.nextTask;
+      
+      setTimeout(() => {
+        document.getElementById('boot-screen').style.display = 'none';
+      }, 1000); // Ti lascia il tempo di leggere "System Online"
+    })
+    .catch(err => {
+      bootText.innerHTML += "<span style='color:red'>> CONNECTION FAILED.</span>";
+    });
+}
 
   function drawPixels() {
     const container = document.getElementById('pixels');
