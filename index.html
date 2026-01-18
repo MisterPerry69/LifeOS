@@ -21,6 +21,48 @@
     #boot-text { font-size: 12px; text-transform: uppercase; white-space: pre-wrap; margin-bottom: 10px; }
     .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent); animation: blink 0.8s infinite; }
     @keyframes blink { 50% { opacity: 0; } }
+    
+    #boot-logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centratura perfetta */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#boot-logo {
+    width: 60px; /* Piccolino e discreto */
+    height: 60px;
+    filter: drop-shadow(0 0 10px var(--accent)); /* Effetto glow verde */
+    margin-bottom: 15px;
+}
+
+/* Un piccolo loader rotante sotto il logo stile XP */
+.boot-spinner {
+    width: 30px;
+    height: 3px;
+    background-color: #111;
+    position: relative;
+    overflow: hidden;
+}
+
+.boot-spinner::after {
+    content: "";
+    position: absolute;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--accent);
+    animation: loading-bar 1.5s infinite linear;
+}
+
+@keyframes loading-bar {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
 
     /* Layout */
     .container { width: 100%; max-width: 500px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
@@ -73,6 +115,11 @@
 <body>
   <div id="boot-screen">
     <div id="boot-text"></div>
+    <div id="boot-logo-container">
+        <div style="font-size: 40px; margin-bottom: 10px;">⚡</div>
+        
+        <div class="boot-spinner"></div>
+    </div>
     <div><span class="cursor"></span></div>
   </div>    
 
