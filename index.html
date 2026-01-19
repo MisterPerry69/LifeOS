@@ -166,6 +166,18 @@ input {
 }
 #side-menu p i { margin-right: 10px; color: var(--dim); }
 
+.extra-month-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #222;
+    background: var(--card);
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+.extra-month-row .month { color: var(--accent); font-size: 12px; }
+.extra-month-row .hours { font-weight: bold; }
+
 </style>
 
 </head>
@@ -264,6 +276,15 @@ input {
       <button class="btn">🗑️</button>
     </div>
   </div>
+
+  <div id="extra-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:1000; padding:20px; overflow-y:auto;">
+    <div class="header">
+        <h1>RECAP_STRAORDINARI</h1>
+        <div class="info" onclick="document.getElementById('extra-modal').style.display='none'">CHIUDI [X]</div>
+    </div>
+    <div id="extra-list-content">
+        </div>
+</div>
 
 <script>
   let menuOpen = false;
@@ -386,14 +407,20 @@ async function loadStats() {
     if (!cmdText) return;
 
     let targetService = "note";
-    if (/^\d{1,2}[a-z]{3}\+/.test(cmdText)) { targetService = "extra_hours"; }
-    else if (/^\d+(\.\d+)?\s?kg/i.test(cmdText)) { targetService = "health_weight"; }
-    else if (/^http/.test(cmdText)) { targetService = "link"; }
-    else if (/^h\d/i.test(cmdText)) { targetService = "habit_log"; }
+    // REGEX POTENZIATA
+    const regexOggi = /^\+(\d+(\.\d+)?)$/; // Es: +1.5
+    const regexIeri = /^ieri\+(\d+(\.\d+)?)$/; // Es: ieri+2
+    const regexData = /^(\d{1,2})([a-z]{3})\+(\d+(\.\d+)?)$/; // Es: 15gen+3
 
-    input.placeholder = "INVIO: " + targetService.toUpperCase() + "...";
-    input.value = "";
-
+    if (regexOggi.test(cmdText) || regexIeri.test(cmdText) || regexData.test(cmdText)) {
+      targetService = "extra_hours";
+    } else if (/^\d+(\.\d+)?\s?kg/i.test(cmdText)) {
+      targetService = "health_weight";
+    } else if (/^http/.test(cmdText)) {
+      targetService = "link";
+    } else if (/^h\d/i.test(cmdText)) {
+      targetService = "habit_log";
+    }
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
