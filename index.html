@@ -123,6 +123,18 @@ input {
     box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
   }
 
+  .widget .value {
+  font-size: 32px; /* Icone belle grandi */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+}
+.widget .label {
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
 </style>
 
 </head>
@@ -144,12 +156,29 @@ input {
       <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
     </div>
     <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
+
+
     <div class="grid">
-      <div class="widget" onclick="nav('habit')"><span class="label">Habits</span><div class="value" id="h_val">--</div></div>
-      <div class="widget" onclick="nav('dump')"><span class="label">Notes</span><div class="value" id="d_val">--</div></div>
-      <div class="widget full" onclick="nav('agenda')"><span class="label">Next</span><div class="value" id="a_val" style="font-size:14px">...</div></div>
-    </div>
+  <div class="widget" onclick="nav('braindump')">
+    <span class="label">Brain</span>
+    <div class="value">🧠</div>
   </div>
+  
+  <div class="widget" onclick="nav('trackers')">
+    <span class="label">Status</span>
+    <div class="value">📈</div>
+  </div>
+  
+  <div class="widget" onclick="nav('health')">
+    <span class="label">Body</span>
+    <div class="value">💪</div>
+  </div>
+  
+  <div class="widget" onclick="nav('agenda')">
+    <span class="label">Plan</span>
+    <div class="value">🗓️</div>
+  </div>
+</div>  </div>
 
   <div id="habit" class="page">
     <div class="header">
@@ -251,6 +280,46 @@ input {
     setInterval(updateClock, 1000);
     loadStats();
   };
+
+  function sendCmd(event) {
+  if (event.key === 'Enter') {
+    const input = document.getElementById('cmd');
+    const cmdText = input.value.trim();
+    if (!cmdText) return;
+
+    let targetService = "note"; // Default: va nel braindump generico
+    
+    // LOGICA DI SMISTAMENTO (Smart Routing)
+    if (/^\d{1,2}[a-z]{3}\+/.test(cmdText)) {
+      targetService = "extra_hours"; // Es: 19gen+2
+    } else if (/^\d+(\.\d+)?\s?kg/i.test(cmdText)) {
+      targetService = "health_weight"; // Es: 75.5kg
+    } else if (/^http/.test(cmdText)) {
+      targetService = "link"; // Es: https://...
+    } else if (/^h\d/i.test(cmdText)) {
+      targetService = "habit_log"; // Es: h1 (habit 1 fatto)
+    }
+
+    // Feedback visivo
+    input.placeholder = "SMISTAMENTO: " + targetService.toUpperCase() + "...";
+    input.value = "";
+
+    // Invio al database (Google Apps Script)
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({ 
+        action: "universal_input",
+        service: targetService,
+        text: cmdText,
+        timestamp: new Date().toISOString()
+      })
+    }).then(() => {
+      input.placeholder = "> REGISTRATO!";
+      setTimeout(() => input.placeholder = "> DIGITA...", 2000);
+    });
+  }
+}
 </script>
 </body>
 </html>
