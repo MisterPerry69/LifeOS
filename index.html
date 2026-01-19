@@ -187,6 +187,9 @@ input {
     padding: 20px;
     flex-direction: column;
     animation: slideUp 0.2s ease-out;
+    background: var(--card) !important; /* Colore card per coerenza */
+    display: none;
+    flex-direction: column;
 }
 
 @keyframes slideUp {
@@ -217,6 +220,9 @@ input {
         border-radius: 12px;
         border: 1px solid #333;
         box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        background: var(--card) !important; /* Colore card per coerenza */
+        display: none;
+        flex-direction: column;
     }
     @keyframes slideUp {
         from { opacity: 0; transform: translate(-50%, -45%); }
@@ -224,12 +230,19 @@ input {
     }
 }
 
-/* Classi Colore */
-.bg-default { background: var(--bg); }
-.bg-blue { background: #1a237e; }
-.bg-red { background: #b71c1c; }
-.bg-green { background: #1b5e20; }
-.bg-yellow { background: #fbc02d; color: black !important; }
+/* Pointer per interazione */
+.keep-card, .info, .tool-icon, #detail-extra-list span {
+    cursor: pointer;
+}
+
+/* Overlay di sfondo per chiudere cliccando fuori (solo desktop) */
+#modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+}
 
 /* Toolbar in basso alla nota */
 .note-toolbar {
@@ -246,12 +259,12 @@ input {
 }
 .tool-icon:hover { opacity: 1; color: var(--accent); }
 
-.bg-default { background: #000; }
-.bg-blue { background: #1a237e; color: white; }
-.bg-red { background: #b71c1c; color: white; }
-.bg-green { background: #1b5e20; color: white; }
-.bg-yellow { background: #fbc02d; color: black !important; }
-.keep-card.bg-yellow .label { color: rgba(0,0,0,0.6); }
+/* Colori discreti solo sul bordo sinistro */
+.bg-default { border-left: 3px solid var(--dim) !important; }
+.bg-blue { border-left: 3px solid #4285f4 !important; }
+.bg-red { border-left: 3px solid #ea4335 !important; }
+.bg-green { border-left: 3px solid #34a853 !important; }
+.bg-yellow { border-left: 3px solid #fbbc05 !important; }
 
 #detail-extra-list { width: 100%; color: white; margin-top: 10px; }
 
@@ -359,6 +372,9 @@ input {
        <p style="color:var(--dim)">Caricamento storico...</p>
     </div>
 </div>
+
+<div id="modal-backdrop" onclick="saveAndClose()"></div>
+
 <div id="note-detail" class="note-overlay">
     <div class="header">
         <h1 id="detail-type">NOTA</h1>
@@ -421,45 +437,38 @@ function toggleSearch() {
 let extraItemsGlobal = [];
 
 async function loadStats() {
-    const bootText = document.getElementById('boot-text');
-    if (bootText) bootText.innerHTML = ""; 
-    await bootLog("> INIT SYSTEM_OS...", 150);
-    await bootLog("> CONNECTING TO DATABASE...", 150);
-    
     fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
       .then(res => res.json())
-      .then(async data => {
+      .then(data => {
         if (data.status === "ONLINE") {
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
             const grid = document.getElementById('keep-grid');
             if (grid) {
                 grid.innerHTML = "";
-                // Card Extra
+                // Card Extra (Speciale)
                 grid.innerHTML += `
-                  <div class="keep-card" onclick="openExtraDetail()" style="border-left: 3px solid var(--accent); cursor:pointer;">
+                  <div class="keep-card bg-default" onclick="openExtraDetail()" style="border-left: 3px solid var(--accent) !important;">
                       <div class="label">EXTRA_TOTAL</div>
                       <div style="font-size: 24px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
                       <div style="font-size: 9px; color: var(--dim); text-transform: uppercase;">${data.monthLabel}</div>
                   </div>`;
-                // Card Note
+                // Card Note (Procedurali)
                 data.notes.forEach(note => {
                     let d = new Date(note[0]);
                     let dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
                     let tStr = d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
-                    const colorClass = "bg-" + note[3];
                     grid.innerHTML += `
-                      <div class="keep-card ${colorClass}" onclick="openNote('${note[1].replace(/'/g, "\\'")}', 'NOTE', '${dStr} ${tStr}', '${note[3]}', ${note[4]})">
+                      <div class="keep-card bg-${note[3]}" onclick="openNote('${note[1].replace(/'/g, "\\'")}', 'NOTE', '${dStr} ${tStr}', '${note[3]}', ${note[4]})">
                           <div class="label">${dStr} - ${tStr}</div>
                           <div style="font-size: 13px; line-height: 1.4;">${note[1]}</div>
                       </div>`;
                 });
             }
-            await bootLog("> CORE ONLINE.", 150);
-            setTimeout(() => { document.getElementById('boot-screen').style.display = 'none'; }, 500);
         }
       });
 }
+
 
   function drawPixels(history = []) {
     const container = document.getElementById('pixels');
@@ -536,18 +545,38 @@ function sendCmd(event) {
 // Variabile globale per sapere cosa stiamo modificando
 let currentNoteId = null; 
 
-function openNote(text, type, date, color, id) {
-    currentNoteData = { id: id, type: type };
-    const modal = document.getElementById('note-detail');
-    document.getElementById('detail-text').value = text;
-    document.getElementById('detail-text').style.display = "block";
-    document.getElementById('detail-extra-list').style.display = "none";
-    document.getElementById('detail-type').innerText = type;
-    document.getElementById('detail-date').innerText = date;
-    modal.className = 'note-overlay bg-' + color;
-    modal.style.display = 'flex';
+async function loadStats() {
+    fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "ONLINE") {
+            historyData = data.history || [];
+            extraItemsGlobal = data.extraDetails || [];
+            const grid = document.getElementById('keep-grid');
+            if (grid) {
+                grid.innerHTML = "";
+                // Card Extra (Speciale)
+                grid.innerHTML += `
+                  <div class="keep-card bg-default" onclick="openExtraDetail()" style="border-left: 3px solid var(--accent) !important;">
+                      <div class="label">EXTRA_TOTAL</div>
+                      <div style="font-size: 24px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
+                      <div style="font-size: 9px; color: var(--dim); text-transform: uppercase;">${data.monthLabel}</div>
+                  </div>`;
+                // Card Note (Procedurali)
+                data.notes.forEach(note => {
+                    let d = new Date(note[0]);
+                    let dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+                    let tStr = d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+                    grid.innerHTML += `
+                      <div class="keep-card bg-${note[3]}" onclick="openNote('${note[1].replace(/'/g, "\\'")}', 'NOTE', '${dStr} ${tStr}', '${note[3]}', ${note[4]})">
+                          <div class="label">${dStr} - ${tStr}</div>
+                          <div style="font-size: 13px; line-height: 1.4;">${note[1]}</div>
+                      </div>`;
+                });
+            }
+        }
+      });
 }
-
 async function saveAndClose() {
     const text = document.getElementById('detail-text').value;
     const type = document.getElementById('detail-type').innerText;
@@ -579,38 +608,61 @@ function loadExtraDetails() {
 function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
+    const backdrop = document.getElementById('modal-backdrop');
     const list = document.getElementById('detail-extra-list');
+    
     document.getElementById('detail-text').style.display = "none";
     list.style.display = "block";
     document.getElementById('detail-type').innerText = "DETTAGLIO_EXTRA";
     
     list.innerHTML = extraItemsGlobal.map(item => `
-        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333; font-size:12px;">
-            <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} (+${item.ore}h) - ${item.nota}</span>
-            <span onclick="deleteItem(${item.id}, 'EXTRA')" style="color:red; cursor:pointer;">ELIMINA</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #333;">
+            <div contenteditable="true" onblur="updateExtraText(${item.id}, this.innerText)" style="flex-grow:1; font-size:12px; outline:none;">
+                ${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} (+${item.ore}h) - ${item.nota}
+            </div>
+            <span onclick="deleteItem(${item.id}, 'EXTRA')" style="color:#ea4335; font-size:16px; margin-left:10px;">🗑️</span>
         </div>
     `).join('');
+    
     modal.className = 'note-overlay bg-default';
     modal.style.display = 'flex';
+    if(backdrop) backdrop.style.display = 'block';
+    document.body.classList.add('modal-open');
 }
 
 async function deleteItem(id, type) {
-    if (!confirm("Eliminare definitivamente?")) return;
+    if (!confirm("Eliminare?")) return;
     fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
+        method: 'POST', mode: 'no-cors',
         body: JSON.stringify({ service: "delete_item", id: id, type: type })
-    }).then(() => {
-        document.getElementById('note-detail').style.display = 'none';
-        loadStats();
-    });
+    }).then(() => saveAndClose());
 }
 
-function saveAndClose() {
-    // Il salvataggio modifiche testo richiede un'action specifica, per ora chiudiamo
-    document.getElementById('note-detail').style.display = 'none';
-}
 
+async function saveAndClose() {
+    const text = document.getElementById('detail-text').value;
+    const modal = document.getElementById('note-detail');
+    const backdrop = document.getElementById('modal-backdrop');
+
+    if (currentNoteData && currentNoteData.type === 'NOTE') {
+        // Invio aggiornamento al DB
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ 
+                service: "update_note", 
+                id: currentNoteData.id, 
+                text: text, 
+                color: currentNoteData.color 
+            })
+        });
+    }
+
+    modal.style.display = 'none';
+    if(backdrop) backdrop.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    loadStats();
+}
 </script>
 </body>
 </html>
