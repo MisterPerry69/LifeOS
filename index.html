@@ -645,8 +645,10 @@ async function saveAndClose() {
     const backdrop = document.getElementById('modal-backdrop');
 
     if (currentNoteData && currentNoteData.type === 'NOTE') {
-        // Invio aggiornamento al DB
-        fetch(SCRIPT_URL, {
+        // Mostra un caricamento discreto nell'input placeholder
+        document.getElementById('cmd').placeholder = "SALVATAGGIO...";
+        
+        await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({ 
@@ -661,8 +663,20 @@ async function saveAndClose() {
     modal.style.display = 'none';
     if(backdrop) backdrop.style.display = 'none';
     document.body.classList.remove('modal-open');
-    loadStats();
+    loadStats(); // Ricarica tutto
 }
+
+function changeNoteColor(colorName) {
+    if (currentNoteData && currentNoteData.type === 'NOTE') {
+        const modal = document.getElementById('note-detail');
+        // Rimuove vecchie classi colore e mette la nuova
+        modal.classList.remove('bg-default', 'bg-blue', 'bg-red', 'bg-green', 'bg-yellow');
+        modal.classList.add('bg-' + colorName);
+        currentNoteData.color = colorName;
+    }
+}
+
+
 </script>
 </body>
 </html>
