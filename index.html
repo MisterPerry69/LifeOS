@@ -251,11 +251,7 @@ input {
                onkeypress="sendCmd(event)">
 
         <div id="keep-grid">
-            <div class="keep-card" style="grid-column: span 1;">
-                <div class="label" style="font-size: 8px;" onclick="document.getElementById('extra-modal').style.display='block'">EXTRA_HOURS</div>
-                <div style="font-size: 24px; color: var(--accent);" id="extra-total-dump">0.0h</div>
-                <div style="font-size: 9px; color: var(--dim);">Gennaio 2024</div>
-            </div>
+        </div>
         </div>
     </main>
   </div>
@@ -326,28 +322,72 @@ function toggleSearch() {
 
 async function loadStats() {
     const bootText = document.getElementById('boot-text');
-    bootText.innerHTML = ""; // Reset
+    bootText.innerHTML = ""; // Reset testi boot
     
     await bootLog("> INIT SYSTEM_OS...", 200);
     await bootLog("> LOADING MODULES...", 200);
     await bootLog("> CONNECTING TO DATABASE...", 200);
     
     fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
       .then(async data => {
         if (data.status === "ONLINE") {
+            // 1. Salvataggio dati per i pixel
             historyData = data.history || [];
-            document.getElementById('extra-total-dump').innerText = data.extraTotal + "h";
-            document.getElementById('extra-total-dump').nextElementSibling.innerText = data.monthLabel;
+            
+            // 2. Popolamento Procedurale della Grid nel BrainDump
+            const grid = document.getElementById('keep-grid');
+            if (grid) {
+                grid.innerHTML = ""; // Puliamo la grid esistente
 
+                // A. Creazione Card Extra (Speciale)
+                const extraCard = `
+                  <div class="keep-card" onclick="alert('Dettaglio ore in costruzione')" style="border-left: 3px solid var(--accent); cursor:pointer;">
+                      <div class="label">EXTRA_TOTAL</div>
+                      <div style="font-size: 24px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
+                      <div style="font-size: 9px; color: var(--dim); text-transform: uppercase;">${data.monthLabel}</div>
+                  </div>`;
+                grid.innerHTML += extraCard;
+
+                // B. Creazione Card Note Dinamiche (Ultime 10 dal DB)
+                if (data.notes && data.notes.length > 0) {
+                    data.notes.forEach(note => {
+                        // note[0] è il timestamp, note[1] è il testo, note[2] è il tipo
+                        let dataNota = new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+                        let oraNota = new Date(note[0]).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+                        
+                        const noteCard = `
+                          <div class="keep-card">
+                              <div class="label">${dataNota} - ${oraNota} [${note[2]}]</div>
+                              <div style="font-size: 13px; line-height: 1.4; color: var(--text);">${note[1]}</div>
+                          </div>`;
+                        grid.innerHTML += noteCard;
+                    });
+                }
+            }
+
+            // 3. Log finale e chiusura boot
             await bootLog("> CORE ONLINE. WELCOME.", 200);
-            setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 800);
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.display = 'none';
+                // Se siamo sulla pagina habit, disegna i pixel
+                if(document.getElementById('habit').classList.contains('active')) drawPixels(historyData);
+            }, 800);
+
+        } else {
+            throw new Error(data.details || "Errore Server");
         }
       })
       .catch(async err => {
-        await bootLog("<span style='color:red'>> CONNECTION_FAILED</span>", 0);
+        console.error("Errore Boot:", err);
+        await bootLog("<span style='color:red'>> BOOT_FAILED: CONNECTION_ERROR</span>", 0);
+        await bootLog(`<span style='color:#555; font-size:9px'>> ${err.message}</span>`, 0);
       });
 }
+
 
   function drawPixels(history = []) {
     const container = document.getElementById('pixels');
