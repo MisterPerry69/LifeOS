@@ -305,32 +305,42 @@ function toggleSearch() {
 async function loadStats() {
     await bootLog("> INIT SYSTEM_OS...", 300);
     
+    // Aggiungiamo action=getStats per essere sicuri che chiami il doGet correttamente
     fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
       .then(res => res.json())
       .then(async data => {
         if (data.status === "ONLINE") {
-            // Aggiorna widget Home
-            document.getElementById('h_val').innerText = data.habits;
-            document.getElementById('d_val').innerText = data.dumps;
+            // Salviamo i dati della cronologia per i pixel
+            historyData = data.history || [];
             
-            // Aggiorna Card Extra nel BrainDump
+            // Aggiorna la Card Extra nel BrainDump se esiste
             const extraEl = document.getElementById('extra-total-dump');
             if(extraEl) {
                 extraEl.innerText = data.extraTotal + "h";
-                // Aggiorna anche il label del mese dinamicamente
-                extraEl.nextElementSibling.innerText = data.monthLabel;
+                // Aggiorna il label sotto (es. Gennaio 2026)
+                if(extraEl.nextElementSibling) {
+                    extraEl.nextElementSibling.innerText = data.monthLabel;
+                }
             }
 
             await bootLog("> SYSTEM ONLINE.", 300);
-            setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 800);
+            // Nasconde il boot screen
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.display = 'none';
+                // Disegna i pixel se sei nella pagina habit
+                if(document.getElementById('habit').classList.contains('active')) drawPixels(historyData);
+            }, 800);
         } else {
-            throw new Error(data.details);
+            throw new Error(data.details || "Unknown Error");
         }
       })
       .catch(err => {
-        document.getElementById('boot-text').innerHTML += `<span style='color:red'>> BOOT_ERROR: ${err.message}</span>`;
+        console.error(err);
+        document.getElementById('boot-text').innerHTML += `<br><span style='color:#ff4444'>> BOOT_ERROR: CONNECTION_FAILED</span><br><span style='color:#555; font-size:10px;'>${err.message}</span>`;
       });
 }
+
+
   function drawPixels(history = []) {
     const container = document.getElementById('pixels');
     const label = document.getElementById('viewLabel');
