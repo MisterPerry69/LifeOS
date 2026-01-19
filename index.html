@@ -407,98 +407,48 @@ function toggleSearch() {
     });
   }
 
+  let currentNoteData = null;
+let extraItemsGlobal = [];
+
 async function loadStats() {
     const bootText = document.getElementById('boot-text');
     if (bootText) bootText.innerHTML = ""; 
-    
-    await bootLog("> INIT SYSTEM_OS...", 200);
-    await bootLog("> LOADING MODULES...", 200);
-    await bootLog("> CONNECTING TO DATABASE...", 200);
+    await bootLog("> INIT SYSTEM_OS...", 150);
+    await bootLog("> CONNECTING TO DATABASE...", 150);
     
     fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
-      .then(res => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
+      .then(res => res.json())
       .then(async data => {
         if (data.status === "ONLINE") {
-            // 1. Salvataggio dati per i pixel (Status)
             historyData = data.history || [];
-            
-            // 2. Popolamento Procedurale della Grid nel BrainDump
+            extraItemsGlobal = data.extraDetails || [];
             const grid = document.getElementById('keep-grid');
             if (grid) {
-                grid.innerHTML = ""; // Pulisce la griglia
-
-                // A. Card Extra (Speciale)
-                // Cliccando questa apriremo il dettaglio degli straordinari
-                const extraCard = `
-                  <div class="keep-card" onclick="alert('Dettaglio Straordinari in arrivo')" style="border-left: 3px solid var(--accent); cursor:pointer;">
+                grid.innerHTML = "";
+                // Card Extra
+                grid.innerHTML += `
+                  <div class="keep-card" onclick="openExtraDetail()" style="border-left: 3px solid var(--accent); cursor:pointer;">
                       <div class="label">EXTRA_TOTAL</div>
                       <div style="font-size: 24px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
                       <div style="font-size: 9px; color: var(--dim); text-transform: uppercase;">${data.monthLabel}</div>
                   </div>`;
-                grid.innerHTML += extraCard;
-
-                // B. Card Note Dinamiche (Ultime 15 dal DB)
-                if (data.notes && data.notes.length > 0) {
-                    data.notes.forEach(note => {
-                        // note[0] = Timestamp, note[1] = Testo, note[2] = Tipo
-                        let d = new Date(note[0]);
-                        let dataNota = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
-                        let oraNota = d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
-                        
-                        // Prepariamo il testo per essere passato alla funzione JS senza rompere le virgolette
-                        const safeText = note[1].replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                        
-                        const noteCard = `
-                          <div class="keep-card" onclick="openNote('${safeText}', '${note[2]}', '${dataNota} ${oraNota}')">
-                              <div class="label">${dataNota} - ${oraNota} [${note[2]}]</div>
-                              <div style="font-size: 13px; line-height: 1.4; color: var(--text);">${note[1]}</div>
-                          </div>`;
-                        grid.innerHTML += noteCard;
-                    });
-                }
+                // Card Note
+                data.notes.forEach(note => {
+                    let d = new Date(note[0]);
+                    let dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+                    let tStr = d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+                    const colorClass = "bg-" + note[3];
+                    grid.innerHTML += `
+                      <div class="keep-card ${colorClass}" onclick="openNote('${note[1].replace(/'/g, "\\'")}', 'NOTE', '${dStr} ${tStr}', '${note[3]}', ${note[4]})">
+                          <div class="label">${dStr} - ${tStr}</div>
+                          <div style="font-size: 13px; line-height: 1.4;">${note[1]}</div>
+                      </div>`;
+                });
             }
-
-            // 3. Log finale e chiusura boot
-            await bootLog("> CORE ONLINE. WELCOME.", 200);
-            setTimeout(() => {
-                const bootScreen = document.getElementById('boot-screen');
-                if (bootScreen) bootScreen.style.display = 'none';
-                
-                // Disegna i pixel se la pagina habit è quella attiva
-                if(document.getElementById('habit') && document.getElementById('habit').classList.contains('active')) {
-                    drawPixels(historyData);
-                }
-            }, 800);
-
-        } else {
-            throw new Error(data.details || "Errore Server");
-        }
-      })
-      .catch(async err => {
-        console.error("Errore Boot:", err);
-        if (bootText) {
-            bootText.innerHTML += `<br><span style='color:red'>> BOOT_FAILED: ${err.message}</span>`;
+            await bootLog("> CORE ONLINE.", 150);
+            setTimeout(() => { document.getElementById('boot-screen').style.display = 'none'; }, 500);
         }
       });
-}
-
-// Funzioni per gestire la Modal Fullscreen delle Note
-function openNote(text, type, date) {
-    const modal = document.getElementById('note-detail');
-    if (modal) {
-        document.getElementById('detail-text').value = text;
-        document.getElementById('detail-type').innerText = type;
-        document.getElementById('detail-date').innerText = date;
-        modal.style.display = 'flex';
-    }
-}
-
-function closeNote() {
-    const modal = document.getElementById('note-detail');
-    if (modal) modal.style.display = 'none';
 }
 
   function drawPixels(history = []) {
@@ -576,27 +526,15 @@ function sendCmd(event) {
 // Variabile globale per sapere cosa stiamo modificando
 let currentNoteId = null; 
 
-function openNote(text, type, date, color = 'default') {
+function openNote(text, type, date, color, id) {
+    currentNoteData = { id: id, type: type };
     const modal = document.getElementById('note-detail');
-    const textArea = document.getElementById('detail-text');
-    const extraList = document.getElementById('detail-extra-list');
-    
-    // Reset colori
-    modal.className = 'note-overlay bg-' + color;
-    
+    document.getElementById('detail-text').value = text;
+    document.getElementById('detail-text').style.display = "block";
+    document.getElementById('detail-extra-list').style.display = "none";
     document.getElementById('detail-type').innerText = type;
     document.getElementById('detail-date').innerText = date;
-
-    if (type === 'EXTRA_TOTAL') {
-        textArea.style.display = 'none';
-        extraList.style.display = 'block';
-        loadExtraDetails(); // Funzione che chiamerà il DB
-    } else {
-        textArea.style.display = 'block';
-        extraList.style.display = 'none';
-        textArea.value = text;
-    }
-    
+    modal.className = 'note-overlay bg-' + color;
     modal.style.display = 'flex';
 }
 
@@ -626,6 +564,41 @@ function loadExtraDetails() {
             <span style="color:red; cursor:pointer">Elimina</span>
         </div>
     `;
+}
+
+function openExtraDetail() {
+    currentNoteData = { type: "EXTRA" };
+    const modal = document.getElementById('note-detail');
+    const list = document.getElementById('detail-extra-list');
+    document.getElementById('detail-text').style.display = "none";
+    list.style.display = "block";
+    document.getElementById('detail-type').innerText = "DETTAGLIO_EXTRA";
+    
+    list.innerHTML = extraItemsGlobal.map(item => `
+        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #333; font-size:12px;">
+            <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} (+${item.ore}h) - ${item.nota}</span>
+            <span onclick="deleteItem(${item.id}, 'EXTRA')" style="color:red; cursor:pointer;">ELIMINA</span>
+        </div>
+    `).join('');
+    modal.className = 'note-overlay bg-default';
+    modal.style.display = 'flex';
+}
+
+async function deleteItem(id, type) {
+    if (!confirm("Eliminare definitivamente?")) return;
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ service: "delete_item", id: id, type: type })
+    }).then(() => {
+        document.getElementById('note-detail').style.display = 'none';
+        loadStats();
+    });
+}
+
+function saveAndClose() {
+    // Il salvataggio modifiche testo richiede un'action specifica, per ora chiudiamo
+    document.getElementById('note-detail').style.display = 'none';
 }
 
 </script>
