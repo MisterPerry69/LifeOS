@@ -1,5 +1,29 @@
-<style>
-    :root { --bg: #0b0b0b; --card: #161616; --accent: #00ff41; --text: #eee; --dim: #555; }
+:root {
+    --bg: #0b0b0b;
+    --card: #161616;
+    --accent: #00ff41; /* Verde Matrix */
+    --text: #eee;
+    --dim: #555;
+}
+
+/* Colori Note - Forza il bordo sinistro */
+.bg-default { border-left: 4px solid var(--dim) !important; }
+.bg-blue    { border-left: 4px solid #4285f4 !important; }
+.bg-red     { border-left: 4px solid #ea4335 !important; }
+.bg-green   { border-left: 4px solid #34a853 !important; }
+.bg-yellow  { border-left: 4px solid #fbbc05 !important; }
+
+/* Se le card sembrano slavate, forza il background */
+.keep-card {
+    background: var(--card);
+    border: 1px solid #333;
+    color: var(--text);
+    padding: 12px;
+    border-radius: 8px;
+    transition: transform 0.1s;
+}    
+
+:root { --bg: #0b0b0b; --card: #161616; --accent: #00ff41; --text: #eee; --dim: #555; }
     
     body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; margin: 0; padding: 0; overflow: hidden; }
 
@@ -257,5 +281,3 @@ input {
 .bg-yellow { border-left: 3px solid #fbbc05 !important; }
 
 #detail-extra-list { width: 100%; color: white; margin-top: 10px; }
-
-</style>
