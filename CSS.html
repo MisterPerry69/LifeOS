@@ -1,0 +1,261 @@
+<style>
+    :root { --bg: #0b0b0b; --card: #161616; --accent: #00ff41; --text: #eee; --dim: #555; }
+    
+    body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; margin: 0; padding: 0; overflow: hidden; }
+
+    /* Schermata di boot */
+    #boot-screen {
+      position: fixed; inset: 0; background: #000; color: var(--accent);
+      font-family: 'Courier New', monospace; z-index: 999999;
+      display: flex; flex-direction: column; padding: 20px;
+    }
+    #boot-text { font-size: 12px; text-transform: uppercase; white-space: pre-wrap; margin-bottom: 10px; }
+    .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent); animation: blink 0.8s infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    
+    #boot-logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centratura perfetta */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#boot-logo {
+    width: 60px; /* Piccolino e discreto */
+    height: 60px;
+    filter: drop-shadow(0 0 10px var(--accent)); /* Effetto glow verde */
+}
+
+/* Un piccolo loader rotante sotto il logo stile XP */
+.boot-spinner {
+    width: 30px;
+    height: 3px;
+    background-color: #111;
+    position: relative;
+    overflow: hidden;
+}
+
+.boot-spinner::after {
+    content: "";
+    position: absolute;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--accent);
+    animation: loading-bar 1.5s infinite linear;
+}
+
+@keyframes loading-bar {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+    /* Layout */
+    .container { width: 100%; max-width: 500px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
+    .page { display: none; height: 100vh; padding: 20px; box-sizing: border-box; }
+    .page.active { display: flex; flex-direction: column; }
+
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+    .header h1 { font-size: 14px; margin: 0; color: var(--accent); text-transform: uppercase; }
+    .header .info { font-size: 10px; color: var(--dim); text-align: right; }
+
+    /* Grid Home */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .widget { background: var(--card); padding: 15px; border: 1px solid #222; border-radius: 4px; cursor: pointer; }
+    .widget.full { grid-column: span 2; }
+    .label { font-size: 9px; color: var(--dim); text-transform: uppercase; margin-bottom: 10px; display: block; }
+    .value { font-size: 20px; }
+
+    /* Pixel Area */
+    .pixel-container {
+      display: grid; gap: 5px; width: 100%; margin-top: 20px;
+    }
+    /* Layout dinamici per le viste */
+    .grid-7 { grid-template-columns: repeat(7, 1fr); }
+    .grid-30 { grid-template-columns: repeat(7, 1fr); }
+    .grid-365 { grid-template-columns: repeat(15, 1fr); gap: 3px; }
+
+    .pixel { aspect-ratio: 1/1; background: #111; border: 1px solid #222; }
+    .pixel.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); border: none; }
+    .grid-365 .pixel { border: none; } /* Più pulito per vista anno */
+
+    .view-label { text-align: center; font-size: 12px; color: var(--accent); margin-bottom: 10px; }
+
+    /* Footer */
+    .footer { 
+      position: fixed; bottom: 0; left: 0; right: 0; 
+      background: #000; border-top: 1px solid #222; 
+      display: flex; justify-content: space-around; padding: 15px; 
+    }
+    .btn { background: none; border: none; color: var(--text); font-size: 16px; cursor: pointer; }
+    .view-toggle { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 3px; }
+
+input { 
+    width: 100%; 
+    background: #000; 
+    border: 1px solid #333; 
+    border-radius: 4px; 
+    padding: 15px; 
+    color: var(--accent); 
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 14px; 
+    outline: none; 
+    box-sizing: border-box; /* QUESTO risolve lo strabordamento */
+    margin-bottom: 20px;
+    display: block; /* Assicura che si comporti bene nel layout */
+}  
+ input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+  }
+
+.widget .value i {
+  color: var(--accent);
+  /* Glow ridotto per coerenza con il resto dell'OS */
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.4); 
+}
+
+.widget {
+    background: var(--card);
+    border: 1px solid #222; /* Bordo sottile come il titolo */
+    transition: all 0.3s ease;
+}
+
+.widget:active {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.1);
+}
+
+#keep-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Default mobile */
+    gap: 10px;
+}
+
+@media (min-width: 768px) {
+    #keep-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.keep-card {
+    background: var(--card);
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+    position: relative;
+}
+
+#side-menu p {
+    margin-bottom: 15px;
+    color: var(--text);
+    cursor: pointer;
+}
+#side-menu p i { margin-right: 10px; color: var(--dim); }
+
+.extra-month-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #222;
+    background: var(--card);
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+.extra-month-row .month { color: var(--accent); font-size: 12px; }
+.extra-month-row .hours { font-weight: bold; }
+
+.note-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 10000;
+    display: none;
+    padding: 20px;
+    flex-direction: column;
+    animation: slideUp 0.2s ease-out;
+    background: var(--card) !important; /* Colore card per coerenza */
+    display: none;
+    flex-direction: column;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+#detail-text {
+    width: 100%;
+    height: 60vh;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    outline: none;
+    resize: none;
+}
+/* Media Query per Desktop */
+@media (min-width: 768px) {
+    .note-overlay {
+        inset: auto;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 600px;
+        border-radius: 12px;
+        border: 1px solid #333;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        background: var(--card) !important; /* Colore card per coerenza */
+        display: none;
+        flex-direction: column;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translate(-50%, -45%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+}
+
+/* Pointer per interazione */
+.keep-card, .info, .tool-icon, #detail-extra-list span {
+    cursor: pointer;
+}
+
+/* Overlay di sfondo per chiudere cliccando fuori (solo desktop) */
+#modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+}
+
+/* Toolbar in basso alla nota */
+.note-toolbar {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0;
+    border-top: 1px solid #333;
+    margin-top: auto;
+}
+.tool-icon { 
+    font-size: 18px; 
+    cursor: pointer; 
+    opacity: 0.6; 
+}
+.tool-icon:hover { opacity: 1; color: var(--accent); }
+
+/* Colori discreti solo sul bordo sinistro */
+.bg-default { border-left: 3px solid var(--dim) !important; }
+.bg-blue { border-left: 3px solid #4285f4 !important; }
+.bg-red { border-left: 3px solid #ea4335 !important; }
+.bg-green { border-left: 3px solid #34a853 !important; }
+.bg-yellow { border-left: 3px solid #fbbc05 !important; }
+
+#detail-extra-list { width: 100%; color: white; margin-top: 10px; }
+
+</style>
