@@ -302,27 +302,35 @@ function toggleSearch() {
     });
   }
 
-  async function loadStats() {
+async function loadStats() {
     await bootLog("> INIT SYSTEM_OS...", 300);
-    await bootLog("> CONNECTING TO REMOTE_DB...", 500);
     
     fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
       .then(res => res.json())
       .then(async data => {
-        await bootLog("> DATA RECEIVED. DECRYPTING...", 300);
-        historyData = data.history || [];
-        document.getElementById('h_val').innerText = data.habits || "--";
-        document.getElementById('d_val').innerText = data.dumps || "0";
-        document.getElementById('a_val').innerText = data.nextTask || "Ready";
-        
-        await bootLog("> SYSTEM ONLINE.", 300);
-        setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 800);
+        if (data.status === "ONLINE") {
+            // Aggiorna widget Home
+            document.getElementById('h_val').innerText = data.habits;
+            document.getElementById('d_val').innerText = data.dumps;
+            
+            // Aggiorna Card Extra nel BrainDump
+            const extraEl = document.getElementById('extra-total-dump');
+            if(extraEl) {
+                extraEl.innerText = data.extraTotal + "h";
+                // Aggiorna anche il label del mese dinamicamente
+                extraEl.nextElementSibling.innerText = data.monthLabel;
+            }
+
+            await bootLog("> SYSTEM ONLINE.", 300);
+            setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 800);
+        } else {
+            throw new Error(data.details);
+        }
       })
       .catch(err => {
-        document.getElementById('boot-text').innerHTML += "<span style='color:red'>> ERROR: CONNECTION_FAILED</span>";
+        document.getElementById('boot-text').innerHTML += `<span style='color:red'>> BOOT_ERROR: ${err.message}</span>`;
       });
-  }
-
+}
   function drawPixels(history = []) {
     const container = document.getElementById('pixels');
     const label = document.getElementById('viewLabel');
@@ -363,7 +371,7 @@ function toggleSearch() {
 
   function sendCmd(event) {
   if (event.key === 'Enter') {
-    const input = document.getElementById('cmd');
+    const input = event.target;
     const cmdText = input.value.trim();
     if (!cmdText) return;
 
@@ -392,7 +400,9 @@ function toggleSearch() {
         action: "universal_input",
         service: targetService,
         text: cmdText,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        loadStats(); // Ricarica tutto
+        input.value = "";
       })
     }).then(() => {
       input.placeholder = "> REGISTRATO!";
