@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root { --bg: #0b0b0b; --card: #161616; --accent: #00ff41; --text: #eee; --dim: #555; }
     
@@ -129,7 +130,10 @@ input {
   justify-content: center;
   align-items: center;
   height: 60px;
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent);
 }
+
 .widget .label {
   letter-spacing: 2px;
   font-weight: bold;
@@ -150,35 +154,57 @@ input {
     <div><span class="cursor"></span></div>
   </div>    
 
+ 
   <div id="home" class="page active">
-    <div class="header">
-      <h1>SYSTEM_OS</h1>
-      <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
-    </div>
-    <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
+      <div class="header">
+        <h1>SYSTEM_OS</h1>
+        <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
+      </div>
+      <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
 
 
     <div class="grid">
-  <div class="widget" onclick="nav('braindump')">
-    <span class="label">Brain</span>
-    <div class="value">🧠</div>
+      <div class="widget" onclick="nav('braindump')">
+        <span class="label">Brain</span>
+        <div class="value"><i class="fas fa-brain"></i></div>
+      </div>
+      <div class="widget" onclick="nav('trackers')">
+        <span class="label">Status</span>
+        <div class="value"><i class="fas fa-chart-line"></i></div>
+      </div>
+      <div class="widget" onclick="nav('health')">
+        <span class="label">Body</span>
+        <div class="value"><i class="fas fa-dumbbell"></i></div>
+      </div>
+      <div class="widget" onclick="nav('agenda')">
+        <span class="label">Plan</span>
+        <div class="value"><i class="fas fa-calendar-alt"></i></div>
+      </div>
+    </div>
   </div>
-  
-  <div class="widget" onclick="nav('trackers')">
-    <span class="label">Status</span>
-    <div class="value">📈</div>
+
+<div id="braindump" class="page">
+  <div class="header">
+    <h1>BRAIN_DUMP</h1>
+    <div class="info" onclick="nav('home')">ESC [X]</div>
   </div>
-  
-  <div class="widget" onclick="nav('health')">
-    <span class="label">Body</span>
-    <div class="value">💪</div>
+
+  <div class="container">
+    <div class="widget full">
+      <span class="label">Extra Hours (Month)</span>
+      <div class="value" id="extra-total">0.0h</div>
+      <div style="font-size: 10px; color: var(--dim); margin-top: 5px;">LOG: <span id="last-extra">Nessuno</span></div>
+    </div>
+
+    <div id="notes-list" style="margin-top: 20px;">
+      <div class="label">Recent Dumps</div>
+      <div class="widget" style="margin-bottom: 10px; font-size: 12px;">
+        Nessun dump recente...
+      </div>
+    </div>
   </div>
-  
-  <div class="widget" onclick="nav('agenda')">
-    <span class="label">Plan</span>
-    <div class="value">🗓️</div>
-  </div>
-</div>  </div>
+</div>
+
 
   <div id="habit" class="page">
     <div class="header">
