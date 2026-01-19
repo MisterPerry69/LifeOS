@@ -124,20 +124,47 @@ input {
     box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
   }
 
-  .widget .value {
-  font-size: 32px; /* Icone belle grandi */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 60px;
+.widget .value i {
   color: var(--accent);
-  text-shadow: 0 0 10px var(--accent);
+  /* Glow ridotto per coerenza con il resto dell'OS */
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.4); 
 }
 
-.widget .label {
-  letter-spacing: 2px;
-  font-weight: bold;
+.widget {
+    background: var(--card);
+    border: 1px solid #222; /* Bordo sottile come il titolo */
+    transition: all 0.3s ease;
 }
+
+.widget:active {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.1);
+}
+
+#keep-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Default mobile */
+    gap: 10px;
+}
+
+@media (min-width: 768px) {
+    #keep-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.keep-card {
+    background: var(--card);
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+    position: relative;
+}
+
+#side-menu p {
+    margin-bottom: 15px;
+    color: var(--text);
+    cursor: pointer;
+}
+#side-menu p i { margin-right: 10px; color: var(--dim); }
 
 </style>
 
@@ -185,26 +212,42 @@ input {
 
 <div id="braindump" class="page">
   <div class="header">
-    <h1>BRAIN_DUMP</h1>
-    <div class="info" onclick="nav('home')">ESC [X]</div>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-bars" onclick="toggleMenu()" style="color: var(--accent); cursor:pointer;"></i>
+        <h1 style="font-size: 12px;">BRAIN_DUMP</h1>
+    </div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <i class="fas fa-search" onclick="toggleSearch()" style="font-size: 14px; color: var(--dim);"></i>
+        <div class="info" onclick="nav('home')">ESC [X]</div>
+    </div>
   </div>
 
-  <div class="container">
-    <div class="widget full">
-      <span class="label">Extra Hours (Month)</span>
-      <div class="value" id="extra-total">0.0h</div>
-      <div style="font-size: 10px; color: var(--dim); margin-top: 5px;">LOG: <span id="last-extra">Nessuno</span></div>
-    </div>
+  <div style="display: flex; flex: 1; overflow: hidden;">
+    <nav id="side-menu" style="width: 0; overflow: hidden; background: #000; transition: 0.3s; border-right: 1px solid #222;">
+        <div style="padding: 20px; min-width: 150px; font-size: 10px;">
+            <div class="label" style="margin-bottom: 20px;">FILTRI</div>
+            <p><i class="fas fa-thumbtack"></i> PINNATI</p>
+            <p><i class="fas fa-clock"></i> STRAORDINARI</p>
+            <p><i class="fas fa-link"></i> LINK</p>
+            <p><i class="fas fa-sticky-note"></i> NOTE</p>
+        </div>
+    </nav>
 
-    <div id="notes-list" style="margin-top: 20px;">
-      <div class="label">Recent Dumps</div>
-      <div class="widget" style="margin-bottom: 10px; font-size: 12px;">
-        Nessun dump recente...
-      </div>
-    </div>
+    <main style="flex: 1; overflow-y: auto; padding: 15px;">
+        <input type="text" id="dump-input" placeholder="Prendi una nota..." 
+               style="background: #111; border: 1px solid #333; margin-bottom: 20px;"
+               onkeypress="sendCmd(event)">
+
+        <div id="keep-grid">
+            <div class="keep-card" style="grid-column: span 1;">
+                <div class="label" style="font-size: 8px;">EXTRA_HOURS</div>
+                <div style="font-size: 24px; color: var(--accent);" id="extra-total-dump">0.0h</div>
+                <div style="font-size: 9px; color: var(--dim);">Gennaio 2024</div>
+            </div>
+        </div>
+    </main>
   </div>
 </div>
-
 
   <div id="habit" class="page">
     <div class="header">
@@ -223,6 +266,17 @@ input {
   </div>
 
 <script>
+  let menuOpen = false;
+function toggleMenu() {
+    const menu = document.getElementById('side-menu');
+    menuOpen = !menuOpen;
+    menu.style.width = menuOpen ? "180px" : "0";
+}
+
+function toggleSearch() {
+    // Per ora facciamo solo un focus sull'input
+    document.getElementById('dump-input').focus();
+}
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCywiaNzlvKMREjX9KDwIaUfw2QGKjvzDEwVKiuJ4X6xyJxCsyq4k40NssqjtrU-UL/exec";
   let currentView = 30;
   let historyData = [];
