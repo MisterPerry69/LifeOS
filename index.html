@@ -403,42 +403,48 @@ async function loadStats() {
   function sendCmd(event) {
   if (event.key === 'Enter') {
     const input = event.target;
-    const cmdText = input.value.trim();
+    let cmdText = input.value.trim();
     if (!cmdText) return;
 
-    let targetService = "note";
-    // REGEX POTENZIATA
-    const regexOggi = /^\+(\d+(\.\d+)?)$/; // Es: +1.5
-    const regexIeri = /^ieri\+(\d+(\.\d+)?)$/; // Es: ieri+2
-    const regexData = /^(\d{1,2})([a-z]{3})\+(\d+(\.\d+)?)$/; // Es: 15gen+3
-
-    if (regexOggi.test(cmdText) || regexIeri.test(cmdText) || regexData.test(cmdText)) {
+    // Convertiamo in minuscolo solo per il controllo, ma salviamo il testo originale
+    let checkText = cmdText.toLowerCase();
+    let targetService = "note"; 
+    
+    // Logica di smistamento corretta per il nuovo doPost
+    if (/^\+(\d+(\.\d+)?)$/.test(checkText) || 
+        /^ieri\+(\d+(\.\d+)?)$/.test(checkText) || 
+        /^(\d{1,2})([a-z]{3})\+(\d+(\.\d+)?)$/.test(checkText)) {
       targetService = "extra_hours";
-    } else if (/^\d+(\.\d+)?\s?kg/i.test(cmdText)) {
+    } else if (/^\d+(\.\d+)?\s?kg/i.test(checkText)) {
       targetService = "health_weight";
-    } else if (/^http/.test(cmdText)) {
+    } else if (/^http/i.test(checkText)) {
       targetService = "link";
-    } else if (/^h\d/i.test(cmdText)) {
+    } else if (/^h\d/i.test(checkText)) {
       targetService = "habit_log";
     }
+
+    input.placeholder = "INVIO IN CORSO...";
+    const originalValue = input.value;
+    input.value = "";
+
     fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
+      mode: 'no-cors', // Fondamentale per Google Apps Script
       body: JSON.stringify({ 
-        action: "universal_input",
         service: targetService,
-        text: cmdText,
+        text: cmdText, // Mandiamo il testo originale (es. con maiuscole o link)
         timestamp: new Date().toISOString()
       })
     }).then(() => {
       input.placeholder = "> REGISTRATO!";
       setTimeout(() => {
-        input.placeholder = "> DIGITA...";
-        loadStats(); // Ricarica i dati dopo l'invio
+        input.placeholder = (input.id === 'cmd') ? "> DIGITA..." : "Prendi una nota...";
+        loadStats(); 
       }, 1500);
     }).catch(err => {
-      input.placeholder = "ERRORE INVIO";
       console.error(err);
+      input.value = originalValue;
+      input.placeholder = "ERRORE INVIO";
     });
   }
 }
