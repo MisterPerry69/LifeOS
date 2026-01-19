@@ -375,24 +375,15 @@ async function loadStats() {
     const cmdText = input.value.trim();
     if (!cmdText) return;
 
-    let targetService = "note"; // Default: va nel braindump generico
-    
-    // LOGICA DI SMISTAMENTO (Smart Routing)
-    if (/^\d{1,2}[a-z]{3}\+/.test(cmdText)) {
-      targetService = "extra_hours"; // Es: 19gen+2
-    } else if (/^\d+(\.\d+)?\s?kg/i.test(cmdText)) {
-      targetService = "health_weight"; // Es: 75.5kg
-    } else if (/^http/.test(cmdText)) {
-      targetService = "link"; // Es: https://...
-    } else if (/^h\d/i.test(cmdText)) {
-      targetService = "habit_log"; // Es: h1 (habit 1 fatto)
-    }
+    let targetService = "note";
+    if (/^\d{1,2}[a-z]{3}\+/.test(cmdText)) { targetService = "extra_hours"; }
+    else if (/^\d+(\.\d+)?\s?kg/i.test(cmdText)) { targetService = "health_weight"; }
+    else if (/^http/.test(cmdText)) { targetService = "link"; }
+    else if (/^h\d/i.test(cmdText)) { targetService = "habit_log"; }
 
-    // Feedback visivo
-    input.placeholder = "SMISTAMENTO: " + targetService.toUpperCase() + "...";
+    input.placeholder = "INVIO: " + targetService.toUpperCase() + "...";
     input.value = "";
 
-    // Invio al database (Google Apps Script)
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
@@ -400,16 +391,21 @@ async function loadStats() {
         action: "universal_input",
         service: targetService,
         text: cmdText,
-        timestamp: new Date().toISOString(),
-        loadStats(); // Ricarica tutto
-        input.value = "";
+        timestamp: new Date().toISOString()
       })
     }).then(() => {
       input.placeholder = "> REGISTRATO!";
-      setTimeout(() => input.placeholder = "> DIGITA...", 2000);
+      setTimeout(() => {
+        input.placeholder = "> DIGITA...";
+        loadStats(); // Ricarica i dati dopo l'invio
+      }, 1500);
+    }).catch(err => {
+      input.placeholder = "ERRORE INVIO";
+      console.error(err);
     });
   }
 }
+
 </script>
 </body>
 </html>
