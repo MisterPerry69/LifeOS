@@ -178,6 +178,33 @@ input {
 .extra-month-row .month { color: var(--accent); font-size: 12px; }
 .extra-month-row .hours { font-weight: bold; }
 
+.note-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 10000;
+    display: none;
+    padding: 20px;
+    flex-direction: column;
+    animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+#detail-text {
+    width: 100%;
+    height: 60vh;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    outline: none;
+    resize: none;
+}
 </style>
 
 </head>
@@ -282,6 +309,16 @@ input {
        <p style="color:var(--dim)">Caricamento storico...</p>
     </div>
 </div>
+<div id="note-detail" class="note-overlay">
+    <div class="header">
+        <h1 id="detail-type">NOTA</h1>
+        <div class="info" onclick="closeNote()">SALVA [X]</div>
+    </div>
+    <div style="padding: 10px;">
+        <div id="detail-date" style="font-size: 10px; color: var(--dim); margin-bottom: 15px;"></div>
+        <textarea id="detail-text" spellcheck="false"></textarea>
+    </div>
+</div>
 
 <script>
   let menuOpen = false;
@@ -322,7 +359,7 @@ function toggleSearch() {
 
 async function loadStats() {
     const bootText = document.getElementById('boot-text');
-    bootText.innerHTML = ""; // Reset testi boot
+    if (bootText) bootText.innerHTML = ""; 
     
     await bootLog("> INIT SYSTEM_OS...", 200);
     await bootLog("> LOADING MODULES...", 200);
@@ -335,32 +372,37 @@ async function loadStats() {
       })
       .then(async data => {
         if (data.status === "ONLINE") {
-            // 1. Salvataggio dati per i pixel
+            // 1. Salvataggio dati per i pixel (Status)
             historyData = data.history || [];
             
             // 2. Popolamento Procedurale della Grid nel BrainDump
             const grid = document.getElementById('keep-grid');
             if (grid) {
-                grid.innerHTML = ""; // Puliamo la grid esistente
+                grid.innerHTML = ""; // Pulisce la griglia
 
-                // A. Creazione Card Extra (Speciale)
+                // A. Card Extra (Speciale)
+                // Cliccando questa apriremo il dettaglio degli straordinari
                 const extraCard = `
-                  <div class="keep-card" onclick="alert('Dettaglio ore in costruzione')" style="border-left: 3px solid var(--accent); cursor:pointer;">
+                  <div class="keep-card" onclick="alert('Dettaglio Straordinari in arrivo')" style="border-left: 3px solid var(--accent); cursor:pointer;">
                       <div class="label">EXTRA_TOTAL</div>
                       <div style="font-size: 24px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
                       <div style="font-size: 9px; color: var(--dim); text-transform: uppercase;">${data.monthLabel}</div>
                   </div>`;
                 grid.innerHTML += extraCard;
 
-                // B. Creazione Card Note Dinamiche (Ultime 10 dal DB)
+                // B. Card Note Dinamiche (Ultime 15 dal DB)
                 if (data.notes && data.notes.length > 0) {
                     data.notes.forEach(note => {
-                        // note[0] è il timestamp, note[1] è il testo, note[2] è il tipo
-                        let dataNota = new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
-                        let oraNota = new Date(note[0]).toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+                        // note[0] = Timestamp, note[1] = Testo, note[2] = Tipo
+                        let d = new Date(note[0]);
+                        let dataNota = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+                        let oraNota = d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
+                        
+                        // Prepariamo il testo per essere passato alla funzione JS senza rompere le virgolette
+                        const safeText = note[1].replace(/'/g, "\\'").replace(/"/g, '&quot;');
                         
                         const noteCard = `
-                          <div class="keep-card">
+                          <div class="keep-card" onclick="openNote('${safeText}', '${note[2]}', '${dataNota} ${oraNota}')">
                               <div class="label">${dataNota} - ${oraNota} [${note[2]}]</div>
                               <div style="font-size: 13px; line-height: 1.4; color: var(--text);">${note[1]}</div>
                           </div>`;
@@ -372,9 +414,13 @@ async function loadStats() {
             // 3. Log finale e chiusura boot
             await bootLog("> CORE ONLINE. WELCOME.", 200);
             setTimeout(() => {
-                document.getElementById('boot-screen').style.display = 'none';
-                // Se siamo sulla pagina habit, disegna i pixel
-                if(document.getElementById('habit').classList.contains('active')) drawPixels(historyData);
+                const bootScreen = document.getElementById('boot-screen');
+                if (bootScreen) bootScreen.style.display = 'none';
+                
+                // Disegna i pixel se la pagina habit è quella attiva
+                if(document.getElementById('habit') && document.getElementById('habit').classList.contains('active')) {
+                    drawPixels(historyData);
+                }
             }, 800);
 
         } else {
@@ -383,11 +429,27 @@ async function loadStats() {
       })
       .catch(async err => {
         console.error("Errore Boot:", err);
-        await bootLog("<span style='color:red'>> BOOT_FAILED: CONNECTION_ERROR</span>", 0);
-        await bootLog(`<span style='color:#555; font-size:9px'>> ${err.message}</span>`, 0);
+        if (bootText) {
+            bootText.innerHTML += `<br><span style='color:red'>> BOOT_FAILED: ${err.message}</span>`;
+        }
       });
 }
 
+// Funzioni per gestire la Modal Fullscreen delle Note
+function openNote(text, type, date) {
+    const modal = document.getElementById('note-detail');
+    if (modal) {
+        document.getElementById('detail-text').value = text;
+        document.getElementById('detail-type').innerText = type;
+        document.getElementById('detail-date').innerText = date;
+        modal.style.display = 'flex';
+    }
+}
+
+function closeNote() {
+    const modal = document.getElementById('note-detail');
+    if (modal) modal.style.display = 'none';
+}
 
   function drawPixels(history = []) {
     const container = document.getElementById('pixels');
@@ -459,6 +521,8 @@ function sendCmd(event) {
     });
   }
 }
+
+
 </script>
 </body>
 </html>
