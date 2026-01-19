@@ -222,7 +222,7 @@ input {
     </div>
   </div>
 
-<div id="braindump" class="page">
+<div id="braindump" class="page" >
   <div class="header">
     <div style="display: flex; align-items: center; gap: 15px;">
         <i class="fas fa-bars" onclick="toggleMenu()" style="color: var(--accent); cursor:pointer;"></i>
@@ -252,7 +252,7 @@ input {
 
         <div id="keep-grid">
             <div class="keep-card" style="grid-column: span 1;">
-                <div class="label" style="font-size: 8px;">EXTRA_HOURS</div>
+                <div class="label" style="font-size: 8px;" onclick="document.getElementById('extra-modal').style.display='block'">EXTRA_HOURS</div>
                 <div style="font-size: 24px; color: var(--accent);" id="extra-total-dump">0.0h</div>
                 <div style="font-size: 9px; color: var(--dim);">Gennaio 2024</div>
             </div>
@@ -277,13 +277,14 @@ input {
     </div>
   </div>
 
-  <div id="extra-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:1000; padding:20px; overflow-y:auto;">
-    <div class="header">
-        <h1>RECAP_STRAORDINARI</h1>
-        <div class="info" onclick="document.getElementById('extra-modal').style.display='none'">CHIUDI [X]</div>
+<div id="extra-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:9999; padding:25px; border: 1px solid var(--accent);">
+    <div class="header" style="border-bottom: 1px solid var(--accent);">
+        <h1 style="color: var(--accent);">RECAP_EXTRA</h1>
+        <div class="info" onclick="document.getElementById('extra-modal').style.display='none'" style="cursor:pointer; color:red;">[CHIUDI]</div>
     </div>
-    <div id="extra-list-content">
-        </div>
+    <div id="extra-history" style="margin-top:20px; font-size:12px;">
+       <p style="color:var(--dim)">Caricamento storico...</p>
+    </div>
 </div>
 
 <script>
@@ -324,43 +325,29 @@ function toggleSearch() {
   }
 
 async function loadStats() {
-    await bootLog("> INIT SYSTEM_OS...", 300);
+    const bootText = document.getElementById('boot-text');
+    bootText.innerHTML = ""; // Reset
     
-    // Aggiungiamo action=getStats per essere sicuri che chiami il doGet correttamente
+    await bootLog("> INIT SYSTEM_OS...", 200);
+    await bootLog("> LOADING MODULES...", 200);
+    await bootLog("> CONNECTING TO DATABASE...", 200);
+    
     fetch(SCRIPT_URL + "?action=getStats&t=" + Date.now())
       .then(res => res.json())
       .then(async data => {
         if (data.status === "ONLINE") {
-            // Salviamo i dati della cronologia per i pixel
             historyData = data.history || [];
-            
-            // Aggiorna la Card Extra nel BrainDump se esiste
-            const extraEl = document.getElementById('extra-total-dump');
-            if(extraEl) {
-                extraEl.innerText = data.extraTotal + "h";
-                // Aggiorna il label sotto (es. Gennaio 2026)
-                if(extraEl.nextElementSibling) {
-                    extraEl.nextElementSibling.innerText = data.monthLabel;
-                }
-            }
+            document.getElementById('extra-total-dump').innerText = data.extraTotal + "h";
+            document.getElementById('extra-total-dump').nextElementSibling.innerText = data.monthLabel;
 
-            await bootLog("> SYSTEM ONLINE.", 300);
-            // Nasconde il boot screen
-            setTimeout(() => {
-                document.getElementById('boot-screen').style.display = 'none';
-                // Disegna i pixel se sei nella pagina habit
-                if(document.getElementById('habit').classList.contains('active')) drawPixels(historyData);
-            }, 800);
-        } else {
-            throw new Error(data.details || "Unknown Error");
+            await bootLog("> CORE ONLINE. WELCOME.", 200);
+            setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 800);
         }
       })
-      .catch(err => {
-        console.error(err);
-        document.getElementById('boot-text').innerHTML += `<br><span style='color:#ff4444'>> BOOT_ERROR: CONNECTION_FAILED</span><br><span style='color:#555; font-size:10px;'>${err.message}</span>`;
+      .catch(async err => {
+        await bootLog("<span style='color:red'>> CONNECTION_FAILED</span>", 0);
       });
 }
-
 
   function drawPixels(history = []) {
     const container = document.getElementById('pixels');
@@ -400,55 +387,38 @@ async function loadStats() {
     loadStats();
   };
 
-  function sendCmd(event) {
+function sendCmd(event) {
   if (event.key === 'Enter') {
     const input = event.target;
-    let cmdText = input.value.trim();
-    if (!cmdText) return;
+    let cmd = input.value.trim().toLowerCase();
+    if (!cmd) return;
 
-    // Convertiamo in minuscolo solo per il controllo, ma salviamo il testo originale
-    let checkText = cmdText.toLowerCase();
-    let targetService = "note"; 
-    
-    // Logica di smistamento corretta per il nuovo doPost
-    if (/^\+(\d+(\.\d+)?)$/.test(checkText) || 
-        /^ieri\+(\d+(\.\d+)?)$/.test(checkText) || 
-        /^(\d{1,2})([a-z]{3})\+(\d+(\.\d+)?)$/.test(checkText)) {
-      targetService = "extra_hours";
-    } else if (/^\d+(\.\d+)?\s?kg/i.test(checkText)) {
-      targetService = "health_weight";
-    } else if (/^http/i.test(checkText)) {
-      targetService = "link";
-    } else if (/^h\d/i.test(checkText)) {
-      targetService = "habit_log";
-    }
+    let service = "note";
+    // Regex precise
+    if (/^\+(\d+(\.\d+)?)$/.test(cmd)) service = "extra_hours";
+    else if (/^ieri\+(\d+(\.\d+)?)$/.test(cmd)) service = "extra_hours";
+    else if (/^(\d{1,2})([a-z]{3})\+(\d+(\.\d+)?)$/.test(cmd)) service = "extra_hours";
+    else if (/^\d+(\.\d+)?\s?kg/i.test(cmd)) service = "health_weight";
+    else if (/^h\d/i.test(cmd)) service = "habit_log";
 
-    input.placeholder = "INVIO IN CORSO...";
-    const originalValue = input.value;
+    // Feedback: dice all'utente cosa sta facendo
+    input.placeholder = "REGISTRO: " + service.toUpperCase() + "...";
+    const val = input.value;
     input.value = "";
 
     fetch(SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors', // Fondamentale per Google Apps Script
-      body: JSON.stringify({ 
-        service: targetService,
-        text: cmdText, // Mandiamo il testo originale (es. con maiuscole o link)
-        timestamp: new Date().toISOString()
-      })
+      mode: 'no-cors',
+      body: JSON.stringify({ service: service, text: val })
     }).then(() => {
-      input.placeholder = "> REGISTRATO!";
+      input.placeholder = "> CONCLUSO.";
       setTimeout(() => {
         input.placeholder = (input.id === 'cmd') ? "> DIGITA..." : "Prendi una nota...";
-        loadStats(); 
-      }, 1500);
-    }).catch(err => {
-      console.error(err);
-      input.value = originalValue;
-      input.placeholder = "ERRORE INVIO";
+        loadStats();
+      }, 1000);
     });
   }
 }
-
 </script>
 </body>
 </html>
