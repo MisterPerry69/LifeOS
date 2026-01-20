@@ -102,61 +102,94 @@ function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
     grid.innerHTML = "";
+    
+    // Salviamo le note globalmente per aprirle col click
     loadedNotesData = data.notes;
 
-    // Card Extra (Non trascinabile)
-    grid.innerHTML += `
-        <div class="keep-card bg-default extra-card pinnato">
-            <div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>
-            <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
-            <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
-            <div class="label" style="opacity:0.5">${data.monthLabel}</div>
-        </div>`;
+    // --- 1. CARD EXTRA (Sempre in cima, Inamovibile) ---
+    const extraCard = document.createElement('div');
+    extraCard.className = "keep-card bg-default extra-card pinnato";
+    extraCard.innerHTML = `
+        <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
+        <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
+        <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
+        <div class="label" style="opacity:0.5">${data.monthLabel}</div>
+    `;
+    extraCard.onclick = () => openExtraDetail();
+    grid.appendChild(extraCard);
 
-    // Note trascinabili
+    // --- 2. GENERAZIONE NOTE TRASCINABILI ---
     loadedNotesData.forEach((note, index) => {
         const isPinned = note[2] === "PINNED";
         const card = document.createElement('div');
+        
+        // Assegniamo classi e attributi per D&D
         card.className = `keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}`;
         card.id = `card-${note[4]}`;
-        card.draggable = true; // Attiva D&D
-        
+        card.draggable = true;
+
         card.innerHTML = `
             ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
             <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
             <div class="content-preview">${note[1]}</div>
-            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}</div>
+            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
+                ${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+            </div>
         `;
 
-        // Eventi D&D
-        card.ondragstart = (e) => { 
-            draggedItem = card; 
-            card.style.opacity = "0.5";
+        // --- EVENTI DRAG & DROP ---
+        card.ondragstart = (e) => {
+            draggedItem = card;
+            card.classList.add('dragging');
             e.dataTransfer.effectAllowed = "move";
         };
-        card.ondragend = () => { 
-            card.style.opacity = "1";
+
+        card.ondragend = () => {
+            card.classList.remove('dragging');
+            draggedItem = null;
+            // Rimuoviamo eventuali rimasugli grafici da tutte le card
+            document.querySelectorAll('.keep-card').forEach(c => c.classList.remove('drag-over'));
             saveNewOrder(); 
         };
-        card.ondragover = (e) => e.preventDefault();
-        card.ondragenter = (e) => card.classList.add('drag-over');
-        card.ondragleave = () => card.classList.remove('drag-over');
+
+        card.ondragover = (e) => {
+            e.preventDefault(); // Necessario per permettere il drop
+        };
+
+        card.ondragenter = (e) => {
+            if (card !== draggedItem && !card.classList.contains('extra-card')) {
+                card.classList.add('drag-over');
+            }
+        };
+
+        card.ondragleave = () => {
+            card.classList.remove('drag-over');
+        };
+
         card.ondrop = (e) => {
             e.preventDefault();
             card.classList.remove('drag-over');
-            if (draggedItem !== card) {
-                let allCards = [...grid.querySelectorAll('.keep-card:not(.extra-card)')];
-                let draggedIdx = allCards.indexOf(draggedItem);
-                let targetIdx = allCards.indexOf(card);
-                if (draggedIdx < targetIdx) card.after(draggedItem);
-                else card.before(draggedItem);
+            
+            // Impediamo il drop se il target è la card Extra o se è la card stessa
+            if (draggedItem !== card && !card.classList.contains('extra-card')) {
+                const allCards = [...grid.querySelectorAll('.keep-card')];
+                const draggedIdx = allCards.indexOf(draggedItem);
+                const targetIdx = allCards.indexOf(card);
+                
+                if (draggedIdx < targetIdx) {
+                    card.after(draggedItem);
+                } else {
+                    card.before(draggedItem);
+                }
             }
         };
-        
-        // Click per aprire (usiamo addEventListener per non sovrascrivere D&D)
-        card.addEventListener('click', (e) => {
-            if (e.target.closest('.keep-card')) openNoteByIndex(index);
-        });
+
+        // --- GESTIONE CLICK (con protezione per trascinamento) ---
+        card.onclick = (e) => {
+            // Se stiamo trascinando, non aprire la nota
+            if (card.classList.contains('dragging')) return;
+            openNoteByIndex(index);
+        };
 
         grid.appendChild(card);
     });

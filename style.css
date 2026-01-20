@@ -440,3 +440,43 @@ input {
 .keep-card[draggable="true"]:active {
     cursor: grabbing;
 }
+
+@media screen and (max-width: 600px) {
+    #keep-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Forza due colonne uguali */
+        gap: 10px;
+        padding: 10px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow-x: hidden; /* Impedisce lo scroll laterale */
+    }
+
+    .keep-card {
+        width: auto !important; /* Toglie larghezze fisse che sminchiano tutto */
+        min-height: 120px;
+        max-height: 160px;
+        margin: 0 !important;
+    }
+
+    .title-row {
+        font-size: 10px; /* Titoli leggermente più piccoli per non tagliare */
+    }
+
+    .content-preview {
+        -webkit-line-clamp: 2; /* Solo 2 righe di anteprima su mobile */
+    }
+}
+
+/* Fix per evitare il cambio dimensione durante il Drag */
+.keep-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    border: 1px solid var(--accent);
+}
+
+/* Assicurati che il contenitore principale non scrolli a destra */
+body, html {
+    overflow-x: hidden;
+    position: relative;
+}
