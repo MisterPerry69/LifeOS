@@ -389,3 +389,27 @@ input {
     transition: 0.2s;
 }
 .tool-icon:hover { color: var(--accent); }
+
+
+/* Modal Cancellazione */
+.custom-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 10001; display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+    background: #000; border: 1px solid var(--accent);
+    padding: 30px; text-align: center; box-shadow: 0 0 20px var(--accent);
+}
+
+/* Effetto Pinnato sulla card */
+.keep-card.pinnato {
+    border-top: 2px solid var(--accent);
+}
+
+/* Fix per rimettere il selettore colore visibile per le note */
+function openNoteByIndex(index) {
+    // ... (codice esistente)
+    const colorBtn = document.querySelector('.color-selector-container');
+    if(colorBtn) colorBtn.style.display = "block"; // Riabilita per note normali
+    // ...
+}

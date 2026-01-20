@@ -103,29 +103,30 @@ function renderGrid(data) {
     
     loadedNotesData = data.notes;
 
-    // Card Extra
+    // CARD EXTRA (Sempre pinnata di default)
     grid.innerHTML += `
-        <div class="keep-card bg-default extra-card" onclick="openExtraDetail()">
+        <div class="keep-card bg-default extra-card pinnato" onclick="openExtraDetail()">
+            <div style="position:absolute; top:8px; right:8px; font-size:10px; color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
             <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
             <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
             <div class="label" style="opacity:0.5">${data.monthLabel}</div>
         </div>`;
 
-    // Note
+    // NOTE
     loadedNotesData.forEach((note, index) => {
         const d = new Date(note[0]);
         const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
         const color = note[3];
         const id = note[4];
-        
-        // RECUPERO TITOLO: note[5] è il titolo inviato dal server
-        const title = note[5] && note[5] !== "" ? note[5] : "Nota"; 
-        const previewText = note[1];
+        const title = note[5] || "Nota";
+        // Supponiamo che il pin sia gestito via colore o tag (per ora aggiungiamo placeholder)
+        const isPinned = note[2] === "PINNED"; 
 
         grid.innerHTML += `
-            <div class="keep-card bg-${color}" id="card-${id}" onclick="openNoteByIndex(${index})">
+            <div class="keep-card bg-${color} ${isPinned ? 'pinnato' : ''}" id="card-${id}" onclick="openNoteByIndex(${index})">
+                ${isPinned ? '<div style="position:absolute; top:8px; right:8px; font-size:10px; opacity:0.5"><i class="fas fa-thumbtack"></i></div>' : ''}
                 <div class="title-row">${title.toUpperCase()}</div>
-                <div class="content-preview">${previewText}</div>
+                <div class="content-preview">${note[1]}</div>
                 <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${dStr}</div>
             </div>`;
     });
@@ -194,26 +195,28 @@ function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
     const list = document.getElementById('detail-extra-list');
+    const colorBtn = document.querySelector('.color-selector-container');
     
-    document.getElementById('detail-type').innerText = "DETTAGLIO_EXTRA";
+    document.getElementById('detail-type').innerText = "RECAP_EXTRA";
     document.getElementById('detail-text').style.display = "none";
-    list.style.display = "block";
+    if(colorBtn) colorBtn.style.display = "none"; // Disabilita colori per Extra
     
-    list.innerHTML = extraItemsGlobal.map(item => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #333;">
-            <div style="flex-grow:1; font-size:12px;">
-                ${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} 
-                <span style="color:var(--accent)">(+${item.ore}h)</span> - ${item.nota}
-            </div>
-            <span onclick="deleteItem(${item.id}, 'EXTRA')" style="color:#ea4335; cursor:pointer; font-size:16px;">🗑️</span>
-        </div>
-    `).join('');
+    list.style.display = "block";
+
+    // ORDINAMENTO CRONOLOGICO: dal primo del mese all'ultimo
+    const sortedExtra = [...extraItemsGlobal].sort((a, b) => new Date(a.data) - new Date(b.data));
+    
+    list.innerHTML = sortedExtra.map(item => `
+        <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #222;">
+            <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} ➔ <b>+${item.ore}h</b></span>
+            <i class="fas fa-trash" onclick="confirmDelete(${item.id}, 'EXTRA')" style="color:#555; cursor:pointer;"></i>
+        </div>`).join('');
     
     modal.className = 'note-overlay bg-default';
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
-    document.body.classList.add('modal-open');
 }
+
 
 // Chiusura istantanea per eliminare il lag
 function saveAndClose() {
@@ -300,4 +303,33 @@ function drawPixels(history = []) {
 function cycleView() {
     currentView = (currentView === 30) ? 365 : (currentView === 365) ? 7 : 30;
     drawPixels(historyData);
+}
+
+
+let deleteTarget = null;
+
+function confirmDelete(id, type) {
+    deleteTarget = { id, type };
+    document.getElementById('delete-modal').style.display = 'flex';
+}
+
+function cancelDelete() {
+    deleteTarget = null;
+    document.getElementById('delete-modal').style.display = 'none';
+}
+
+async function executeDelete() {
+    if (!deleteTarget) return;
+    
+    // UI Feedback immediato
+    document.getElementById('delete-modal').style.display = 'none';
+    
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ service: "delete_item", id: deleteTarget.id, type: deleteTarget.type })
+    });
+    
+    closeModal();
+    loadStats(); // Ricarica la griglia
 }
