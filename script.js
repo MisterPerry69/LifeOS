@@ -169,6 +169,7 @@ function openNote(text, type, dateLabel, color, id) {
     textArea.value = text;
     document.getElementById('detail-extra-list').style.display = "none";
     
+    // Reset e applicazione colore
     modal.className = `note-overlay bg-${color}`;
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
@@ -200,13 +201,14 @@ function openExtraDetail() {
     document.body.classList.add('modal-open');
 }
 
-async function saveAndClose() {
+// Chiusura istantanea per eliminare il lag
+function saveAndClose() {
     const text = document.getElementById('detail-text').value;
+    const modal = document.getElementById('note-detail');
     
     if (currentNoteData && currentNoteData.type === 'NOTE') {
-        document.getElementById('cmd').placeholder = "SALVATAGGIO...";
-        
-        await fetch(SCRIPT_URL, {
+        // NON usiamo await qui: lanciamo il salvataggio e chiudiamo subito
+        fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({ 
@@ -215,11 +217,11 @@ async function saveAndClose() {
                 text: text, 
                 color: currentNoteData.color 
             })
-        });
+        }).then(() => loadStats()); // Ricarica i dati in background
     }
 
+    // Chiudi subito l'interfaccia
     closeModal();
-    loadStats();
 }
 
 function closeModal() {
@@ -238,11 +240,19 @@ async function deleteItem(id, type) {
     saveAndClose();
 }
 
+function toggleColorPicker() {
+    const picker = document.getElementById('color-picker-bubble');
+    picker.style.display = (picker.style.display === 'flex') ? 'none' : 'flex';
+}
+
 function changeNoteColor(colorName) {
     if (currentNoteData && currentNoteData.type === 'NOTE') {
         const modal = document.getElementById('note-detail');
+        // Update visivo immediato
         modal.className = `note-overlay bg-${colorName}`;
         currentNoteData.color = colorName;
+        // Chiudi la bubble dopo la selezione
+        document.getElementById('color-picker-bubble').style.display = 'none';
     }
 }
 
