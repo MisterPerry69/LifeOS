@@ -89,7 +89,6 @@ body {
 .bg-yellow  { border-left: 4px solid #fbbc05 !important; }
 
 .extra-card { border-left: 4px solid var(--accent) !important; }
-.keep-card.pinnato { border-top: 2px solid var(--accent) !important; }
 
 .title-row {
     font-weight: bold; font-size: 11px; color: var(--accent);
