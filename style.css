@@ -401,7 +401,15 @@ input {
     padding: 30px; text-align: center; box-shadow: 0 0 20px var(--accent);
 }
 
-/* Effetto Pinnato sulla card */
+/* Card pinnata: bordo e icona */
 .keep-card.pinnato {
-    border-top: 2px solid var(--accent);
+    border-top: 2px solid var(--accent) !important;
+}
+
+.pin-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    color: var(--accent);
 }

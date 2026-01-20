@@ -173,25 +173,29 @@ function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
 
-    // note = [Data, Contenuto, Tipo, Colore, ID, Titolo]
-    currentNoteData = { id: note[4], type: 'NOTE', color: note[3] };
-    
-    const d = new Date(note[0]);
-    const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
-
-    const colorBtn = document.querySelector('.color-selector-container');
-    if(colorBtn) colorBtn.style.display = "block"; // Riabilita per note normali
+    currentNoteData = { id: note[4], type: note[2], color: note[3], index: index };
     
     const modal = document.getElementById('note-detail');
-    document.getElementById('detail-type').innerText = note[5] || "Nota"; // Titolo nel modal
-    document.getElementById('detail-text').value = note[1]; // Testo integrale
+    const colorBtn = document.querySelector('.color-selector-container');
+    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+
+    // Reset UI
+    document.getElementById('detail-type').innerText = note[5] || "NOTA";
+    document.getElementById('detail-text').value = note[1];
     document.getElementById('detail-text').style.display = "block";
     document.getElementById('detail-extra-list').style.display = "none";
     
+    // Mostra tavolozza (per le note normali)
+    if(colorBtn) colorBtn.style.display = "block";
+    
+    // Illumina Pin se la nota è già pinnata
+    if(pinIcon) pinIcon.style.color = (note[2] === "PINNED") ? "var(--accent)" : "var(--dim)";
+
     modal.className = `note-overlay bg-${note[3]}`;
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
 }
+
 
 
 function openExtraDetail() {
@@ -199,14 +203,17 @@ function openExtraDetail() {
     const modal = document.getElementById('note-detail');
     const list = document.getElementById('detail-extra-list');
     const colorBtn = document.querySelector('.color-selector-container');
-    
+    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+
     document.getElementById('detail-type').innerText = "RECAP_EXTRA";
     document.getElementById('detail-text').style.display = "none";
-    if(colorBtn) colorBtn.style.display = "none"; // Disabilita colori per Extra
-    
     list.style.display = "block";
 
-    // ORDINAMENTO CRONOLOGICO: dal primo del mese all'ultimo
+    // Nascondi tavolozza e illumina Pin (Hours è sempre pinnato)
+    if(colorBtn) colorBtn.style.display = "none";
+    if(pinIcon) pinIcon.style.color = "var(--accent)";
+
+    // Ordinamento Cronologico
     const sortedExtra = [...extraItemsGlobal].sort((a, b) => new Date(a.data) - new Date(b.data));
     
     list.innerHTML = sortedExtra.map(item => `
@@ -219,7 +226,6 @@ function openExtraDetail() {
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
 }
-
 
 // Chiusura istantanea per eliminare il lag
 function saveAndClose() {
@@ -335,4 +341,28 @@ async function executeDelete() {
     
     closeModal();
     loadStats(); // Ricarica la griglia
+}
+
+// NUOVA: Funzione per switchare il PIN
+async function togglePin() {
+    if (!currentNoteData || currentNoteData.type === "EXTRA") return; // Hours è fisso
+
+    const nuovoStato = (currentNoteData.type === "PINNED") ? "NOTE" : "PINNED";
+    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+
+    // UI Feedback immediato
+    currentNoteData.type = nuovoStato;
+    pinIcon.style.color = (nuovoStato === "PINNED") ? "var(--accent)" : "var(--dim)";
+
+    // Salva sul database
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ 
+            service: "update_note_type", 
+            id: currentNoteData.id, 
+            type: nuovoStato 
+        })
+    });
+    loadStats();
 }
