@@ -101,31 +101,31 @@ function renderGrid(data) {
     if (!grid) return;
     grid.innerHTML = "";
     
-    loadedNotesData = data.notes;
-
-    // CARD EXTRA (Sempre pinnata di default)
+    // 1. CARD EXTRA (Sempre in cima)
     grid.innerHTML += `
         <div class="keep-card bg-default extra-card pinnato" onclick="openExtraDetail()">
-            <div style="position:absolute; top:8px; right:8px; font-size:10px; color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
+            <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
             <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
             <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
             <div class="label" style="opacity:0.5">${data.monthLabel}</div>
         </div>`;
 
-    // NOTE
-    loadedNotesData.forEach((note, index) => {
+    // 2. SEPARAZIONE E ORDINAMENTO NOTE
+    const pinnedNotes = data.notes.filter(n => n[2] === "PINNED");
+    const otherNotes = data.notes.filter(n => n[2] !== "PINNED");
+    const allSortedNotes = [...pinnedNotes, ...otherNotes];
+    
+    loadedNotesData = allSortedNotes;
+
+    allSortedNotes.forEach((note, index) => {
         const d = new Date(note[0]);
         const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
-        const color = note[3];
-        const id = note[4];
-        const title = note[5] || "Nota";
-        // Supponiamo che il pin sia gestito via colore o tag (per ora aggiungiamo placeholder)
-        const isPinned = note[2] === "PINNED"; 
+        const isPinned = note[2] === "PINNED";
 
         grid.innerHTML += `
-            <div class="keep-card bg-${color} ${isPinned ? 'pinnato' : ''}" id="card-${id}" onclick="openNoteByIndex(${index})">
-                ${isPinned ? '<div style="position:absolute; top:8px; right:8px; font-size:10px; opacity:0.5"><i class="fas fa-thumbtack"></i></div>' : ''}
-                <div class="title-row">${title.toUpperCase()}</div>
+            <div class="keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}" id="card-${note[4]}" onclick="openNoteByIndex(${index})">
+                ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
+                <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
                 <div class="content-preview">${note[1]}</div>
                 <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${dStr}</div>
             </div>`;
@@ -254,6 +254,10 @@ function closeModal() {
     document.getElementById('note-detail').style.display = 'none';
     document.getElementById('modal-backdrop').style.display = 'none';
     document.body.classList.remove('modal-open');
+    
+    // RESET INTERFACCIA: Chiude bubble colori e modal cancellazione se aperti
+    document.getElementById('color-picker-bubble').style.display = 'none';
+    document.getElementById('delete-modal').style.display = 'none';
 }
 
 async function deleteItem(id, type) {
@@ -345,24 +349,18 @@ async function executeDelete() {
 
 // NUOVA: Funzione per switchare il PIN
 async function togglePin() {
-    if (!currentNoteData || currentNoteData.type === "EXTRA") return; // Hours è fisso
+    if (!currentNoteData || currentNoteData.type === "EXTRA") return;
 
+    // Toggle Stato
     const nuovoStato = (currentNoteData.type === "PINNED") ? "NOTE" : "PINNED";
-    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
-
-    // UI Feedback immediato
     currentNoteData.type = nuovoStato;
+    
+    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
     pinIcon.style.color = (nuovoStato === "PINNED") ? "var(--accent)" : "var(--dim)";
 
-    // Salva sul database
     await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ 
-            service: "update_note_type", 
-            id: currentNoteData.id, 
-            type: nuovoStato 
-        })
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ service: "update_note_type", id: currentNoteData.id, type: nuovoStato })
     });
-    loadStats();
+    loadStats(); // Ricarica per spostare la card in cima
 }

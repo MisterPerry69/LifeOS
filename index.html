@@ -135,16 +135,14 @@
 </div>
 
 
-<div id="delete-modal" class="custom-modal" style="display:none;">
-    <div class="modal-content">
-        <p style="letter-spacing: 2px;">ELIMINARE RECORD?</p>
-        <div style="display:flex; gap:20px; margin-top:20px;">
-            <button class="btn" onclick="executeDelete()" style="color:red; border-color:red;">SÌ</button>
-            <button class="btn" onclick="cancelDelete()">NO</button>
+<div id="delete-modal" onclick="cancelDelete()"> <div class="modal-content" onclick="event.stopPropagation()">
+        <p>ELIMINARE RECORD?</p>
+        <div class="btn-group">
+            <span class="btn-confirm" onclick="executeDelete()">SÌ, ELIMINA</span>
+            <span class="btn-cancel" onclick="cancelDelete()">ANNULLA</span>
         </div>
     </div>
 </div>
-
 
 </body>
 </html>

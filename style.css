@@ -119,6 +119,10 @@
     .btn { background: none; border: none; color: var(--text); font-size: 16px; cursor: pointer; }
     .view-toggle { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); padding: 4px 8px; border-radius: 3px; }
 
+    .btn-group { display: flex; justify-content: center; gap: 40px; }
+    .btn-confirm { color: #ff4444; cursor: pointer; font-size: 14px; font-weight: bold; border: none; background: none; }
+    .btn-cancel { color: #888; cursor: pointer; font-size: 14px; border: none; background: none; }
+
 input { 
     width: 100%; 
     background: #000; 
@@ -397,19 +401,29 @@ input {
     z-index: 10001; display: flex; align-items: center; justify-content: center;
 }
 .modal-content {
-    background: #000; border: 1px solid var(--accent);
-    padding: 30px; text-align: center; box-shadow: 0 0 20px var(--accent);
+    background: #111;
+    border: 1px solid #333;
+    padding: 40px;
+    border-radius: 4px; /* Angoli netti più professionali */
+    text-align: center;
+    width: 80%;
+    max-width: 300px;
 }
+
+.modal-content p { color: #fff; font-size: 12px; letter-spacing: 2px; margin-bottom: 30px; }
 
 /* Card pinnata: bordo e icona */
-.keep-card.pinnato {
-    border-top: 2px solid var(--accent) !important;
+/* Fix per card pinnata */
+.keep-card.pinnato { border-top: 2px solid var(--accent) !important; }
+
+/* Icona Pin sulla Card */
+.pin-indicator {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 10px; color: var(--accent); /* Ora è sempre verde */
 }
 
-.pin-indicator {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 10px;
-    color: var(--accent);
+#delete-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+    z-index: 20000; display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(5px);
 }
