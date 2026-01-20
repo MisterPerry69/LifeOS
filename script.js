@@ -103,10 +103,9 @@ function renderGrid(data) {
     if (!grid) return;
     grid.innerHTML = "";
     
-    // Salviamo le note globalmente per aprirle col click
     loadedNotesData = data.notes;
 
-    // --- 1. CARD EXTRA (Sempre in cima, Inamovibile) ---
+    // --- 1. CARD EXTRA (Inamovibile) ---
     const extraCard = document.createElement('div');
     extraCard.className = "keep-card bg-default extra-card pinnato";
     extraCard.innerHTML = `
@@ -118,14 +117,14 @@ function renderGrid(data) {
     extraCard.onclick = () => openExtraDetail();
     grid.appendChild(extraCard);
 
-    // --- 2. GENERAZIONE NOTE TRASCINABILI ---
+    // --- 2. GENERAZIONE NOTE ---
     loadedNotesData.forEach((note, index) => {
         const isPinned = note[2] === "PINNED";
         const card = document.createElement('div');
         
-        // Assegniamo classi e attributi per D&D
         card.className = `keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}`;
         card.id = `card-${note[4]}`;
+        card.dataset.type = note[2]; // Salviamo il tipo (NOTE o PINNED) nel dataset
         card.draggable = true;
 
         card.innerHTML = `
@@ -137,64 +136,54 @@ function renderGrid(data) {
             </div>
         `;
 
-        // --- EVENTI DRAG & DROP ---
+        // --- EVENTI DRAG & DROP CON FILTRO GERARCHIA ---
         card.ondragstart = (e) => {
             draggedItem = card;
             card.classList.add('dragging');
-            e.dataTransfer.effectAllowed = "move";
         };
 
         card.ondragend = () => {
             card.classList.remove('dragging');
-            draggedItem = null;
-            // Rimuoviamo eventuali rimasugli grafici da tutte le card
             document.querySelectorAll('.keep-card').forEach(c => c.classList.remove('drag-over'));
             saveNewOrder(); 
         };
 
-        card.ondragover = (e) => {
-            e.preventDefault(); // Necessario per permettere il drop
-        };
+        card.ondragover = (e) => e.preventDefault();
 
         card.ondragenter = (e) => {
-            if (card !== draggedItem && !card.classList.contains('extra-card')) {
+            // Impedisce il feedback visivo se cerchiamo di incrociare i tipi
+            if (draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
                 card.classList.add('drag-over');
             }
         };
 
-        card.ondragleave = () => {
-            card.classList.remove('drag-over');
-        };
+        card.ondragleave = () => card.classList.remove('drag-over');
 
         card.ondrop = (e) => {
             e.preventDefault();
             card.classList.remove('drag-over');
             
-            // Impediamo il drop se il target è la card Extra o se è la card stessa
-            if (draggedItem !== card && !card.classList.contains('extra-card')) {
+            if (!draggedItem || draggedItem === card) return;
+
+            // REGOLA DI FERRO: Puoi droppare solo se il tipo è lo stesso (NOTE su NOTE, PINNED su PINNED)
+            // e ovviamente non puoi droppare sulla card Extra
+            if (!card.classList.contains('extra-card') && draggedItem.dataset.type === card.dataset.type) {
                 const allCards = [...grid.querySelectorAll('.keep-card')];
                 const draggedIdx = allCards.indexOf(draggedItem);
                 const targetIdx = allCards.indexOf(card);
                 
-                if (draggedIdx < targetIdx) {
-                    card.after(draggedItem);
-                } else {
-                    card.before(draggedItem);
-                }
+                if (draggedIdx < targetIdx) card.after(draggedItem);
+                else card.before(draggedItem);
             }
         };
 
-        // --- GESTIONE CLICK (con protezione per trascinamento) ---
-        card.onclick = (e) => {
-            // Se stiamo trascinando, non aprire la nota
-            if (card.classList.contains('dragging')) return;
-            openNoteByIndex(index);
+        card.onclick = () => {
+            if (!card.classList.contains('dragging')) openNoteByIndex(index);
         };
 
         grid.appendChild(card);
     });
 }
-
 async function saveNewOrder() {
     const cards = [...document.querySelectorAll('.keep-card:not(.extra-card)')];
     const orderList = cards.map((card, index) => ({
