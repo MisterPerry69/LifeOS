@@ -14,16 +14,50 @@ let menuOpen = false;
 // --- 2. CORE & NAVIGATION ---
 
 // Inizializzazione al caricamento
-window.onload = () => {
+// --- 2. CORE & NAVIGATION ---
+
+// Inizializzazione al caricamento
+window.onload = async () => {
     updateClock();
     setInterval(updateClock, 1000);
-    loadStats(); // Caricamento iniziale dati
+    
+    // Avvia la sequenza di boot visiva
+    await runBootSequence();
+    
+    // Carica i dati reali
+    await loadStats(); 
+    
+    // Nasconde il boot screen dopo un breve delay per far leggere l'ultimo log
+    setTimeout(() => {
+        const boot = document.getElementById('boot-screen');
+        if(boot) boot.style.display = 'none';
+    }, 500);
 };
 
+// Funzione per scrivere i log nel boot screen
+async function bootLog(text, delay = 150) {
+    const logEl = document.getElementById('boot-text');
+    if (logEl) {
+        logEl.innerHTML += `> ${text}<br>`;
+        // Scroll automatico verso il basso se i log sono tanti
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+    return new Promise(res => setTimeout(res, delay));
+}
+
+// Sequenza di log "estetici"
+async function runBootSequence() {
+    await bootLog("INITIALIZING SYSTEM_OS...", 300);
+    await bootLog("LOADING KERNEL MODULES...", 200);
+    await bootLog("ESTABLISHING CONNECTION TO GAS_ENGINE...", 400);
+    await bootLog("FETCHING USER_DATA FROM SPREADSHEET...", 100);
+    // Qui il codice passerà a loadStats() nel window.onload
+}
+
 function updateClock() {
-    const now = new Date();
     const clockEl = document.getElementById('clock');
     const dateEl = document.getElementById('dateStr');
+    const now = new Date();
     
     if(clockEl) clockEl.innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
     if(dateEl) dateEl.innerText = now.toLocaleDateString('it-IT');
