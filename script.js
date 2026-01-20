@@ -101,10 +101,9 @@ function renderGrid(data) {
     if (!grid) return;
     grid.innerHTML = "";
     
-    // Salviamo le note in una variabile globale così openNote le pesca da qui
     loadedNotesData = data.notes;
 
-    // Card Extra (Invariata)
+    // Card Extra
     grid.innerHTML += `
         <div class="keep-card bg-default extra-card" onclick="openExtraDetail()">
             <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
@@ -112,19 +111,20 @@ function renderGrid(data) {
             <div class="label" style="opacity:0.5">${data.monthLabel}</div>
         </div>`;
 
-    // Note (Ciclo)
+    // Note
     loadedNotesData.forEach((note, index) => {
         const d = new Date(note[0]);
         const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
         const color = note[3];
         const id = note[4];
-        const title = note[5] || "Nota"; 
-        const previewText = note[1]; // Anteprima visiva
+        
+        // RECUPERO TITOLO: note[5] è il titolo inviato dal server
+        const title = note[5] && note[5] !== "" ? note[5] : "Nota"; 
+        const previewText = note[1];
 
-        // NOTA: Passiamo solo l'INDEX dell'array, così non rompiamo nulla con i testi lunghi
         grid.innerHTML += `
             <div class="keep-card bg-${color}" id="card-${id}" onclick="openNoteByIndex(${index})">
-                <div class="title-row">${title}</div>
+                <div class="title-row">${title.toUpperCase()}</div>
                 <div class="content-preview">${previewText}</div>
                 <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${dStr}</div>
             </div>`;
