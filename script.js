@@ -93,13 +93,18 @@ async function loadStats() {
     }
 }
 
-// MODIFICA: Aggiornata per leggere la colonna 5 (Titolo) e creare card con anteprima
+// Variabile globale per contenere le note caricate ed evitare problemi di parsing nell'HTML
+let loadedNotesData = [];
+
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
     grid.innerHTML = "";
+    
+    // Salviamo le note in una variabile globale così openNote le pesca da qui
+    loadedNotesData = data.notes;
 
-    // Card Extra (Fissa)
+    // Card Extra (Invariata)
     grid.innerHTML += `
         <div class="keep-card bg-default extra-card" onclick="openExtraDetail()">
             <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
@@ -107,23 +112,25 @@ function renderGrid(data) {
             <div class="label" style="opacity:0.5">${data.monthLabel}</div>
         </div>`;
 
-    // Note (Ciclo sulle note dal server)
-    data.notes.forEach(note => {
+    // Note (Ciclo)
+    loadedNotesData.forEach((note, index) => {
         const d = new Date(note[0]);
         const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
-        const content = note[1];
         const color = note[3];
         const id = note[4];
-        const title = note[5] || "Nota"; // Colonna E del foglio
+        const title = note[5] || "Nota"; 
+        const previewText = note[1]; // Anteprima visiva
 
+        // NOTA: Passiamo solo l'INDEX dell'array, così non rompiamo nulla con i testi lunghi
         grid.innerHTML += `
-            <div class="keep-card bg-${color}" id="card-${id}" onclick="openNote('${content.replace(/'/g, "\\'")}', 'NOTE', '${dStr}', '${color}', ${id})">
+            <div class="keep-card bg-${color}" id="card-${id}" onclick="openNoteByIndex(${index})">
                 <div class="title-row">${title}</div>
-                <div class="content-preview">${content}</div>
+                <div class="content-preview">${previewText}</div>
                 <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${dStr}</div>
             </div>`;
     });
 }
+
 // --- 4. COMMAND CENTER (POST) ---
 
 function sendCmd(event) {
@@ -161,22 +168,27 @@ function sendCmd(event) {
 
 // --- 5. UI MODALS & ACTIONS ---
 
-function openNote(text, type, dateLabel, color, id) {
-    currentNoteData = { id, type, color };
-    const modal = document.getElementById('note-detail');
-    const textArea = document.getElementById('detail-text');
+function openNoteByIndex(index) {
+    const note = loadedNotesData[index];
+    if (!note) return;
+
+    // note = [Data, Contenuto, Tipo, Colore, ID, Titolo]
+    currentNoteData = { id: note[4], type: 'NOTE', color: note[3] };
     
-    document.getElementById('detail-type').innerText = dateLabel;
-    textArea.style.display = "block";
-    textArea.value = text;
+    const d = new Date(note[0]);
+    const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+    
+    const modal = document.getElementById('note-detail');
+    document.getElementById('detail-type').innerText = note[5] || "Nota"; // Titolo nel modal
+    document.getElementById('detail-text').value = note[1]; // Testo integrale
+    document.getElementById('detail-text').style.display = "block";
     document.getElementById('detail-extra-list').style.display = "none";
     
-    // Reset e applicazione colore
-    modal.className = `note-overlay bg-${color}`;
+    modal.className = `note-overlay bg-${note[3]}`;
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
-    document.body.classList.add('modal-open');
 }
+
 
 function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
