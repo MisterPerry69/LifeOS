@@ -96,39 +96,83 @@ async function loadStats() {
 // Variabile globale per contenere le note caricate ed evitare problemi di parsing nell'HTML
 let loadedNotesData = [];
 
+let draggedItem = null;
+
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
     grid.innerHTML = "";
-    
-    // 1. CARD EXTRA (Sempre in cima)
+    loadedNotesData = data.notes;
+
+    // Card Extra (Non trascinabile)
     grid.innerHTML += `
-        <div class="keep-card bg-default extra-card pinnato" onclick="openExtraDetail()">
-            <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
+        <div class="keep-card bg-default extra-card pinnato">
+            <div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>
             <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
             <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
             <div class="label" style="opacity:0.5">${data.monthLabel}</div>
         </div>`;
 
-    // 2. SEPARAZIONE E ORDINAMENTO NOTE
-    const pinnedNotes = data.notes.filter(n => n[2] === "PINNED");
-    const otherNotes = data.notes.filter(n => n[2] !== "PINNED");
-    const allSortedNotes = [...pinnedNotes, ...otherNotes];
-    
-    loadedNotesData = allSortedNotes;
-
-    allSortedNotes.forEach((note, index) => {
-        const d = new Date(note[0]);
-        const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+    // Note trascinabili
+    loadedNotesData.forEach((note, index) => {
         const isPinned = note[2] === "PINNED";
+        const card = document.createElement('div');
+        card.className = `keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}`;
+        card.id = `card-${note[4]}`;
+        card.draggable = true; // Attiva D&D
+        
+        card.innerHTML = `
+            ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
+            <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
+            <div class="content-preview">${note[1]}</div>
+            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}</div>
+        `;
 
-        grid.innerHTML += `
-            <div class="keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}" id="card-${note[4]}" onclick="openNoteByIndex(${index})">
-                ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
-                <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
-                <div class="content-preview">${note[1]}</div>
-                <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${dStr}</div>
-            </div>`;
+        // Eventi D&D
+        card.ondragstart = (e) => { 
+            draggedItem = card; 
+            card.style.opacity = "0.5";
+            e.dataTransfer.effectAllowed = "move";
+        };
+        card.ondragend = () => { 
+            card.style.opacity = "1";
+            saveNewOrder(); 
+        };
+        card.ondragover = (e) => e.preventDefault();
+        card.ondragenter = (e) => card.classList.add('drag-over');
+        card.ondragleave = () => card.classList.remove('drag-over');
+        card.ondrop = (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            if (draggedItem !== card) {
+                let allCards = [...grid.querySelectorAll('.keep-card:not(.extra-card)')];
+                let draggedIdx = allCards.indexOf(draggedItem);
+                let targetIdx = allCards.indexOf(card);
+                if (draggedIdx < targetIdx) card.after(draggedItem);
+                else card.before(draggedItem);
+            }
+        };
+        
+        // Click per aprire (usiamo addEventListener per non sovrascrivere D&D)
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.keep-card')) openNoteByIndex(index);
+        });
+
+        grid.appendChild(card);
+    });
+}
+
+async function saveNewOrder() {
+    const cards = [...document.querySelectorAll('.keep-card:not(.extra-card)')];
+    const orderList = cards.map((card, index) => ({
+        id: card.id.replace('card-', ''),
+        order: index + 1
+    }));
+
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ service: "update_order", orderList: orderList })
     });
 }
 

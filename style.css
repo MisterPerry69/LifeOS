@@ -427,3 +427,16 @@ input {
     z-index: 20000; display: none; align-items: center; justify-content: center;
     backdrop-filter: blur(5px);
 }
+
+.keep-card.drag-over {
+    border: 2px dashed var(--accent) !important;
+    transform: scale(1.02);
+}
+
+.keep-card[draggable="true"] {
+    cursor: grab;
+}
+
+.keep-card[draggable="true"]:active {
+    cursor: grabbing;
+}
