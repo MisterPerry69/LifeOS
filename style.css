@@ -173,13 +173,15 @@ input {
     position: relative;
 }
 
-.title-row { 
-    font-weight: bold; 
-    font-size: 13px; 
-    margin-bottom: 4px; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    white-space: nowrap; 
+.title-row {
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--accent); /* Il titolo sarà sempre del colore principale del sistema */
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1); /* Una sottile linea sotto il titolo */
+    padding-bottom: 4px;
+    text-transform: uppercase;
 }
 
 .keep-card .title-row {
