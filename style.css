@@ -405,11 +405,3 @@ input {
 .keep-card.pinnato {
     border-top: 2px solid var(--accent);
 }
-
-/* Fix per rimettere il selettore colore visibile per le note */
-function openNoteByIndex(index) {
-    // ... (codice esistente)
-    const colorBtn = document.querySelector('.color-selector-container');
-    if(colorBtn) colorBtn.style.display = "block"; // Riabilita per note normali
-    // ...
-}

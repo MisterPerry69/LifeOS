@@ -178,6 +178,9 @@ function openNoteByIndex(index) {
     
     const d = new Date(note[0]);
     const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
+
+    const colorBtn = document.querySelector('.color-selector-container');
+    if(colorBtn) colorBtn.style.display = "block"; // Riabilita per note normali
     
     const modal = document.getElementById('note-detail');
     document.getElementById('detail-type').innerText = note[5] || "Nota"; // Titolo nel modal
