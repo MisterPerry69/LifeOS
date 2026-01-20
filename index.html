@@ -6,11 +6,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css">
+  
   <script src="https://misterperry69.github.io/LifeOS/script.js"></script>
-
 </head>
 
 <body>
@@ -18,75 +20,69 @@
     <div id="boot-text"></div>
     <div id="boot-logo-container">
         <img src="icon.png" id="boot-logo" alt="Logo">
-        
         <div class="boot-spinner"></div>
     </div>
     <div><span class="cursor"></span></div>
   </div>    
 
- 
   <div id="home" class="page active">
       <div class="header">
         <h1>SYSTEM_OS</h1>
         <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
       </div>
+      
       <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
 
-
-    <div class="grid">
-      <div class="widget" onclick="nav('braindump')">
-        <span class="label">Brain</span>
-        <div class="value"><i class="fas fa-brain"></i></div>
+      <div class="grid">
+        <div class="widget" onclick="nav('braindump')">
+          <span class="label">Brain</span>
+          <div class="value"><i class="fas fa-brain"></i></div>
+        </div>
+        <div class="widget" onclick="nav('habit')"> <span class="label">Status</span>
+          <div class="value"><i class="fas fa-chart-line"></i></div>
+        </div>
+        <div class="widget" onclick="nav('health')">
+          <span class="label">Body</span>
+          <div class="value"><i class="fas fa-dumbbell"></i></div>
+        </div>
+        <div class="widget" onclick="nav('agenda')">
+          <span class="label">Plan</span>
+          <div class="value"><i class="fas fa-calendar-alt"></i></div>
+        </div>
       </div>
-      <div class="widget" onclick="nav('trackers')">
-        <span class="label">Status</span>
-        <div class="value"><i class="fas fa-chart-line"></i></div>
-      </div>
-      <div class="widget" onclick="nav('health')">
-        <span class="label">Body</span>
-        <div class="value"><i class="fas fa-dumbbell"></i></div>
-      </div>
-      <div class="widget" onclick="nav('agenda')">
-        <span class="label">Plan</span>
-        <div class="value"><i class="fas fa-calendar-alt"></i></div>
-      </div>
-    </div>
   </div>
 
-<div id="braindump" class="page" >
-  <div class="header">
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <i class="fas fa-bars" onclick="toggleMenu()" style="color: var(--accent); cursor:pointer;"></i>
-        <h1 style="font-size: 12px;">BRAIN_DUMP</h1>
+  <div id="braindump" class="page">
+    <div class="header">
+      <div style="display: flex; align-items: center; gap: 15px;">
+          <i class="fas fa-bars" onclick="toggleMenu()" style="color: var(--accent); cursor:pointer;"></i>
+          <h1 style="font-size: 12px;">BRAIN_DUMP</h1>
+      </div>
+      <div style="display: flex; gap: 15px; align-items: center;">
+          <i class="fas fa-search" onclick="toggleSearch()" style="font-size: 14px; color: var(--dim);"></i>
+          <div class="info" onclick="nav('home')">ESC [X]</div>
+      </div>
     </div>
-    <div style="display: flex; gap: 15px; align-items: center;">
-        <i class="fas fa-search" onclick="toggleSearch()" style="font-size: 14px; color: var(--dim);"></i>
-        <div class="info" onclick="nav('home')">ESC [X]</div>
+
+    <div style="display: flex; flex: 1; overflow: hidden;">
+      <nav id="side-menu" style="width: 0; overflow: hidden; background: #000; transition: 0.3s; border-right: 1px solid #222;">
+          <div style="padding: 20px; min-width: 150px; font-size: 10px;">
+              <div class="label" style="margin-bottom: 20px;">FILTRI</div>
+              <p><i class="fas fa-thumbtack"></i> PINNATI</p>
+              <p onclick="openExtraDetail()"><i class="fas fa-clock"></i> STRAORDINARI</p>
+              <p><i class="fas fa-link"></i> LINK</p>
+              <p><i class="fas fa-sticky-note"></i> NOTE</p>
+          </div>
+      </nav>
+
+      <main style="flex: 1; overflow-y: auto; padding: 15px;">
+          <input type="text" id="dump-input" placeholder="Prendi una nota..." 
+                 style="background: #111; border: 1px solid #333; margin-bottom: 20px;"
+                 onkeypress="sendCmd(event)">
+          <div id="keep-grid"></div>
+      </main>
     </div>
   </div>
-
-  <div style="display: flex; flex: 1; overflow: hidden;">
-    <nav id="side-menu" style="width: 0; overflow: hidden; background: #000; transition: 0.3s; border-right: 1px solid #222;">
-        <div style="padding: 20px; min-width: 150px; font-size: 10px;">
-            <div class="label" style="margin-bottom: 20px;">FILTRI</div>
-            <p><i class="fas fa-thumbtack"></i> PINNATI</p>
-            <p><i class="fas fa-clock"></i> STRAORDINARI</p>
-            <p><i class="fas fa-link"></i> LINK</p>
-            <p><i class="fas fa-sticky-note"></i> NOTE</p>
-        </div>
-    </nav>
-
-    <main style="flex: 1; overflow-y: auto; padding: 15px;">
-        <input type="text" id="dump-input" placeholder="Prendi una nota..." 
-               style="background: #111; border: 1px solid #333; margin-bottom: 20px;"
-               onkeypress="sendCmd(event)">
-
-        <div id="keep-grid">
-        </div>
-        </div>
-    </main>
-  </div>
-</div>
 
   <div id="habit" class="page">
     <div class="header">
@@ -100,43 +96,32 @@
       <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
       <button class="btn">📅</button>
       <button class="btn">⚙️</button>
-      <button class="btn">🗑️</button>
+      <button class="btn" onclick="loadStats()">🔄</button>
     </div>
   </div>
 
-<div id="extra-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:9999; padding:25px; border: 1px solid var(--accent);">
-    <div class="header" style="border-bottom: 1px solid var(--accent);">
-        <h1 style="color: var(--accent);">RECAP_EXTRA</h1>
-        <div class="info" onclick="document.getElementById('extra-modal').style.display='none'" style="cursor:pointer; color:red;">[CHIUDI]</div>
-    </div>
-    <div id="extra-history" style="margin-top:20px; font-size:12px;">
-       <p style="color:var(--dim)">Caricamento storico...</p>
-    </div>
-</div>
+  <div id="modal-backdrop" onclick="saveAndClose()"></div>
 
-<div id="modal-backdrop" onclick="saveAndClose()"></div>
+  <div id="note-detail" class="note-overlay">
+      <div class="header">
+          <h1 id="detail-type">NOTA</h1>
+          <div class="info" onclick="saveAndClose()">SALVA [X]</div>
+      </div>
+      
+      <div style="padding: 10px; flex-grow: 1; display: flex; flex-direction: column;">
+          <textarea id="detail-text" spellcheck="false"></textarea>
+          <div id="detail-extra-list" style="display:none; overflow-y:auto; flex-grow:1;"></div>
+      </div>
 
-<div id="note-detail" class="note-overlay">
-    <div class="header">
-        <h1 id="detail-type">NOTA</h1>
-        <div class="info" onclick="saveAndClose()">SALVA [X]</div>
-    </div>
-    
-    <div style="padding: 10px; flex-grow: 1; display: flex; flex-direction: column;">
-        <div id="detail-date" style="font-size: 10px; color: var(--dim); margin-bottom: 10px;"></div>
-        
-        <textarea id="detail-text" spellcheck="false"></textarea>
-        <div id="detail-extra-list" style="display:none; overflow-y:auto; height: 400px;"></div>
-    </div>
+      <div class="note-toolbar">
+          <span class="tool-icon" onclick="deleteItem(currentNoteData.id, currentNoteData.type)">🗑️</span>
+          <div class="color-dot bg-blue" onclick="changeNoteColor('blue')"></div>
+          <div class="color-dot bg-red" onclick="changeNoteColor('red')"></div>
+          <div class="color-dot bg-green" onclick="changeNoteColor('green')"></div>
+          <div class="color-dot bg-yellow" onclick="changeNoteColor('yellow')"></div>
+          <div class="color-dot bg-default" onclick="changeNoteColor('default')"></div>
+      </div>
+  </div>
 
-    <div class="note-toolbar">
-        <span class="tool-icon" onclick="deleteNote()">🗑️</span>
-        <span class="tool-icon" onclick="togglePin()">📌</span>
-        <span class="tool-icon" onclick="showColorPicker()">🎨</span>
-        <span class="tool-icon" onclick="setReminder()">🔔</span>
-        <span class="tool-icon" onclick="addTag()">🏷️</span>
-    </div>
-</div>
-</script>
 </body>
 </html>
