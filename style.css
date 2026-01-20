@@ -173,6 +173,43 @@ input {
     position: relative;
 }
 
+.title-row { 
+    font-weight: bold; 
+    font-size: 13px; 
+    margin-bottom: 4px; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+}
+
+.keep-card .title-row {
+    font-weight: bold;
+    color: var(--accent);
+    font-size: 14px;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.keep-card .content-preview {
+    font-size: 12px;
+    color: var(--dim);
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Mostra solo 2 righe */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.content-preview { 
+    font-size: 11px; 
+    opacity: 0.7; 
+    display: -webkit-box; 
+    -webkit-line-clamp: 3; 
+    -webkit-box-orient: vertical; 
+    overflow: hidden; 
+}
+
 #side-menu p {
     margin-bottom: 15px;
     color: var(--text);
@@ -293,28 +330,40 @@ input {
 
 .color-selector-container { position: relative; }
 
+/* Bolla selettore colori */
 .color-bubble {
     display: none;
     position: absolute;
-    bottom: 50px;
+    bottom: 60px;
     left: 50%;
     transform: translateX(-50%);
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 20px;
-    padding: 8px;
-    gap: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    z-index: 100;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 30px;
+    padding: 10px;
+    gap: 12px;
+    z-index: 1000;
 }
 
-.color-dot {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
+/* Palline colorate piene */
+.color-dot { 
+    width: 25px; 
+    height: 25px; 
+    border-radius: 50%; 
+    cursor: pointer; 
+    border: 2px solid rgba(255,255,255,0.2); 
 }
+
+/* Palline piene nella bubble */
+.color-dot.bg-default { background-color: #444 !important; }
+.color-dot.bg-blue    { background-color: #4285f4 !important; }
+.color-dot.bg-red     { background-color: #ea4335 !important; }
+.color-dot.bg-green   { background-color: #34a853 !important; }
+.color-dot.bg-yellow  { background-color: #fbbc05 !important; }
+
+/* Forza bordo verde fisso per card EXTRA */
+.extra-card { border-left: 4px solid var(--accent) !important; }
+
 .color-dot:hover { border-color: white; }
 
 /* Fix bordo Extra nel dettaglio */

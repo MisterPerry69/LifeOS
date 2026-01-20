@@ -93,35 +93,37 @@ async function loadStats() {
     }
 }
 
+// MODIFICA: Aggiornata per leggere la colonna 5 (Titolo) e creare card con anteprima
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
-
     grid.innerHTML = "";
-    
-    // 3.1 Card Extra (Speciale)
+
+    // Card Extra (Fissa)
     grid.innerHTML += `
-        <div class="keep-card bg-default" onclick="openExtraDetail()" style="border-left: 3px solid var(--accent) !important;">
-            <div class="label">EXTRA_TOTAL</div>
-            <div style="font-size: 24px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
-            <div style="font-size: 9px; color: var(--dim); text-transform: uppercase;">${data.monthLabel}</div>
+        <div class="keep-card bg-default extra-card" onclick="openExtraDetail()">
+            <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
+            <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
+            <div class="label" style="opacity:0.5">${data.monthLabel}</div>
         </div>`;
 
-    // 3.2 Card Note (Procedurali)
+    // Note (Ciclo sulle note dal server)
     data.notes.forEach(note => {
         const d = new Date(note[0]);
         const dStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'});
-        const tStr = d.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'});
-        const cleanText = note[1].replace(/'/g, "\\'");
-        
+        const content = note[1];
+        const color = note[3];
+        const id = note[4];
+        const title = note[5] || "Nota"; // Colonna E del foglio
+
         grid.innerHTML += `
-            <div class="keep-card bg-${note[3]}" onclick="openNote('${cleanText}', 'NOTE', '${dStr} ${tStr}', '${note[3]}', ${note[4]})">
-                <div class="label">${dStr} - ${tStr}</div>
-                <div style="font-size: 13px; line-height: 1.4;">${note[1]}</div>
+            <div class="keep-card bg-${color}" id="card-${id}" onclick="openNote('${content.replace(/'/g, "\\'")}', 'NOTE', '${dStr}', '${color}', ${id})">
+                <div class="title-row">${title}</div>
+                <div class="content-preview">${content}</div>
+                <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">${dStr}</div>
             </div>`;
     });
 }
-
 // --- 4. COMMAND CENTER (POST) ---
 
 function sendCmd(event) {
@@ -245,13 +247,17 @@ function toggleColorPicker() {
     picker.style.display = (picker.style.display === 'flex') ? 'none' : 'flex';
 }
 
+// MODIFICA: Aggiornamento immediato del colore (Optimistic UI)
 function changeNoteColor(colorName) {
     if (currentNoteData && currentNoteData.type === 'NOTE') {
-        const modal = document.getElementById('note-detail');
-        // Update visivo immediato
-        modal.className = `note-overlay bg-${colorName}`;
+        // Cambia colore al modal subito
+        document.getElementById('note-detail').className = `note-overlay bg-${colorName}`;
+        
+        // Cambia colore alla card sotto subito (senza aspettare il server)
+        const card = document.getElementById(`card-${currentNoteData.id}`);
+        if(card) card.className = `keep-card bg-${colorName}`;
+        
         currentNoteData.color = colorName;
-        // Chiudi la bubble dopo la selezione
         document.getElementById('color-picker-bubble').style.display = 'none';
     }
 }
