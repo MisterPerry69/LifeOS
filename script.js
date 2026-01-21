@@ -503,3 +503,23 @@ function handleSearch() {
         renderGrid(lastStatsData);
     }
 }
+
+function toggleSearch(show) {
+    const wrapper = document.getElementById('search-wrapper');
+    const input = document.getElementById('search-input');
+    const title = document.getElementById('dump-title');
+    const trigger = document.getElementById('search-trigger');
+
+    if (show) {
+        wrapper.classList.add('active');
+        title.style.display = 'none'; // Nasconde il titolo per fare spazio
+        trigger.style.display = 'none'; // Nasconde la lente singola
+        input.focus();
+    } else {
+        if (input.value === "") { // Chiude solo se è vuoto
+            wrapper.classList.remove('active');
+            title.style.display = 'block';
+            trigger.style.display = 'block';
+        }
+    }
+}

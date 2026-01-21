@@ -54,10 +54,17 @@
 
   <div id="braindump" class="page">
     <div class="header">
-      <div style="display: flex; align-items: center; gap: 15px;">
-          <i class="fas fa-bars" onclick="toggleSidebar()" style="color: var(--accent); cursor:pointer;"></i>
-          <h1 style="font-size: 12px;">BRAIN_DUMP</h1>
-      </div>
+    <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+        <i class="fas fa-bars" onclick="toggleSidebar()" style="color: var(--accent); cursor:pointer;"></i>
+        <h1 id="dump-title" style="font-size: 12px;">BRAIN_DUMP</h1>
+        
+        <div id="search-wrapper" class="search-wrapper">
+            <input type="text" id="search-input" placeholder="Cerca..." oninput="handleSearch()" onblur="toggleSearch(false)">
+        </div>
+    </div>
+    
+    <i class="fas fa-search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor:pointer; font-size: 16px; margin-left: 10px;"></i>
+</div>
     </div>
 
     <div id="menu-backdrop" onclick="toggleSidebar()"></div>
@@ -81,12 +88,7 @@
     </div>
 
     <main style="flex: 1; display: flex; flex-direction: column;">
-        <div class="search-container">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="search-input" placeholder="Cerca tra le note..." oninput="handleSearch()">
-        </div>
-
-        <input type="text" id="dump-input" placeholder="Prendi una nota..." 
+                <input type="text" id="dump-input" placeholder="Prendi una nota..." 
                style="background: #111; border: 1px solid #333; margin-bottom: 20px;"
                onkeypress="sendCmd(event)">
         

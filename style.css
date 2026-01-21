@@ -132,7 +132,9 @@ input {
     width: 100%; background: #000; border: 1px solid #333; border-radius: 4px; 
     padding: 15px; color: var(--accent); font-family: inherit; outline: none; margin-bottom: 20px;
 }
-input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(0, 255, 65, 0.2); }
+input:focus {     border-color: var(--accent);
+    background: rgba(0, 255, 65, 0.05);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.1); }
 
 .note-overlay {
     position: fixed; inset: 0; background: var(--card); z-index: 10000;
@@ -226,17 +228,37 @@ SEARCH
 
 #search-input {
     width: 100%;
-    padding: 12px 15px 12px 40px !important; /* Spazio per l'icona */
-    margin-bottom: 0 !important;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid #222;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--accent) !important;
+    border-radius: 4px;
+    padding: 5px 10px !important;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    margin-bottom: 0 !important; /* Toglie il margine standard degli input */
 }
 
 #search-input:focus {
     border-color: var(--accent);
     background: rgba(0, 255, 65, 0.05);
     box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+}
+
+/* Container per l'input che si espande */
+.search-wrapper {
+    overflow: hidden;
+    width: 0;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+}
+
+.search-wrapper.active {
+    width: 100%; /* Si espande occupando lo spazio disponibile */
+    margin-left: 10px;
+}
+
+/* Nasconde il titolo quando la ricerca è attiva su schermi piccoli */
+@media (max-width: 480px) {
+    .search-wrapper.active ~ h1 { display: none; }
 }
