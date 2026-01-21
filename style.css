@@ -274,3 +274,16 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     position: relative;
     min-height: 200px;
 }
+
+.day-group {
+    margin-bottom: 50px; /* Più spazio tra un giorno e l'altro */
+    border-left: 2px solid rgba(0, 255, 65, 0.2);
+    padding-left: 15px;
+}
+
+.day-label {
+    position: sticky;
+    top: 10px; /* Resta visibile mentre scorri gli eventi di quel giorno */
+    z-index: 10;
+    box-shadow: 5px 5px 0px #000;
+}

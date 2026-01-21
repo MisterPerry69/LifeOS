@@ -589,10 +589,23 @@ function handleAgendaCommand(input) {
 function loadAgenda() {
     const container = document.getElementById('events-container');
     
-    // Controlliamo se i dati sono arrivati (window.agendaData è popolata da loadStats)
-    if (!window.agendaData || window.agendaData.length === 0) {
-        // Se l'array è proprio vuoto dopo che loadStats ha finito
-        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Nessun evento rilevato nei prossimi 7 giorni.</div>";
+    // Se window.agendaData non esiste ancora (fetch in corso)
+    if (typeof window.agendaData === 'undefined') {
+        container.innerHTML = "<div style='color:var(--accent); padding:20px;' class='blink'>[ SYNCING_CHRONO... ]</div>";
+        
+        // Controlla ogni mezzo secondo se i dati sono arrivati
+        const checkData = setInterval(() => {
+            if (typeof window.agendaData !== 'undefined') {
+                clearInterval(checkData);
+                loadAgenda(); // Richiama se stessa ora che i dati ci sono
+            }
+        }, 500);
+        return;
+    }
+
+    // Ora che siamo sicuri che i dati ci sono (o sono un array vuoto)
+    if (window.agendaData.length === 0) {
+        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>NESSUN EVENTO RILEVATO (7D_SCAN).</div>";
     } else {
         renderAgenda(window.agendaData);
     }
