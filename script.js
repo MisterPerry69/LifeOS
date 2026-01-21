@@ -548,40 +548,56 @@ function handleAgendaCommand(input) {
 }
 
 function loadAgenda() {
-    console.log("Richiesta eventi in corso...");
+    const container = document.getElementById('events-container');
+    container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Sincronizzazione Chrono...</div>";
+
+    if (typeof google === 'undefined' || !google.script) {
+        console.warn("Ambiente locale rilevato: carico dati di test.");
+        testAgenda(); // Carica dati finti se sei in anteprima locale
+        return;
+    }
+
     google.script.run
         .withSuccessHandler(function(days) {
-            console.log("Dati ricevuti dal server:", days); // Controlla la console del browser (F12)
-            renderAgenda(days);
+            console.log("Dati ricevuti:", days);
+            if (!days || days.length === 0) {
+                container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Nessun evento rilevato nei prossimi 7 giorni.</div>";
+            } else {
+                renderAgenda(days);
+            }
         })
         .withFailureHandler(function(err) {
-            console.error("Errore server:", err);
+            console.error("Errore Apps Script:", err);
+            container.innerHTML = "<div style='color:#ff4444; padding:20px;'>Errore connessione Google Calendar.</div>";
         })
         .getCalendarEvents();
 }
 
 function renderAgenda(days) {
     const container = document.getElementById('events-container');
-    container.innerHTML = "";
+    container.innerHTML = ""; // Pulisce il caricamento
 
     days.forEach(day => {
         const dayDiv = document.createElement('div');
         dayDiv.className = 'day-group';
-        dayDiv.innerHTML = `<div class="day-label">${day.dateLabel}</div>`;
-
+        
+        let eventsHtml = '';
         day.events.forEach(ev => {
-            const evDiv = document.createElement('div');
-            evDiv.className = 'event-node';
-            evDiv.innerHTML = `
-                <div class="event-time">${ev.time}</div>
-                <div class="event-title">${ev.title}</div>
+            eventsHtml += `
+                <div class="event-node">
+                    <div class="event-time">${ev.time}</div>
+                    <div class="event-title">${ev.title}</div>
+                </div>
             `;
-            dayDiv.appendChild(evDiv);
         });
+
+        dayDiv.innerHTML = `
+            <div class="day-label">${day.dateLabel}</div>
+            ${eventsHtml}
+        `;
         container.appendChild(dayDiv);
     });
 }
-
 
 function testAgenda() {
     const mockData = [
