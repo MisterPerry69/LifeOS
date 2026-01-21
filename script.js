@@ -87,18 +87,25 @@ function toggleMenu() {
 
 async function loadStats() {
     try {
-        const response = await fetch(`${SCRIPT_URL}?action=getStats&t=${Date.now()}`);
+        const response = await fetch(`${SCRIPT_URL}?action=getStats&t=${Date.now()}`, {
+            method: 'GET',
+            redirect: 'follow', // Forza il browser a seguire il redirect di Google
+        });
+        
+        if (!response.ok) throw new Error('Network response was not ok');
+        
         const data = await response.json();
         
         if (data.status === "ONLINE") {
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
-            // Salviamo l'agenda in una variabile globale per usarla dopo
             window.agendaData = data.agenda || []; 
             renderGrid(data);
         }
     } catch (err) {
         console.error("Errore recupero dati:", err);
+        // Se fallisce il caricamento reale, almeno carichiamo i mockup per testare il CSS
+        testAgenda();
     }
 }
 
