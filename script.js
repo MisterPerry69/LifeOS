@@ -559,36 +559,40 @@ function toggleSearch(show) {
 
 //AGENDA
 
-// Funzione per inviare il comando dell'agenda
 function handleAgendaCommand(input) {
     const commands = input.split('/').map(s => s.trim());
     
-    commands.forEach(cmd => {
-        const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
+    // Mostra un feedback immediato nel CMD
+    document.getElementById('cmd').placeholder = "> SINCRONIZZAZIONE CHRONO...";
 
-        fetch(SCRIPT_URL, {
+    const promises = commands.map(cmd => {
+        const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
+        return fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({ service: "agenda_add", text: cleanCmd })
-        }).then(() => {
-            console.log("Evento inviato:", cleanCmd);
-            loadStats(); // Ricarica tutto e aggiorna la vista
+        });
+    });
+
+    Promise.all(promises).then(() => {
+        // Ricarica i dati e, una volta finiti, aggiorna la vista
+        loadStats().then(() => {
+            if (document.getElementById('agenda').classList.contains('active')) {
+                loadAgenda();
+            }
+            document.getElementById('cmd').placeholder = "> EVENTO REGISTRATO.";
+            setTimeout(() => document.getElementById('cmd').placeholder = "> DIGITA...", 2000);
         });
     });
 }
 
-
 function loadAgenda() {
     const container = document.getElementById('events-container');
     
-    // Se non abbiamo ancora i dati, mostriamo un caricamento
-    if (!window.agendaData) {
-        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Caricamento Chrono...</div>";
-        return;
-    }
-
-    if (window.agendaData.length === 0) {
-        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Nessun evento rilevato.</div>";
+    // Controlliamo se i dati sono arrivati (window.agendaData è popolata da loadStats)
+    if (!window.agendaData || window.agendaData.length === 0) {
+        // Se l'array è proprio vuoto dopo che loadStats ha finito
+        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Nessun evento rilevato nei prossimi 7 giorni.</div>";
     } else {
         renderAgenda(window.agendaData);
     }
