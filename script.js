@@ -67,9 +67,14 @@ function updateClock() {
 
 function nav(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
+    const target = document.getElementById(pageId);
+    if(target) target.classList.add('active');
+    
+    // LOGICA DI ATTIVAZIONE MODULI
     if(pageId === 'habit') drawPixels(historyData);
-    if(menuOpen) toggleMenu(); // Chiude il menu se aperto
+    if(pageId === 'agenda') loadAgenda(); // <--- QUESTO MANCAVA!
+    
+    if(menuOpen) toggleSidebar(); 
 }
 
 function toggleMenu() {
@@ -239,6 +244,16 @@ function sendCmd(event) {
         const input = event.target;
         const val = input.value.trim();
         if (!val) return;
+        
+// SE INIZIA CON "t ", VAI ALL'AGENDA
+        if (val.toLowerCase().startsWith('t ')) {
+            handleAgendaCommand(val);
+            input.value = "";
+            input.placeholder = "> CHRONO AGGIORNATO.";
+            setTimeout(() => input.placeholder = "> DIGITA...", 1000);
+            return; // Esci, non serve procedere con le note
+        }
+
 
         let service = "note";
         const cmd = val.toLowerCase();
