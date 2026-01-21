@@ -511,15 +511,17 @@ function toggleSearch(show) {
     const trigger = document.getElementById('search-trigger');
 
     if (show) {
+        title.style.opacity = "0"; // Sparisce il titolo
+        trigger.style.opacity = "0"; // Sparisce la lente
         wrapper.classList.add('active');
-        title.style.display = 'none'; // Nasconde il titolo per fare spazio
-        trigger.style.display = 'none'; // Nasconde la lente singola
-        input.focus();
+        setTimeout(() => input.focus(), 400);
     } else {
-        if (input.value === "") { // Chiude solo se è vuoto
+        if (input.value === "") {
             wrapper.classList.remove('active');
-            title.style.display = 'block';
-            trigger.style.display = 'block';
+            setTimeout(() => {
+                title.style.opacity = "1";
+                trigger.style.opacity = "1";
+            }, 300);
         }
     }
 }

@@ -13,8 +13,7 @@ body {
     background: var(--bg); 
     color: var(--text); 
     font-family: 'JetBrains Mono', monospace; 
-    margin: 0; 
-    padding: 0; 
+    margin: 0; padding: 0; 
     overflow-x: hidden; 
 }
 
@@ -42,99 +41,99 @@ body {
 @keyframes loading-bar { 0% { left: -100%; } 100% { left: 100%; } }
 
 /* --- 3. LAYOUT & PAGES --- */
-.container { width: 100%; max-width: 500px; margin: 0 auto; padding: 15px; }
-.page { display: none; min-height: 100vh; padding: 20px 20px 100px 20px; box-sizing: border-box; }
+.page { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
 .page.active { display: flex; flex-direction: column; }
 
-.header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
-.header h1 { font-size: 14px; margin: 0; color: var(--accent); text-transform: uppercase; }
+/* FIX BRAINDUMP OUT OF SCREEN */
+#braindump.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+}
+#braindump main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px 100px 20px;
+}
+
+.header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 20px; border-bottom: 1px solid #222; padding: 15px 20px; 
+    flex-shrink: 0;
+    position: relative; /* Importante per posizionare la ricerca */
+}
+.header h1 { font-size: 14px; margin: 0; color: var(--accent); text-transform: uppercase; transition: opacity 0.3s; }
 .header .info { font-size: 10px; color: var(--dim); text-align: right; cursor: pointer; }
 
-/* --- 4. KEEP GRID (IL CUORE DEL D&D) --- */
-#keep-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* 2 COLONNE SEMPRE SU MOBILE */
-    gap: 12px;
-    width: 100%;
+/* --- 4. RICERCA (ANIMAZIONE DA DESTRA) --- */
+.search-wrapper {
+    position: absolute;
+    right: 50px; /* Spazio per l'icona ESC o Info */
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+    display: flex;
+    align-items: center;
+}
+.search-wrapper.active {
+    width: calc(100% - 100px);
+    opacity: 1;
+    z-index: 10;
+}
+#search-input {
+    width: 100% !important;
+    background: #000 !important;
+    border: 1px solid var(--accent) !important;
+    padding: 6px 12px !important;
+    margin-bottom: 0 !important;
+    font-size: 12px;
 }
 
-@media (min-width: 768px) {
-    #keep-grid { grid-template-columns: repeat(4, 1fr); }
-    .note-overlay {
-        inset: auto !important;
-        top: 50% !important; left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 600px !important; height: 500px !important;
-        border-radius: 12px; border: 1px solid #333;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    }
-}
+/* --- 5. KEEP GRID --- */
+#keep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+@media (min-width: 768px) { #keep-grid { grid-template-columns: repeat(4, 1fr); } }
 
 .keep-card {
-    background: var(--card);
-    border: 1px solid #333;
-    padding: 12px;
-    border-radius: 8px;
-    position: relative;
-    min-height: 120px;
-    max-height: 160px; /* Dimensioni bloccate */
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.1s;
-    touch-action: none; /* Fix per Drag su mobile */
-    cursor: grab;
+    background: var(--card); border: 1px solid #333; padding: 12px; border-radius: 8px;
+    position: relative; min-height: 120px; max-height: 160px; overflow: hidden;
+    display: flex; flex-direction: column; transition: transform 0.1s;
+    touch-action: none; cursor: grab;
 }
-
 .keep-card.dragging { opacity: 0.4; transform: scale(0.95); border: 1px solid var(--accent) !important; }
 .keep-card.drag-over { border: 2px dashed var(--accent) !important; }
 
-/* Bordi laterali Colore */
+/* Bordi Colore */
 .bg-default { border-left: 4px solid var(--dim) !important; }
 .bg-blue    { border-left: 4px solid #4285f4 !important; }
 .bg-red     { border-left: 4px solid #ea4335 !important; }
 .bg-green   { border-left: 4px solid #34a853 !important; }
 .bg-yellow  { border-left: 4px solid #fbbc05 !important; }
-
 .extra-card { border-left: 4px solid var(--accent) !important; }
 
-.title-row {
-    font-weight: bold; font-size: 11px; color: var(--accent);
-    margin-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 65, 0.1);
-    padding-bottom: 4px; text-transform: uppercase;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.content-preview {
-    font-size: 11px; color: var(--text); opacity: 0.7;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-    overflow: hidden; line-height: 1.3;
-}
-
+.title-row { font-weight: bold; font-size: 11px; color: var(--accent); margin-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 65, 0.1); padding-bottom: 4px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.content-preview { font-size: 11px; color: var(--text); opacity: 0.7; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
 .pin-indicator { position: absolute; top: 8px; right: 8px; font-size: 10px; color: var(--accent); }
 
-/* --- 5. WIDGETS & PIXELS (HABITS) --- */
+/* --- 6. WIDGETS & PIXELS (HOME & HABITS) --- */
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .widget { background: var(--card); padding: 15px; border: 1px solid #222; border-radius: 4px; cursor: pointer; transition: 0.3s; }
-.widget.full { grid-column: span 2; }
-.widget:active { border-color: var(--accent); }
-.widget .value { font-size: 20px; }
-.widget .value i { color: var(--accent); text-shadow: 0 0 5px rgba(0, 255, 65, 0.4); }
+.widget .value { font-size: 20px; margin-top: 10px; }
+.widget .value i { color: var(--accent); }
 
 .pixel-container { display: grid; gap: 5px; width: 100%; margin-top: 20px; }
 .grid-7, .grid-30 { grid-template-columns: repeat(7, 1fr); }
-.grid-365 { grid-template-columns: repeat(15, 1fr); gap: 3px; }
 .pixel { aspect-ratio: 1/1; background: #111; border: 1px solid #222; }
 .pixel.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); border: none; }
 
-/* --- 6. INPUTS & OVERLAYS --- */
+/* --- 7. INPUTS & OVERLAYS --- */
 input { 
     width: 100%; background: #000; border: 1px solid #333; border-radius: 4px; 
     padding: 15px; color: var(--accent); font-family: inherit; outline: none; margin-bottom: 20px;
 }
-input:focus {     border-color: var(--accent);
-    background: rgba(0, 255, 65, 0.05);
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.1); }
+input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
+
+#dump-input { background: #111; border: 1px solid #333; margin-top: 10px; }
 
 .note-overlay {
     position: fixed; inset: 0; background: var(--card); z-index: 10000;
@@ -145,120 +144,27 @@ input:focus {     border-color: var(--accent);
     color: var(--text); font-family: inherit; font-size: 16px; outline: none; resize: none;
 }
 
-/* --- 7. MODALS --- */
-#delete-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-    z-index: 20000; display: none; align-items: center; justify-content: center;
-    backdrop-filter: blur(5px);
+/* --- 8. SIDE MENU & MODALS --- */
+#side-menu {
+    position: fixed; top: 0; left: -280px; width: 260px; height: 100%; 
+    background: #0f0f0f; z-index: 20001; transition: 0.3s; padding: 20px; 
+    border-right: 1px solid #222; display: flex; flex-direction: column; gap: 10px;
 }
-.modal-content {
-    background: #111; border: 1px solid #333; padding: 30px; border-radius: 4px;
-    text-align: center; width: 280px;
-}
-.btn-group { display: flex; justify-content: space-around; margin-top: 20px; }
-.btn-confirm { color: #ff4444; font-weight: bold; cursor: pointer; font-size: 12px; }
-.btn-cancel { color: #888; cursor: pointer; font-size: 12px; }
+#side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
+#menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 20000; display: none; }
 
-/* --- 8. FOOTER & TOOLS --- */
+.menu-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 8px; color: var(--text); cursor: pointer; }
+.menu-item.active { background: rgba(0,255,65,0.1); color: var(--accent); border: 1px solid rgba(0,255,65,0.3); }
+
+#delete-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+.modal-content { background: #111; border: 1px solid #333; padding: 30px; border-radius: 4px; text-align: center; width: 280px; }
+
+/* --- 9. FOOTER & TOOLS --- */
 .footer { 
     position: fixed; bottom: 0; left: 0; right: 0; 
     background: #000; border-top: 1px solid #222; 
     display: flex; justify-content: space-around; padding: 15px; z-index: 999;
 }
 .btn { background: none; border: none; color: var(--text); font-size: 18px; cursor: pointer; }
-
 .note-toolbar { display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; margin-top: auto; }
 .tool-icon { font-size: 18px; color: var(--dim); cursor: pointer; }
-.tool-icon:hover { color: var(--accent); }
-
-.color-bubble {
-    display: none; position: absolute; bottom: 70px; left: 50%;
-    transform: translateX(-50%); background: #1a1a1a; border: 1px solid #333;
-    border-radius: 30px; padding: 10px; gap: 10px; z-index: 1001;
-}
-.color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; }
-.color-dot.bg-default { background: #444 !important; }
-
-/* --- SIDE MENU OVERLAY --- */
-#side-menu {
-    position: fixed; top: 0; left: -280px; /* Nascosto a sinistra */
-    width: 260px; height: 100%; background: #0f0f0f;
-    z-index: 20001; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 20px; border-right: 1px solid #222;
-    display: flex; flex-direction: column; gap: 10px;
-}
-
-#side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
-
-/* Backdrop per il menu (Sfocatura) */
-#menu-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-    z-index: 20000; display: none;
-}
-
-/* Bottoni Menu Grandi */
-.menu-item {
-    display: flex; align-items: center; gap: 15px;
-    padding: 15px; border-radius: 8px; color: var(--text);
-    cursor: pointer; transition: 0.2s; border: 1px solid transparent;
-}
-.menu-item i { font-size: 18px; width: 25px; color: var(--dim); }
-.menu-item:hover { background: rgba(0,255,65,0.05); color: var(--accent); }
-.menu-item.active { background: rgba(0,255,65,0.1); border-color: rgba(0,255,65,0.3); color: var(--accent); }
-.menu-item.active i { color: var(--accent); }
-
-SEARCH 
-
-.search-container {
-    position: relative;
-    margin-bottom: 20px;
-    width: 100%;
-}
-
-.search-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--dim);
-    font-size: 14px;
-    pointer-events: none;
-}
-
-#search-input {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid var(--accent) !important;
-    border-radius: 4px;
-    padding: 5px 10px !important;
-    color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    margin-bottom: 0 !important; /* Toglie il margine standard degli input */
-}
-
-#search-input:focus {
-    border-color: var(--accent);
-    background: rgba(0, 255, 65, 0.05);
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
-}
-
-/* Container per l'input che si espande */
-.search-wrapper {
-    overflow: hidden;
-    width: 0;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-}
-
-.search-wrapper.active {
-    width: 100%; /* Si espande occupando lo spazio disponibile */
-    margin-left: 10px;
-}
-
-/* Nasconde il titolo quando la ricerca è attiva su schermi piccoli */
-@media (max-width: 480px) {
-    .search-wrapper.active ~ h1 { display: none; }
-}
