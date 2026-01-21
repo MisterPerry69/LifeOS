@@ -58,10 +58,6 @@
           <i class="fas fa-bars" onclick="toggleSidebar()" style="color: var(--accent); cursor:pointer;"></i>
           <h1 style="font-size: 12px;">BRAIN_DUMP</h1>
       </div>
-      <div class="search-container">
-          <i class="fas fa-search search-icon"></i>
-        <input type="text" id="search-input" placeholder="Cerca tra le note..." oninput="handleSearch()">
-    </div>
       </div>
     </div>
 
@@ -92,7 +88,11 @@
           <input type="text" id="dump-input" placeholder="Prendi una nota..." 
                  style="background: #111; border: 1px solid #333; margin-bottom: 20px;"
                  onkeypress="sendCmd(event)">
-          <div id="keep-grid"></div>
+            <div id="keep-grid"></div>
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="search-input" placeholder="Cerca tra le note..." oninput="handleSearch()">
+            </div>
       </main>
     </div>
   </div>
