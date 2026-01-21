@@ -86,16 +86,23 @@ function toggleMenu() {
 // --- 3. DATA ENGINE (GET) ---
 
 async function loadStats() {
+    // Pulisci l'URL da eventuali spazi
+    const url = SCRIPT_URL + "?action=getStats&t=" + Date.now();
+    
     try {
-        const response = await fetch(`${SCRIPT_URL}?action=getStats&t=${Date.now()}`, {
+        const response = await fetch(url, {
             method: 'GET',
-            redirect: 'follow', // Forza il browser a seguire il redirect di Google
+            mode: 'cors', // Proviamo a forzare cors
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            }
         });
-        
-        if (!response.ok) throw new Error('Network response was not ok');
-        
+
+        if (!response.ok) throw new Error('Errore nella risposta del server');
+
         const data = await response.json();
-        
+        console.log("Dati ricevuti con successo:", data);
+
         if (data.status === "ONLINE") {
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
@@ -104,8 +111,7 @@ async function loadStats() {
         }
     } catch (err) {
         console.error("Errore recupero dati:", err);
-        // Se fallisce il caricamento reale, almeno carichiamo i mockup per testare il CSS
-        testAgenda();
+        testAgenda(); // Carica i finti se fallisce
     }
 }
 
