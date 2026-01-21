@@ -168,3 +168,64 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 .btn { background: none; border: none; color: var(--text); font-size: 18px; cursor: pointer; }
 .note-toolbar { display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; margin-top: auto; }
 .tool-icon { font-size: 18px; color: var(--dim); cursor: pointer; }
+
+
+/* AGENDA */
+
+#agenda-timeline {
+    position: relative;
+    padding-left: 40px; /* Spazio per la linea verticale */
+}
+
+.timeline-line {
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, var(--accent), transparent);
+    box-shadow: 0 0 10px var(--accent);
+}
+
+.event-node {
+    position: relative;
+    margin-bottom: 30px;
+    background: var(--card);
+    border: 1px solid #222;
+    padding: 15px;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+
+.event-node::before {
+    content: "";
+    position: absolute;
+    left: -31px;
+    top: 18px;
+    width: 12px;
+    height: 12px;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+}
+
+.event-time {
+    font-size: 10px;
+    color: var(--accent);
+    margin-bottom: 5px;
+}
+
+.event-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.event-node.urgent {
+    border-color: #ff4444;
+}
+.event-node.urgent::before {
+    border-color: #ff4444;
+    box-shadow: 0 0 8px #ff4444;
+}
