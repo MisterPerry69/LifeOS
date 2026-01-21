@@ -38,7 +38,8 @@
           <span class="label">Brain</span>
           <div class="value"><i class="fas fa-brain"></i></div>
         </div>
-        <div class="widget" onclick="nav('habit')"> <span class="label">Status</span>
+        <div class="widget" onclick="nav('habit')"> 
+          <span class="label">Status</span>
           <div class="value"><i class="fas fa-chart-line"></i></div>
         </div>
         <div class="widget" onclick="nav('health')">
@@ -54,17 +55,15 @@
 
   <div id="braindump" class="page">
     <div class="header">
-    <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
-        <i class="fas fa-bars" onclick="toggleSidebar()" style="color: var(--accent); cursor:pointer;"></i>
-        <h1 id="dump-title" style="font-size: 12px;">BRAIN_DUMP</h1>
-        
-        <div id="search-wrapper" class="search-wrapper">
-            <input type="text" id="search-input" placeholder="Cerca..." oninput="handleSearch()" onblur="toggleSearch(false)">
+        <div style="display: flex; align-items: center; gap: 15px; flex: 1; position: relative;">
+            <i class="fas fa-bars" onclick="toggleSidebar()" style="color: var(--accent); cursor:pointer;"></i>
+            <h1 id="dump-title" style="font-size: 12px;">BRAIN_DUMP</h1>
+            
+            <div id="search-wrapper" class="search-wrapper">
+                <input type="text" id="search-input" placeholder="Cerca..." oninput="handleSearch()" onblur="toggleSearch(false)">
+            </div>
         </div>
-    </div>
-    
-    <i class="fas fa-search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor:pointer; font-size: 16px; margin-left: 10px;"></i>
-</div>
+        <i class="fas fa-search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor:pointer; font-size: 16px; margin-left: 10px;"></i>
     </div>
 
     <div id="menu-backdrop" onclick="toggleSidebar()"></div>
@@ -87,11 +86,8 @@
         </div>
     </div>
 
-    <main style="flex: 1; display: flex; flex-direction: column;">
-                <input type="text" id="dump-input" placeholder="Prendi una nota..." 
-               style="background: #111; border: 1px solid #333; margin-bottom: 20px;"
-               onkeypress="sendCmd(event)">
-        
+    <main>
+        <input type="text" id="dump-input" placeholder="Prendi una nota..." onkeypress="sendCmd(event)">
         <div id="keep-grid"></div>
     </main>
   </div>
@@ -119,16 +115,12 @@
           <h1 id="detail-type">NOTA</h1>
           <div class="info" onclick="saveAndClose()">SALVA [X]</div>
       </div>
-      
       <div class="modal-body">
           <textarea id="detail-text" spellcheck="false"></textarea>
           <div id="detail-extra-list" style="display:none;"></div>
       </div>
-
       <div class="note-toolbar">
-          <span class="tool-icon" onclick="confirmDelete(currentNoteData.id, currentNoteData.type)">
-              <i class="fas fa-trash"></i>
-          </span>
+          <span class="tool-icon" onclick="confirmDelete(currentNoteData.id, currentNoteData.type)"><i class="fas fa-trash"></i></span>
           <div class="color-selector-container">
               <span class="tool-icon" onclick="toggleColorPicker()"><i class="fas fa-palette"></i></span>
               <div id="color-picker-bubble" class="color-bubble">
@@ -139,9 +131,7 @@
                   <div class="color-dot bg-yellow" onclick="changeNoteColor('yellow')"></div>
               </div>
           </div>
-          <span class="tool-icon" onclick="togglePin()">
-              <i class="fas fa-thumbtack"></i>
-          </span>
+          <span class="tool-icon" onclick="togglePin()"><i class="fas fa-thumbtack"></i></span>
       </div>
   </div>
 
@@ -154,6 +144,5 @@
         </div>
     </div>
   </div>
-
 </body>
 </html>
