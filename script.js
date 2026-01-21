@@ -525,3 +525,53 @@ function toggleSearch(show) {
         }
     }
 }
+
+
+//AGENDA
+
+// Funzione per inviare il comando dell'agenda
+function handleAgendaCommand(input) {
+    // Gestione input multiplo separato da "/"
+    const commands = input.split('/').map(s => s.trim());
+    
+    commands.forEach(cmd => {
+        // Rimuoviamo il prefisso "t " se presente
+        const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
+        
+        google.script.run
+            .withSuccessHandler(() => {
+                console.log("Evento aggiunto:", cleanCmd);
+                loadAgenda(); // Ricarica la vista
+            })
+            .processSmartEvent(cleanCmd);
+    });
+}
+
+// Chiamata per caricare i dati dal calendario
+function loadAgenda() {
+    google.script.run
+        .withSuccessHandler(renderAgenda)
+        .getCalendarEvents();
+}
+
+function renderAgenda(days) {
+    const container = document.getElementById('events-container');
+    container.innerHTML = "";
+
+    days.forEach(day => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'day-group';
+        dayDiv.innerHTML = `<div class="day-label">${day.dateLabel}</div>`;
+
+        day.events.forEach(ev => {
+            const evDiv = document.createElement('div');
+            evDiv.className = 'event-node';
+            evDiv.innerHTML = `
+                <div class="event-time">${ev.time}</div>
+                <div class="event-title">${ev.title}</div>
+            `;
+            dayDiv.appendChild(evDiv);
+        });
+        container.appendChild(dayDiv);
+    });
+}

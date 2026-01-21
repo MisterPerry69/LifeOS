@@ -229,3 +229,36 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     border-color: #ff4444;
     box-shadow: 0 0 8px #ff4444;
 }
+
+.day-group {
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.day-label {
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--bg);
+    padding: 2px 8px;
+    border: 1px solid var(--accent);
+    display: inline-block;
+    margin-left: -32px; /* Allineato alla linea */
+    margin-bottom: 15px;
+    z-index: 2;
+    text-transform: uppercase;
+}
+
+.event-node {
+    position: relative;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid #222;
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin-left: 10px;
+}
+
+.event-node:hover {
+    border-color: var(--accent);
+    background: rgba(0, 255, 65, 0.02);
+}

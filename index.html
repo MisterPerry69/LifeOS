@@ -62,9 +62,9 @@
             <div id="search-wrapper" class="search-wrapper">
                 <input type="text" id="search-input" placeholder="Cerca..." oninput="handleSearch()" onblur="toggleSearch(false)">
             </div>
-            <div class="info" onclick="nav('home')">ESC [X]</div>
         </div>
         <i class="fas fa-search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor:pointer; font-size: 16px; margin-left: 10px;"></i>
+        <div class="info" onclick="nav('home')">ESC [X]</div>
     </div>
 
     <div id="menu-backdrop" onclick="toggleSidebar()"></div>
@@ -94,20 +94,19 @@
   </div>
   
 
+
         <div id="agenda" class="page">
             <div class="header">
                 <h1 style="font-size: 12px;">TIMELINE_SCAN</h1>
                 <div class="info" onclick="nav('home')">BACK [X]</div>
             </div>
-            
-            <div class="agenda-controls">
-                <button class="view-btn active">OGGI</button>
-                <button class="view-btn">PROSSIMI</button>
-            </div>
-
-            <main id="agenda-timeline">
-                <div class="timeline-line"></div>
-                <div id="events-container"></div>
+        
+            <main id="agenda-main">
+                <div class="timeline-wrapper">
+                    <div class="timeline-line"></div>
+                    <div id="events-container">
+                    </div>
+                </div>
             </main>
         </div>
 
