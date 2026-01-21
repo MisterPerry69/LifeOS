@@ -547,8 +547,6 @@ function handleAgendaCommand(input) {
     });
 }
 
-JavaScript
-
 function loadAgenda() {
     console.log("Richiesta eventi in corso...");
     google.script.run
