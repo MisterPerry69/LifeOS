@@ -559,30 +559,33 @@ function toggleSearch(show) {
 
 //AGENDA
 
-function handleAgendaCommand(input) {
-    const commands = input.split('/').map(s => s.trim());
+// Aggiungiamo un flag isInternal per capire da dove arriva il comando
+function handleAgendaCommand(input, isInternal = false) {
+    if (!input.trim()) return;
     
-    // Mostra un feedback immediato nel CMD
-    document.getElementById('cmd').placeholder = "> SINCRONIZZAZIONE CHRONO...";
+    const commands = input.split('/').map(s => s.trim());
+    const inputField = isInternal ? document.getElementById('agenda-cmd') : document.getElementById('cmd');
+    
+    inputField.placeholder = "> UPLOADING...";
+    if(isInternal) inputField.value = "";
 
     const promises = commands.map(cmd => {
         const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
         return fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
+            mode: 'no-cors', // Usiamo no-cors per velocità, ma sappiamo che il server elabora
             body: JSON.stringify({ service: "agenda_add", text: cleanCmd })
         });
     });
 
+    // Aspettiamo un secondo per dare tempo a Google di scrivere sul calendario
+    // poi forziamo il ricaricamento dei dati
     Promise.all(promises).then(() => {
-        // Ricarica i dati e, una volta finiti, aggiorna la vista
-        loadStats().then(() => {
-            if (document.getElementById('agenda').classList.contains('active')) {
-                loadAgenda();
-            }
-            document.getElementById('cmd').placeholder = "> EVENTO REGISTRATO.";
-            setTimeout(() => document.getElementById('cmd').placeholder = "> DIGITA...", 2000);
-        });
+        setTimeout(async () => {
+            await loadStats(); // Riscarica tutto il JSON (inclusa la nuova agenda)
+            loadAgenda();      // Ridisegna la timeline
+            inputField.placeholder = isInternal ? "> AGGIUNGI EVENTO..." : "> DIGITA...";
+        }, 1500); 
     });
 }
 
