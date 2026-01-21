@@ -262,3 +262,15 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     border-color: var(--accent);
     background: rgba(0, 255, 65, 0.02);
 }
+
+#agenda-main {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    padding: 20px 0 100px 0;
+}
+
+.timeline-wrapper {
+    position: relative;
+    min-height: 200px;
+}

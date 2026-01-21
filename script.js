@@ -547,10 +547,18 @@ function handleAgendaCommand(input) {
     });
 }
 
-// Chiamata per caricare i dati dal calendario
+JavaScript
+
 function loadAgenda() {
+    console.log("Richiesta eventi in corso...");
     google.script.run
-        .withSuccessHandler(renderAgenda)
+        .withSuccessHandler(function(days) {
+            console.log("Dati ricevuti dal server:", days); // Controlla la console del browser (F12)
+            renderAgenda(days);
+        })
+        .withFailureHandler(function(err) {
+            console.error("Errore server:", err);
+        })
         .getCalendarEvents();
 }
 
@@ -574,4 +582,24 @@ function renderAgenda(days) {
         });
         container.appendChild(dayDiv);
     });
+}
+
+
+function testAgenda() {
+    const mockData = [
+        {
+            dateLabel: "MER 21 GEN",
+            events: [
+                { time: "15:30", title: "Configurazione System_OS" },
+                { time: "20:00", title: "Test Timeline" }
+            ]
+        },
+        {
+            dateLabel: "GIO 22 GEN",
+            events: [
+                { time: "09:00", title: "Recupero Dati" }
+            ]
+        }
+    ];
+    renderAgenda(mockData);
 }
