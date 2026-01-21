@@ -93,6 +93,8 @@ async function loadStats() {
         if (data.status === "ONLINE") {
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
+            // Salviamo l'agenda in una variabile globale per usarla dopo
+            window.agendaData = data.agenda || []; 
             renderGrid(data);
         }
     } catch (err) {
@@ -546,43 +548,37 @@ function toggleSearch(show) {
 
 // Funzione per inviare il comando dell'agenda
 function handleAgendaCommand(input) {
-    // Gestione input multiplo separato da "/"
     const commands = input.split('/').map(s => s.trim());
     
     commands.forEach(cmd => {
-        // Rimuoviamo il prefisso "t " se presente
         const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
-        
-        google.script.run
-            .withSuccessHandler(() => {
-                console.log("Evento aggiunto:", cleanCmd);
-                loadAgenda(); // Ricarica la vista
-            })
-            .processSmartEvent(cleanCmd);
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ service: "agenda_add", text: cleanCmd })
+        }).then(() => {
+            console.log("Evento inviato:", cleanCmd);
+            loadStats(); // Ricarica tutto e aggiorna la vista
+        });
     });
 }
 
+
 function loadAgenda() {
     const container = document.getElementById('events-container');
-    container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Sincronizzazione Chrono...</div>";
+    
+    // Se non abbiamo ancora i dati, mostriamo un caricamento
+    if (!window.agendaData) {
+        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Caricamento Chrono...</div>";
+        return;
+    }
 
-    // FORZIAMO LA CHIAMATA A GOOGLE
-    google.script.run
-        .withSuccessHandler(function(days) {
-            console.log("Dati reali ricevuti:", days);
-            if (!days || days.length === 0) {
-                container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Calendario vuoto (prox 7gg).</div>";
-            } else {
-                renderAgenda(days);
-            }
-        })
-        .withFailureHandler(function(err) {
-            console.error("Errore critico:", err);
-            container.innerHTML = "<div style='color:#ff4444; padding:20px;'>Errore: " + err + "</div>";
-            // Se fallisce, carica i mockup per non lasciare vuoto
-            testAgenda(); 
-        })
-        .getCalendarEvents();
+    if (window.agendaData.length === 0) {
+        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Nessun evento rilevato.</div>";
+    } else {
+        renderAgenda(window.agendaData);
+    }
 }
 
 function renderAgenda(days) {
