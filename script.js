@@ -10,6 +10,7 @@ let extraItemsGlobal = [];
 let currentNoteData = null; // Memorizza la nota attiva nel modal
 let currentView = 30;       // Vista Pixel (7, 30, 365)
 let menuOpen = false;
+let currentFilter = 'ALL'; // Fondamentale!
 
 // --- 2. CORE & NAVIGATION ---
 
@@ -452,4 +453,35 @@ async function togglePin() {
         body: JSON.stringify({ service: "update_note_type", id: currentNoteData.id, type: nuovoStato })
     });
     loadStats(); // Ricarica per spostare la card in cima
+}
+
+function toggleSidebar() {
+    const menu = document.getElementById('side-menu');
+    const backdrop = document.getElementById('menu-backdrop');
+    if (!menu || !backdrop) return; // Sicurezza
+
+    const isOpen = menu.classList.contains('open');
+
+    if (isOpen) {
+        menu.classList.remove('open');
+        backdrop.style.display = 'none';
+    } else {
+        menu.classList.add('open');
+        backdrop.style.display = 'block';
+    }
+}
+
+function setFilter(type, el) {
+    currentFilter = type;
+    
+    // Rimuovi classe active da tutti e aggiungi al corrente
+    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+    if (el) el.classList.add('active');
+    
+    toggleSidebar(); // Chiude il menu
+    
+    // Ricarica la griglia con i dati che abbiamo già in memoria
+    if (lastStatsData) {
+        renderGrid(lastStatsData);
+    }
 }
