@@ -60,6 +60,14 @@ body {
 
 @media (min-width: 768px) {
     #keep-grid { grid-template-columns: repeat(4, 1fr); }
+    .note-overlay {
+        inset: auto !important;
+        top: 50% !important; left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 600px !important; height: 500px !important;
+        border-radius: 12px; border: 1px solid #333;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
 }
 
 .keep-card {
@@ -168,3 +176,32 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(0, 255, 65,
 }
 .color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; }
 .color-dot.bg-default { background: #444 !important; }
+
+/* --- SIDE MENU OVERLAY --- */
+#side-menu {
+    position: fixed; top: 0; left: -280px; /* Nascosto a sinistra */
+    width: 260px; height: 100%; background: #0f0f0f;
+    z-index: 20001; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 20px; border-right: 1px solid #222;
+    display: flex; flex-direction: column; gap: 10px;
+}
+
+#side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
+
+/* Backdrop per il menu (Sfocatura) */
+#menu-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index: 20000; display: none;
+}
+
+/* Bottoni Menu Grandi */
+.menu-item {
+    display: flex; align-items: center; gap: 15px;
+    padding: 15px; border-radius: 8px; color: var(--text);
+    cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+}
+.menu-item i { font-size: 18px; width: 25px; color: var(--dim); }
+.menu-item:hover { background: rgba(0,255,65,0.05); color: var(--accent); }
+.menu-item.active { background: rgba(0,255,65,0.1); border-color: rgba(0,255,65,0.3); color: var(--accent); }
+.menu-item.active i { color: var(--accent); }

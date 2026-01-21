@@ -103,29 +103,50 @@ function renderGrid(data) {
     if (!grid) return;
     grid.innerHTML = "";
     
+    // Sincronizziamo i dati globali
+    lastStatsData = data; 
     loadedNotesData = data.notes;
 
-    // --- 1. CARD EXTRA (Inamovibile) ---
-    const extraCard = document.createElement('div');
-    extraCard.className = "keep-card bg-default extra-card pinnato";
-    extraCard.innerHTML = `
-        <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
-        <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
-        <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
-        <div class="label" style="opacity:0.5">${data.monthLabel}</div>
-    `;
-    extraCard.onclick = () => openExtraDetail();
-    grid.appendChild(extraCard);
+    // --- 1. CARD EXTRA (Mostrata solo in ALL o EXTRA) ---
+    if (currentFilter === 'ALL' || currentFilter === 'EXTRA') {
+        const extraCard = document.createElement('div');
+        extraCard.className = "keep-card bg-default extra-card pinnato";
+        extraCard.innerHTML = `
+            <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
+            <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
+            <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
+            <div class="label" style="opacity:0.5">${data.monthLabel}</div>
+        `;
+        extraCard.onclick = () => openExtraDetail();
+        grid.appendChild(extraCard);
+    }
 
-    // --- 2. GENERAZIONE NOTE ---
-    loadedNotesData.forEach((note, index) => {
+    // --- 2. FILTRAGGIO DELLE NOTE ---
+    // Filtriamo loadedNotesData in base alla categoria selezionata
+    const filteredNotes = loadedNotesData.map((note, originalIndex) => ({ note, originalIndex }))
+    .filter(item => {
+        const [date, content, type] = item.note;
+        if (currentFilter === 'ALL') return true;
+        if (currentFilter === 'PINNED') return type === 'PINNED';
+        if (currentFilter === 'NOTE') return type === 'NOTE' && !content.toLowerCase().includes('http');
+        if (currentFilter === 'LINK') return content.toLowerCase().includes('http');
+        if (currentFilter === 'EXTRA') return false; // Già gestito sopra
+        return true;
+    });
+
+    // --- 3. GENERAZIONE DELLE CARD FILTRATE ---
+    filteredNotes.forEach((item) => {
+        const note = item.note;
+        const index = item.originalIndex; // Manteniamo l'indice originale per l'apertura
         const isPinned = note[2] === "PINNED";
-        const card = document.createElement('div');
         
+        const card = document.createElement('div');
         card.className = `keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}`;
         card.id = `card-${note[4]}`;
-        card.dataset.type = note[2]; // Salviamo il tipo (NOTE o PINNED) nel dataset
-        card.draggable = true;
+        card.dataset.type = note[2];
+        
+        // Il Drag & Drop è permesso solo se NON ci sono filtri attivi
+        card.draggable = (currentFilter === 'ALL');
 
         card.innerHTML = `
             ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
@@ -136,8 +157,9 @@ function renderGrid(data) {
             </div>
         `;
 
-        // --- EVENTI DRAG & DROP CON FILTRO GERARCHIA ---
+        // --- EVENTI DRAG & DROP (Protetti dal filtro) ---
         card.ondragstart = (e) => {
+            if (currentFilter !== 'ALL') return; 
             draggedItem = card;
             card.classList.add('dragging');
         };
@@ -145,14 +167,14 @@ function renderGrid(data) {
         card.ondragend = () => {
             card.classList.remove('dragging');
             document.querySelectorAll('.keep-card').forEach(c => c.classList.remove('drag-over'));
-            saveNewOrder(); 
+            if (currentFilter === 'ALL') saveNewOrder(); 
         };
 
         card.ondragover = (e) => e.preventDefault();
 
         card.ondragenter = (e) => {
-            // Impedisce il feedback visivo se cerchiamo di incrociare i tipi
-            if (draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
+            // Feedback visivo solo se i tipi corrispondono e siamo in modalità ALL
+            if (currentFilter === 'ALL' && draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
                 card.classList.add('drag-over');
             }
         };
@@ -163,10 +185,9 @@ function renderGrid(data) {
             e.preventDefault();
             card.classList.remove('drag-over');
             
-            if (!draggedItem || draggedItem === card) return;
+            if (currentFilter !== 'ALL' || !draggedItem || draggedItem === card) return;
 
-            // REGOLA DI FERRO: Puoi droppare solo se il tipo è lo stesso (NOTE su NOTE, PINNED su PINNED)
-            // e ovviamente non puoi droppare sulla card Extra
+            // Logica di scambio (Pinnati con Pinnati, Note con Note)
             if (!card.classList.contains('extra-card') && draggedItem.dataset.type === card.dataset.type) {
                 const allCards = [...grid.querySelectorAll('.keep-card')];
                 const draggedIdx = allCards.indexOf(draggedItem);
@@ -177,6 +198,7 @@ function renderGrid(data) {
             }
         };
 
+        // --- GESTIONE CLICK ---
         card.onclick = () => {
             if (!card.classList.contains('dragging')) openNoteByIndex(index);
         };
@@ -184,6 +206,7 @@ function renderGrid(data) {
         grid.appendChild(card);
     });
 }
+
 async function saveNewOrder() {
     const cards = [...document.querySelectorAll('.keep-card:not(.extra-card)')];
     const orderList = cards.map((card, index) => ({

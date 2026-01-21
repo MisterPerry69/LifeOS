@@ -65,15 +65,27 @@
     </div>
 
     <div style="display: flex; flex: 1; overflow: hidden;">
-      <nav id="side-menu" style="width: 0; overflow: hidden; background: #000; transition: 0.3s; border-right: 1px solid #222;">
-          <div style="padding: 20px; min-width: 150px; font-size: 10px;">
-              <div class="label" style="margin-bottom: 20px;">FILTRI</div>
-              <p><i class="fas fa-thumbtack"></i> PINNATI</p>
-              <p onclick="openExtraDetail()"><i class="fas fa-clock"></i> STRAORDINARI</p>
-              <p><i class="fas fa-link"></i> LINK</p>
-              <p><i class="fas fa-sticky-note"></i> NOTE</p>
-          </div>
-      </nav>
+      <div id="menu-backdrop" onclick="toggleSidebar()"></div>
+
+<div id="side-menu">
+    <div style="color: var(--accent); font-size: 10px; margin-bottom: 20px; letter-spacing: 2px;">CATEGORIE</div>
+    
+    <div class="menu-item active" onclick="setFilter('ALL', this)">
+        <i class="fas fa-th-large"></i> <span>TUTTO</span>
+    </div>
+    <div class="menu-item" onclick="setFilter('PINNED', this)">
+        <i class="fas fa-thumbtack"></i> <span>PINNATI</span>
+    </div>
+    <div class="menu-item" onclick="setFilter('EXTRA', this)">
+        <i class="fas fa-clock"></i> <span>STRAORDINARI</span>
+    </div>
+    <div class="menu-item" onclick="setFilter('NOTE', this)">
+        <i class="fas fa-sticky-note"></i> <span>NOTE</span>
+    </div>
+    <div class="menu-item" onclick="setFilter('LINK', this)">
+        <i class="fas fa-link"></i> <span>LINK</span>
+    </div>
+</div>
 
       <main style="flex: 1; overflow-y: auto; padding: 15px;">
           <input type="text" id="dump-input" placeholder="Prendi una nota..." 
