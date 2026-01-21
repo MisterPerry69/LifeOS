@@ -566,24 +566,21 @@ function loadAgenda() {
     const container = document.getElementById('events-container');
     container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Sincronizzazione Chrono...</div>";
 
-    if (typeof google === 'undefined' || !google.script) {
-        console.warn("Ambiente locale rilevato: carico dati di test.");
-        testAgenda(); // Carica dati finti se sei in anteprima locale
-        return;
-    }
-
+    // FORZIAMO LA CHIAMATA A GOOGLE
     google.script.run
         .withSuccessHandler(function(days) {
-            console.log("Dati ricevuti:", days);
+            console.log("Dati reali ricevuti:", days);
             if (!days || days.length === 0) {
-                container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Nessun evento rilevato nei prossimi 7 giorni.</div>";
+                container.innerHTML = "<div style='color:var(--dim); padding:20px;'>Calendario vuoto (prox 7gg).</div>";
             } else {
                 renderAgenda(days);
             }
         })
         .withFailureHandler(function(err) {
-            console.error("Errore Apps Script:", err);
-            container.innerHTML = "<div style='color:#ff4444; padding:20px;'>Errore connessione Google Calendar.</div>";
+            console.error("Errore critico:", err);
+            container.innerHTML = "<div style='color:#ff4444; padding:20px;'>Errore: " + err + "</div>";
+            // Se fallisce, carica i mockup per non lasciare vuoto
+            testAgenda(); 
         })
         .getCalendarEvents();
 }
