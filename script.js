@@ -10,7 +10,8 @@ let extraItemsGlobal = [];
 let currentNoteData = null; // Memorizza la nota attiva nel modal
 let currentView = 30;       // Vista Pixel (7, 30, 365)
 let menuOpen = false;
-let currentFilter = 'ALL'; // Fondamentale!
+let currentFilter = 'ALL'; // Filtro BRAIN DUMP
+let searchQuery = ""; // Casella di ricerca BD
 
 // --- 2. CORE & NAVIGATION ---
 
@@ -104,12 +105,14 @@ function renderGrid(data) {
     if (!grid) return;
     grid.innerHTML = "";
     
-    // Sincronizziamo i dati globali
+    // Sincronizziamo i dati globali per l'uso nei filtri e apertura note
     lastStatsData = data; 
     loadedNotesData = data.notes;
 
-    // --- 1. CARD EXTRA (Mostrata solo in ALL o EXTRA) ---
-    if (currentFilter === 'ALL' || currentFilter === 'EXTRA') {
+    // --- 1. CARD EXTRA (Mostrata solo se filtri ALL/EXTRA e NON stai cercando testo) ---
+    const isSearching = typeof searchQuery !== 'undefined' && searchQuery.length > 0;
+    
+    if ((currentFilter === 'ALL' || currentFilter === 'EXTRA') && !isSearching) {
         const extraCard = document.createElement('div');
         extraCard.className = "keep-card bg-default extra-card pinnato";
         extraCard.innerHTML = `
@@ -122,23 +125,30 @@ function renderGrid(data) {
         grid.appendChild(extraCard);
     }
 
-    // --- 2. FILTRAGGIO DELLE NOTE ---
-    // Filtriamo loadedNotesData in base alla categoria selezionata
+    // --- 2. FILTRAGGIO COMBINATO (Categoria + Ricerca Testuale) ---
     const filteredNotes = loadedNotesData.map((note, originalIndex) => ({ note, originalIndex }))
     .filter(item => {
-        const [date, content, type] = item.note;
+        const title = (item.note[5] || "").toLowerCase();
+        const content = (item.note[1] || "").toLowerCase();
+        const type = item.note[2];
+        
+        // A. Controllo Barra di Ricerca
+        const matchesSearch = !isSearching || title.includes(searchQuery) || content.includes(searchQuery);
+        if (!matchesSearch) return false;
+
+        // B. Controllo Categoria Menu Laterale
         if (currentFilter === 'ALL') return true;
         if (currentFilter === 'PINNED') return type === 'PINNED';
-        if (currentFilter === 'NOTE') return type === 'NOTE' && !content.toLowerCase().includes('http');
-        if (currentFilter === 'LINK') return content.toLowerCase().includes('http');
-        if (currentFilter === 'EXTRA') return false; // Già gestito sopra
+        if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
+        if (currentFilter === 'LINK') return content.includes('http');
+        if (currentFilter === 'EXTRA') return false; // Già gestito dalla card extra sopra
         return true;
     });
 
     // --- 3. GENERAZIONE DELLE CARD FILTRATE ---
     filteredNotes.forEach((item) => {
         const note = item.note;
-        const index = item.originalIndex; // Manteniamo l'indice originale per l'apertura
+        const index = item.originalIndex; 
         const isPinned = note[2] === "PINNED";
         
         const card = document.createElement('div');
@@ -146,8 +156,9 @@ function renderGrid(data) {
         card.id = `card-${note[4]}`;
         card.dataset.type = note[2];
         
-        // Il Drag & Drop è permesso solo se NON ci sono filtri attivi
-        card.draggable = (currentFilter === 'ALL');
+        // Il Drag & Drop è attivo solo se siamo in "TUTTO" e non stiamo filtrando con la ricerca
+        const isDraggable = (currentFilter === 'ALL' && !isSearching);
+        card.draggable = isDraggable;
 
         card.innerHTML = `
             ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
@@ -158,9 +169,9 @@ function renderGrid(data) {
             </div>
         `;
 
-        // --- EVENTI DRAG & DROP (Protetti dal filtro) ---
+        // --- EVENTI DRAG & DROP ---
         card.ondragstart = (e) => {
-            if (currentFilter !== 'ALL') return; 
+            if (!isDraggable) return; 
             draggedItem = card;
             card.classList.add('dragging');
         };
@@ -168,14 +179,13 @@ function renderGrid(data) {
         card.ondragend = () => {
             card.classList.remove('dragging');
             document.querySelectorAll('.keep-card').forEach(c => c.classList.remove('drag-over'));
-            if (currentFilter === 'ALL') saveNewOrder(); 
+            if (isDraggable) saveNewOrder(); 
         };
 
         card.ondragover = (e) => e.preventDefault();
 
         card.ondragenter = (e) => {
-            // Feedback visivo solo se i tipi corrispondono e siamo in modalità ALL
-            if (currentFilter === 'ALL' && draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
+            if (isDraggable && draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
                 card.classList.add('drag-over');
             }
         };
@@ -186,9 +196,8 @@ function renderGrid(data) {
             e.preventDefault();
             card.classList.remove('drag-over');
             
-            if (currentFilter !== 'ALL' || !draggedItem || draggedItem === card) return;
+            if (!isDraggable || !draggedItem || draggedItem === card) return;
 
-            // Logica di scambio (Pinnati con Pinnati, Note con Note)
             if (!card.classList.contains('extra-card') && draggedItem.dataset.type === card.dataset.type) {
                 const allCards = [...grid.querySelectorAll('.keep-card')];
                 const draggedIdx = allCards.indexOf(draggedItem);
@@ -207,6 +216,7 @@ function renderGrid(data) {
         grid.appendChild(card);
     });
 }
+
 
 async function saveNewOrder() {
     const cards = [...document.querySelectorAll('.keep-card:not(.extra-card)')];
@@ -481,6 +491,14 @@ function setFilter(type, el) {
     toggleSidebar(); // Chiude il menu
     
     // Ricarica la griglia con i dati che abbiamo già in memoria
+    if (lastStatsData) {
+        renderGrid(lastStatsData);
+    }
+}
+
+function handleSearch() {
+    searchQuery = document.getElementById('search-input').value.toLowerCase();
+    // Chiamiamo renderGrid passando i dati che abbiamo già
     if (lastStatsData) {
         renderGrid(lastStatsData);
     }
