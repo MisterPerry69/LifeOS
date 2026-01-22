@@ -117,15 +117,16 @@ let draggedItem = null;
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
-    grid.innerHTML = "";
     
-    // Sincronizziamo i dati globali per l'uso nei filtri e apertura note
+    // 1. SALVATAGGIO DATI GLOBALI
     lastStatsData = data; 
     loadedNotesData = data.notes;
 
-    // --- 1. CARD EXTRA (Mostrata solo se filtri ALL/EXTRA e NON stai cercando testo) ---
+    // 2. PREPARAZIONE "OFFLINE" (Evita il vuoto di 2 secondi)
+    const fragment = document.createDocumentFragment();
     const isSearching = typeof searchQuery !== 'undefined' && searchQuery.length > 0;
     
+    // --- 3. CARD EXTRA (Pinnata in alto a sinistra) ---
     if ((currentFilter === 'ALL' || currentFilter === 'EXTRA') && !isSearching) {
         const extraCard = document.createElement('div');
         extraCard.className = "keep-card bg-default extra-card pinnato";
@@ -136,30 +137,28 @@ function renderGrid(data) {
             <div class="label" style="opacity:0.5">${data.monthLabel}</div>
         `;
         extraCard.onclick = () => openExtraDetail();
-        grid.appendChild(extraCard);
+        fragment.appendChild(extraCard);
     }
 
-    // --- 2. FILTRAGGIO COMBINATO (Categoria + Ricerca Testuale) ---
+    // --- 4. FILTRAGGIO COMBINATO ---
     const filteredNotes = loadedNotesData.map((note, originalIndex) => ({ note, originalIndex }))
     .filter(item => {
         const title = (item.note[5] || "").toLowerCase();
         const content = (item.note[1] || "").toLowerCase();
         const type = item.note[2];
         
-        // A. Controllo Barra di Ricerca
         const matchesSearch = !isSearching || title.includes(searchQuery) || content.includes(searchQuery);
         if (!matchesSearch) return false;
 
-        // B. Controllo Categoria Menu Laterale
         if (currentFilter === 'ALL') return true;
         if (currentFilter === 'PINNED') return type === 'PINNED';
         if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
         if (currentFilter === 'LINK') return content.includes('http');
-        if (currentFilter === 'EXTRA') return false; // Già gestito dalla card extra sopra
+        if (currentFilter === 'EXTRA') return false; 
         return true;
     });
 
-    // --- 3. GENERAZIONE DELLE CARD FILTRATE ---
+    // --- 5. GENERAZIONE DELLE CARD NOTE ---
     filteredNotes.forEach((item) => {
         const note = item.note;
         const index = item.originalIndex; 
@@ -170,7 +169,6 @@ function renderGrid(data) {
         card.id = `card-${note[4]}`;
         card.dataset.type = note[2];
         
-        // Il Drag & Drop è attivo solo se siamo in "TUTTO" e non stiamo filtrando con la ricerca
         const isDraggable = (currentFilter === 'ALL' && !isSearching);
         card.draggable = isDraggable;
 
@@ -183,7 +181,7 @@ function renderGrid(data) {
             </div>
         `;
 
-        // --- EVENTI DRAG & DROP ---
+        // EVENTI DRAG & DROP
         card.ondragstart = (e) => {
             if (!isDraggable) return; 
             draggedItem = card;
@@ -209,28 +207,28 @@ function renderGrid(data) {
         card.ondrop = (e) => {
             e.preventDefault();
             card.classList.remove('drag-over');
-            
             if (!isDraggable || !draggedItem || draggedItem === card) return;
 
             if (!card.classList.contains('extra-card') && draggedItem.dataset.type === card.dataset.type) {
                 const allCards = [...grid.querySelectorAll('.keep-card')];
                 const draggedIdx = allCards.indexOf(draggedItem);
                 const targetIdx = allCards.indexOf(card);
-                
                 if (draggedIdx < targetIdx) card.after(draggedItem);
                 else card.before(draggedItem);
             }
         };
 
-        // --- GESTIONE CLICK ---
         card.onclick = () => {
             if (!card.classList.contains('dragging')) openNoteByIndex(index);
         };
 
-        grid.appendChild(card);
+        fragment.appendChild(card);
     });
-}
 
+    // --- 6. SWITCH ISTANTANEO ---
+    grid.innerHTML = ""; // Svuota solo all'ultimo millisecondo
+    grid.appendChild(fragment); // Inserisce tutto il blocco pronto
+}
 
 async function saveNewOrder() {
     const cards = [...document.querySelectorAll('.keep-card:not(.extra-card)')];
@@ -254,50 +252,44 @@ async function sendCmd(event) {
         const val = input.value.trim();
         if (!val) return;
 
-        // Feedback immediato sull'input
-        const originalPlaceholder = input.placeholder;
         input.value = "";
-        input.placeholder = "> SYNCING_DATA...";
+        input.placeholder = "> SYNCING...";
 
-        // Identifichiamo cosa stiamo per aggiornare per il feedback visivo
-        const isExtra = /^\+(\d+(\.\d+)?)$/.test(val) || /^ieri\+(\d+(\.\d+)?)$/.test(val);
-        const isNote = !isExtra && !val.startsWith('t ');
-        
-        // Mettiamo i container in stato di caricamento
-        if(isNote) document.getElementById('keep-grid')?.classList.add('sync-loading');
-        
+        const isExtra = /^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+');
+        const service = isExtra ? "extra_hours" : (val.toLowerCase().startsWith('t ') ? "agenda_add" : "note");
+
         try {
-            // 1. INVIO AL SERVER (Aspettiamo che finisca)
-            let service = isExtra ? "extra_hours" : (val.startsWith('t ') ? "agenda_add" : "note");
-            
             await fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 body: JSON.stringify({ service: service, text: val })
             });
 
-            // 2. REFRESH DATI (Senza ricaricare la pagina)
-            // Aspettiamo un attimo per dare tempo al DB di Google di stabilizzarsi
-            await new Promise(r => setTimeout(r, 400));
-            await loadStats(); 
+            // Aspettiamo un attimo il server
+            await new Promise(r => setTimeout(r, 600));
+            
+            // Ricarichiamo i dati (renderGrid ora è fluida e non svuota)
+            await loadStats();
 
-            // 3. EFFETTO FLASH DI CONFERMA
-            if(isNote) {
-                const grid = document.getElementById('keep-grid');
-                grid.classList.remove('sync-loading');
-                grid.classList.add('sync-flash');
-                setTimeout(() => grid.classList.remove('sync-flash'), 600);
+            // Se era un extra, facciamo brillare la card specifica
+            if (isExtra) {
+                const ec = document.querySelector('.extra-card');
+                if (ec) {
+                    ec.style.borderColor = "var(--accent)";
+                    ec.style.boxShadow = "0 0 20px var(--accent)";
+                    setTimeout(() => {
+                        ec.style.borderColor = "";
+                        ec.style.boxShadow = "";
+                    }, 1000);
+                }
             }
-
             input.placeholder = "> SUCCESS.";
-        } catch (err) {
-            input.placeholder = "!! ERROR_SYNC !!";
+        } catch (e) {
+            input.placeholder = "!! ERROR !!";
         }
-
-        setTimeout(() => input.placeholder = originalPlaceholder, 1500);
+        setTimeout(() => input.placeholder = "> DIGITA...", 2000);
     }
 }
-
 // --- 5. UI MODALS & ACTIONS ---
 
 function openNoteByIndex(index) {

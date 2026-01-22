@@ -267,3 +267,17 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     pointer-events: none;
     filter: blur(0.5px);
 }
+
+.keep-card.sync-success {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+    transition: all 0.5s;
+}
+
+/* Flash per i widget della home (quelli con l'icona brain, status, etc) */
+.widget.sync-success {
+    border-color: var(--accent) !important;
+    background: rgba(0, 255, 65, 0.1) !important;
+    transform: scale(1.02);
+    transition: all 0.5s;
+}
