@@ -86,32 +86,26 @@ function toggleMenu() {
 // --- 3. DATA ENGINE (GET) ---
 
 async function loadStats() {
-    // Pulisci l'URL da eventuali spazi
-    const url = SCRIPT_URL + "?action=getStats&t=" + Date.now();
-    
     try {
-        const response = await fetch(url, {
-            method: 'GET',
-            mode: 'cors', // Proviamo a forzare cors
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8',
-            }
-        });
-
-        if (!response.ok) throw new Error('Errore nella risposta del server');
-
+        const response = await fetch(`${SCRIPT_URL}?action=getStats&t=${Date.now()}`);
         const data = await response.json();
-        console.log("Dati ricevuti con successo:", data);
-
+        
         if (data.status === "ONLINE") {
+            // Aggiorniamo le variabili globali
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
-            window.agendaData = data.agenda || []; 
-            renderGrid(data);
+            window.agendaData = data.agenda || [];
+            
+            // Ridisegniamo la UI
+            renderGrid(data); 
+            
+            // Se siamo nella pagina agenda, ridisegnamo anche quella
+            if (document.getElementById('agenda').classList.contains('active')) {
+                renderAgenda(window.agendaData);
+            }
         }
     } catch (err) {
-        console.error("Errore recupero dati:", err);
-        testAgenda(); // Carica i finti se fallisce
+        console.error("Refresh fallito:", err);
     }
 }
 
@@ -254,46 +248,53 @@ async function saveNewOrder() {
 
 // --- 4. COMMAND CENTER (POST) ---
 
-function sendCmd(event) {
+async function sendCmd(event) {
     if (event.key === 'Enter') {
         const input = event.target;
         const val = input.value.trim();
         if (!val) return;
+
+        // Feedback immediato sull'input
+        const originalPlaceholder = input.placeholder;
+        input.value = "";
+        input.placeholder = "> SYNCING_DATA...";
+
+        // Identifichiamo cosa stiamo per aggiornare per il feedback visivo
+        const isExtra = /^\+(\d+(\.\d+)?)$/.test(val) || /^ieri\+(\d+(\.\d+)?)$/.test(val);
+        const isNote = !isExtra && !val.startsWith('t ');
         
-// SE INIZIA CON "t ", VAI ALL'AGENDA
-        if (val.toLowerCase().startsWith('t ')) {
-            handleAgendaCommand(val);
-            input.value = "";
-            input.placeholder = "> CHRONO AGGIORNATO.";
-            setTimeout(() => input.placeholder = "> DIGITA...", 1000);
-            return; // Esci, non serve procedere con le note
+        // Mettiamo i container in stato di caricamento
+        if(isNote) document.getElementById('keep-grid')?.classList.add('sync-loading');
+        
+        try {
+            // 1. INVIO AL SERVER (Aspettiamo che finisca)
+            let service = isExtra ? "extra_hours" : (val.startsWith('t ') ? "agenda_add" : "note");
+            
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ service: service, text: val })
+            });
+
+            // 2. REFRESH DATI (Senza ricaricare la pagina)
+            // Aspettiamo un attimo per dare tempo al DB di Google di stabilizzarsi
+            await new Promise(r => setTimeout(r, 400));
+            await loadStats(); 
+
+            // 3. EFFETTO FLASH DI CONFERMA
+            if(isNote) {
+                const grid = document.getElementById('keep-grid');
+                grid.classList.remove('sync-loading');
+                grid.classList.add('sync-flash');
+                setTimeout(() => grid.classList.remove('sync-flash'), 600);
+            }
+
+            input.placeholder = "> SUCCESS.";
+        } catch (err) {
+            input.placeholder = "!! ERROR_SYNC !!";
         }
 
-
-        let service = "note";
-        const cmd = val.toLowerCase();
-
-        // Riconoscimento Intelligente Command Service
-        if (/^\+(\d+(\.\d+)?)$/.test(cmd)) service = "extra_hours";
-        else if (/^ieri\+(\d+(\.\d+)?)$/.test(cmd)) service = "extra_hours";
-        else if (/^(\d{1,2})([a-z]{3})\+(\d+(\.\d+)?)$/.test(cmd)) service = "extra_hours";
-        else if (/^\d+(\.\d+)?\s?kg/i.test(cmd)) service = "health_weight";
-        else if (/^h\d/i.test(cmd)) service = "habit_log";
-
-        input.value = "";
-        input.placeholder = "REGISTRO: " + service.toUpperCase() + "...";
-
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ service: service, text: val })
-        }).then(() => {
-            input.placeholder = "> CONCLUSO.";
-            setTimeout(() => {
-                input.placeholder = (input.id === 'cmd') ? "> DIGITA..." : "Prendi una nota...";
-                loadStats();
-            }, 1000);
-        });
+        setTimeout(() => input.placeholder = originalPlaceholder, 1500);
     }
 }
 
@@ -616,28 +617,22 @@ function loadAgenda() {
 
 function renderAgenda(days) {
     const container = document.getElementById('events-container');
-    container.innerHTML = ""; // Pulisce il caricamento
+    if (!days || days.length === 0) {
+        container.innerHTML = "<div class='day-label' style='border-right-color:var(--dim)'>CHRONO_EMPTY</div>";
+        return;
+    }
 
-    days.forEach(day => {
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'day-group';
-        
-        let eventsHtml = '';
-        day.events.forEach(ev => {
-            eventsHtml += `
+    container.innerHTML = days.map(day => `
+        <div class="day-group">
+            <div class="day-label">${day.dateLabel}</div>
+            ${day.events.map(ev => `
                 <div class="event-node">
                     <div class="event-time">${ev.time}</div>
                     <div class="event-title">${ev.title}</div>
                 </div>
-            `;
-        });
-
-        dayDiv.innerHTML = `
-            <div class="day-label">${day.dateLabel}</div>
-            ${eventsHtml}
-        `;
-        container.appendChild(dayDiv);
-    });
+            `).join('')}
+        </div>
+    `).join('');
 }
 
 function testAgenda() {
