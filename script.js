@@ -122,7 +122,6 @@ function renderGrid(data) {
     lastStatsData = data; 
     loadedNotesData = data.notes;
 
-    // 2. PREPARAZIONE "OFFLINE" (Evita il vuoto di 2 secondi)
     const fragment = document.createDocumentFragment();
     const isSearching = typeof searchQuery !== 'undefined' && searchQuery.length > 0;
     
@@ -140,7 +139,8 @@ function renderGrid(data) {
         fragment.appendChild(extraCard);
     }
 
-    // --- 4. FILTRAGGIO COMBINATO ---
+    // --- 4. FILTRAGGIO E ORDINAMENTO ---
+    // Manteniamo la tua logica di filtraggio, ma aggiungiamo un sort per i Pinnati
     const filteredNotes = loadedNotesData.map((note, originalIndex) => ({ note, originalIndex }))
     .filter(item => {
         const title = (item.note[5] || "").toLowerCase();
@@ -156,9 +156,17 @@ function renderGrid(data) {
         if (currentFilter === 'LINK') return content.includes('http');
         if (currentFilter === 'EXTRA') return false; 
         return true;
+    })
+    .sort((a, b) => {
+        // Forza i Pinnati in alto se siamo in visualizzazione ALL
+        if (currentFilter === 'ALL' && !isSearching) {
+            if (a.note[2] === "PINNED" && b.note[2] !== "PINNED") return -1;
+            if (a.note[2] !== "PINNED" && b.note[2] === "PINNED") return 1;
+        }
+        return 0;
     });
 
-    // --- 5. GENERAZIONE DELLE CARD NOTE ---
+    // --- 5. GENERAZIONE DELLE CARD NOTE (Col tuo Drag & Drop) ---
     filteredNotes.forEach((item) => {
         const note = item.note;
         const index = item.originalIndex; 
@@ -181,7 +189,7 @@ function renderGrid(data) {
             </div>
         `;
 
-        // EVENTI DRAG & DROP
+        // --- I TUOI EVENTI DRAG & DROP (INTATTI) ---
         card.ondragstart = (e) => {
             if (!isDraggable) return; 
             draggedItem = card;
@@ -226,8 +234,8 @@ function renderGrid(data) {
     });
 
     // --- 6. SWITCH ISTANTANEO ---
-    grid.innerHTML = ""; // Svuota solo all'ultimo millisecondo
-    grid.appendChild(fragment); // Inserisce tutto il blocco pronto
+    grid.innerHTML = ""; 
+    grid.appendChild(fragment);
 }
 
 async function saveNewOrder() {
@@ -251,32 +259,24 @@ async function sendCmd(event) {
         const input = event.target;
         const val = input.value.trim();
         if (!val) return;
-
         input.value = "";
         input.placeholder = "> SYNCING...";
-
-        // Rileviamo il servizio
+        
         let service = "note";
         if (val.toLowerCase().startsWith('t ')) service = "agenda_add";
         else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) service = "extra_hours";
 
         try {
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Manteniamo no-cors per evitare blocchi CORS
-                body: JSON.stringify({ service: service, text: val })
-            });
-
-            // Aspettiamo un secondo pieno per dare tempo a Google di scrivere
-            await new Promise(r => setTimeout(r, 1000));
-            
-            // Ricarichiamo
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ service: service, text: val })});
+            await new Promise(r => setTimeout(r, 1200));
             await loadStats();
             input.placeholder = "> SUCCESS.";
-        } catch (e) {
-            input.placeholder = "!! ERROR !!";
-        }
-        setTimeout(() => input.placeholder = "> DIGITA...", 2000);
+        } catch (e) { input.placeholder = "!! ERROR !!"; }
+        
+        setTimeout(() => { 
+            input.placeholder = "> DIGITA...";
+            input.focus(); // RIPRISTINA FOCUS
+        }, 1500);
     }
 }
 
