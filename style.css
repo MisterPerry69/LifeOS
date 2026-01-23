@@ -292,12 +292,11 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 }
 
 .color-dot {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
     cursor: pointer;
-    border: none; /* Via i bordi strani */
-    transition: transform 0.2s;
+    border: 2px solid rgba(255,255,255,0.2) !important; /* Un piccolo bordo per vederli su sfondo scuro */
 }
 
 .color-dot:hover { transform: scale(1.2); }

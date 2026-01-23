@@ -335,7 +335,7 @@ function openExtraDetail() {
             <i class="fas fa-trash" onclick="confirmDelete(${item.id}, 'EXTRA')" style="color:#555; cursor:pointer;"></i>
         </div>`).join('');
     
-    modal.className = 'note-overlay bg-default';
+    modal.className = 'note-overlay extra-card';
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
 }
@@ -343,10 +343,18 @@ function openExtraDetail() {
 // Chiusura istantanea per eliminare il lag
 function saveAndClose() {
     const text = document.getElementById('detail-text').value;
+    const modal = document.getElementById('note-detail');
     
-    // Se abbiamo una nota attiva (non EXTRA)
     if (currentNoteData && currentNoteData.id) {
-        // Invio immediato al server
+        // AGGIORNAMENTO ISTANTANEO LATO CLIENT (Optimistic)
+        const card = document.getElementById(`card-${currentNoteData.id}`);
+        if (card) {
+            card.querySelector('.content-preview').innerText = text;
+            // Se hai cambiato colore, aggiorna anche la classe della card
+            card.className = `keep-card bg-${currentNoteData.color}`;
+        }
+
+        // Poi invia al server in background
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -356,12 +364,9 @@ function saveAndClose() {
                 text: text, 
                 color: currentNoteData.color 
             })
-        }).then(() => {
-            loadStats(); // Ricarica i dati per vedere le modifiche sulla card
         });
     }
-
-    closeModal(); // Chiude la finestra immediatamente per fluidità
+    closeModal();
 }
 
 function closeModal() {
@@ -507,11 +512,9 @@ function setFilter(type, el) {
 }
 
 function handleSearch() {
-    searchQuery = document.getElementById('search-input').value.toLowerCase();
-    // Chiamiamo renderGrid passando i dati che abbiamo già
-    if (lastStatsData) {
-        renderGrid(lastStatsData);
-    }
+    const input = document.getElementById('search-input');
+    searchQuery = (input.value || "").toLowerCase(); // Prende il valore in minuscolo
+    if (lastStatsData) renderGrid(lastStatsData);
 }
 
 function toggleSearch(show) {
@@ -521,17 +524,20 @@ function toggleSearch(show) {
     const trigger = document.getElementById('search-trigger');
 
     if (show) {
-        title.style.opacity = "0"; // Sparisce il titolo
-        trigger.style.opacity = "0"; // Sparisce la lente
+        title.style.opacity = "0";
+        trigger.style.opacity = "0";
         wrapper.classList.add('active');
         setTimeout(() => input.focus(), 400);
     } else {
+        // La ricerca si chiude solo se il campo è vuoto
         if (input.value === "") {
             wrapper.classList.remove('active');
             setTimeout(() => {
                 title.style.opacity = "1";
                 trigger.style.opacity = "1";
             }, 300);
+            searchQuery = ""; // Reset della ricerca
+            if (lastStatsData) renderGrid(lastStatsData);
         }
     }
 }
