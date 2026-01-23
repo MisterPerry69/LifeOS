@@ -109,6 +109,7 @@ body {
 .bg-red     { border-left: 4px solid #ea4335 !important; }
 .bg-green   { border-left: 4px solid #34a853 !important; }
 .bg-yellow  { border-left: 4px solid #fbbc05 !important; }
+.bg-pink    { border-left: 4px solid #FF69B4 !important; }
 .extra-card { border-left: 4px solid var(--accent) !important; }
 
 .title-row { font-weight: bold; font-size: 11px; color: var(--accent); margin-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 65, 0.1); padding-bottom: 4px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -149,7 +150,7 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        border: 1px solid var(--accent);
+        border: 1px solid #333;
         border-radius: 8px;
         box-shadow: 0 0 50px #000;
     }
@@ -291,22 +292,24 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 }
 
 .color-dot {
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid rgba(255,255,255,0.1);
+    border: none; /* Via i bordi strani */
     transition: transform 0.2s;
 }
 
 .color-dot:hover { transform: scale(1.2); }
 
 /* Classi di sfondo per i pallini */
-.dot-default { background-color: #555; }
-.dot-blue    { background-color: #4285f4; }
-.dot-red     { background-color: #ea4335; }
-.dot-green   { background-color: #34a853; }
-.dot-yellow  { background-color: #fbbc05; }
+/* Colori PIENI */
+.dot-default { background-color: #555 !important; }
+.dot-blue    { background-color: #4285f4 !important; }
+.dot-red     { background-color: #ea4335 !important; }
+.dot-green   { background-color: #34a853 !important; }
+.dot-yellow  { background-color: #fbbc05 !important; }
+.dot-pink  { background-color: #FF69B4 !important; }
 
 .note-toolbar {
     display: flex;

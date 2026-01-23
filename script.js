@@ -343,10 +343,10 @@ function openExtraDetail() {
 // Chiusura istantanea per eliminare il lag
 function saveAndClose() {
     const text = document.getElementById('detail-text').value;
-    const modal = document.getElementById('note-detail');
     
-    if (currentNoteData && currentNoteData.type === 'NOTE') {
-        // NON usiamo await qui: lanciamo il salvataggio e chiudiamo subito
+    // Se abbiamo una nota attiva (non EXTRA)
+    if (currentNoteData && currentNoteData.id) {
+        // Invio immediato al server
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -356,11 +356,12 @@ function saveAndClose() {
                 text: text, 
                 color: currentNoteData.color 
             })
-        }).then(() => loadStats()); // Ricarica i dati in background
+        }).then(() => {
+            loadStats(); // Ricarica i dati per vedere le modifiche sulla card
+        });
     }
 
-    // Chiudi subito l'interfaccia
-    closeModal();
+    closeModal(); // Chiude la finestra immediatamente per fluidità
 }
 
 function closeModal() {
@@ -390,15 +391,11 @@ function toggleColorPicker() {
 
 // MODIFICA: Aggiornamento immediato del colore (Optimistic UI)
 function changeNoteColor(colorName) {
-    if (currentNoteData && currentNoteData.type === 'NOTE') {
+    if (currentNoteData) {
+        currentNoteData.color = colorName;
         // Cambia colore al modal subito
         document.getElementById('note-detail').className = `note-overlay bg-${colorName}`;
-        
-        // Cambia colore alla card sotto subito (senza aspettare il server)
-        const card = document.getElementById(`card-${currentNoteData.id}`);
-        if(card) card.className = `keep-card bg-${colorName}`;
-        
-        currentNoteData.color = colorName;
+        // Chiude la bolla dei colori
         document.getElementById('color-picker-bubble').style.display = 'none';
     }
 }
