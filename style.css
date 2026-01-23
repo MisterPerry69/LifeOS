@@ -72,7 +72,7 @@ body {
     width: 0;
     opacity: 0;
     overflow: hidden;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.4s ease, opacity 0.3s; /* La magia dello slide */
     display: flex;
     align-items: center;
 }

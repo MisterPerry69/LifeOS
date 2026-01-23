@@ -143,11 +143,12 @@ function renderGrid(data) {
     // Manteniamo la tua logica di filtraggio, ma aggiungiamo un sort per i Pinnati
     const filteredNotes = loadedNotesData.map((note, originalIndex) => ({ note, originalIndex }))
     .filter(item => {
-        const title = (item.note[5] || "");
-        const content = (item.note[1] || "");
+        const title = String(item.note[5] || "").toLowerCase();
+        const content = String(item.note[1] || "").toLowerCase();
         const type = item.note[2];
+        const searchLower = searchQuery.toLowerCase(); // searchQuery è già minuscola se usi handleSearch
         
-        const matchesSearch = !isSearching || title.includes(searchQuery) || content.includes(searchQuery);
+        const matchesSearch = !isSearching || title.includes(searchLower) || content.includes(searchLower);
         if (!matchesSearch) return false;
 
         if (currentFilter === 'ALL') return true;
