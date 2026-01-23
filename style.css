@@ -66,20 +66,20 @@ body {
 .header .info { font-size: 10px; color: var(--dim); text-align: right; cursor: pointer; }
 
 /* --- 4. RICERCA (ANIMAZIONE DA DESTRA) --- */
-.search-wrapper {
+#search-wrapper {
     position: absolute;
-    right: 50px; /* Spazio per l'icona ESC o Info */
+    right: 0;
     width: 0;
     opacity: 0;
     overflow: hidden;
-    transition: width 0.4s ease, opacity 0.3s; /* La magia dello slide */
-    display: flex;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+    display: flex; /* Sempre flex, ma con larghezza 0 */
     align-items: center;
+    background: var(--bg); /* Assicurati che copra il titolo sotto */
 }
-.search-wrapper.active {
-    width: calc(100% - 100px);
+#search-wrapper.active {
+    width: 100%;
     opacity: 1;
-    z-index: 10;
 }
 #search-input {
     width: 100% !important;

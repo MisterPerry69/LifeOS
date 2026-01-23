@@ -34,6 +34,12 @@ window.onload = async () => {
         const boot = document.getElementById('boot-screen');
         if(boot) boot.style.display = 'none';
     }, 500);
+    document.getElementById('search-input').addEventListener('blur', function() {
+    // Se l'input è vuoto quando clicchi fuori, chiudi la barra
+    if (this.value === "") {
+        toggleSearch(false);
+    }
+});
 };
 
 // Funzione per scrivere i log nel boot screen
@@ -532,24 +538,25 @@ function toggleSearch(show) {
     const trigger = document.getElementById('search-trigger');
 
     if (show) {
+        wrapper.classList.add('active');
         title.style.opacity = "0";
         trigger.style.opacity = "0";
-        wrapper.classList.add('active'); // Slida verso sinistra
-        setTimeout(() => input.focus(), 400);
+        // Aspettiamo un attimo che lo slide inizi prima di dare il focus
+        setTimeout(() => input.focus(), 200);
     } else {
-        // Ritorna a destra solo se il campo è vuoto
+        // Chiude solo se non c'è testo scritto
         if (input.value === "") {
             wrapper.classList.remove('active');
+            // Ritardiamo la ricomparsa del titolo per assecondare lo slide
             setTimeout(() => {
                 title.style.opacity = "1";
                 trigger.style.opacity = "1";
-            }, 300);
-            searchQuery = ""; // Reset termine ricerca
-            if (lastStatsData) renderGrid(lastStatsData);
+            }, 400);
+            searchQuery = "";
+            renderGrid(lastStatsData);
         }
     }
 }
-
 //AGENDA
 
 // Aggiungiamo un flag isInternal per capire da dove arriva il comando
