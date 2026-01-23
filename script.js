@@ -255,42 +255,40 @@ async function sendCmd(event) {
         input.value = "";
         input.placeholder = "> SYNCING...";
 
+        // REGEX precisa per beccare +1, +2.5, ieri+1
         const isExtra = /^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+');
-        const service = isExtra ? "extra_hours" : (val.toLowerCase().startsWith('t ') ? "agenda_add" : "note");
+        const serviceType = isExtra ? "extra_hours" : (val.toLowerCase().startsWith('t ') ? "agenda_add" : "note");
 
         try {
+            // Invio al server
             await fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: JSON.stringify({ service: service, text: val })
+                body: JSON.stringify({ service: serviceType, text: val })
             });
 
-            // Aspettiamo un attimo il server
-            await new Promise(r => setTimeout(r, 600));
+            // Aspettiamo che Google scriva fisicamente sulla riga
+            await new Promise(r => setTimeout(r, 800));
             
-            // Ricarichiamo i dati (renderGrid ora è fluida e non svuota)
+            // Ricarichiamo i dati freschi dal server
             await loadStats();
 
-            // Se era un extra, facciamo brillare la card specifica
+            // Feedback visivo sulla card degli straordinari (mantenendo il tuo ID/Classe)
             if (isExtra) {
                 const ec = document.querySelector('.extra-card');
                 if (ec) {
-                    ec.style.borderColor = "var(--accent)";
-                    ec.style.boxShadow = "0 0 20px var(--accent)";
-                    setTimeout(() => {
-                        ec.style.borderColor = "";
-                        ec.style.boxShadow = "";
-                    }, 1000);
+                    ec.style.transition = "0.3s";
+                    ec.style.background = "rgba(0, 255, 65, 0.2)";
+                    setTimeout(() => ec.style.background = "", 800);
                 }
             }
             input.placeholder = "> SUCCESS.";
         } catch (e) {
-            input.placeholder = "!! ERROR !!";
+            input.placeholder = "!! ERR_COMM !!";
         }
         setTimeout(() => input.placeholder = "> DIGITA...", 2000);
     }
-}
-// --- 5. UI MODALS & ACTIONS ---
+}// --- 5. UI MODALS & ACTIONS ---
 
 function openNoteByIndex(index) {
     const note = loadedNotesData[index];
