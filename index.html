@@ -27,7 +27,7 @@
  
   <div id="home" class="page active">
       <div class="header">
-        <h1>SYSTEM_OS</h1>
+        <h1>Life_OS v1.0</h1>
         <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
       </div>
       
@@ -156,14 +156,14 @@
       </div>
   </div>
 
-  <div id="delete-modal" onclick="cancelDelete()"> 
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <p>ELIMINARE RECORD?</p>
-        <div class="btn-group">
-            <span class="btn-confirm" onclick="executeDelete()">SÌ, ELIMINA</span>
-            <span class="btn-cancel" onclick="cancelDelete()">ANNULLA</span>
+<div id="delete-modal">
+    <div class="modal-content">
+        <p>Eliminare record permanentemente?</p>
+        <div class="modal-actions">
+            <button class="btn-modal btn-confirm" onclick="executeDelete()">Sì, Elimina</button>
+            <button class="btn-modal btn-cancel" onclick="cancelDelete()">Annulla</button>
         </div>
     </div>
-  </div>
+</div>
 </body>
 </html>
