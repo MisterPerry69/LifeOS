@@ -296,7 +296,9 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     height: 30px !important;
     border-radius: 50% !important;
     cursor: pointer;
-    border: 2px solid rgba(255,255,255,0.2) !important; /* Un piccolo bordo per vederli su sfondo scuro */
+    border: 2px solid rgba(255,255,255,0.1) !important;
+    transition: transform 0.2s;
+    display: inline-block; /* Assicura che siano visibili */
 }
 
 .color-dot:hover { transform: scale(1.2); }

@@ -449,17 +449,23 @@ function cancelDelete() {
 async function executeDelete() {
     if (!deleteTarget) return;
     
-    // UI Feedback immediato
+    // 1. Chiudi subito il popup di conferma
     document.getElementById('delete-modal').style.display = 'none';
     
+    // 2. Manda il comando al server
     await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        body: JSON.stringify({ service: "delete_item", id: deleteTarget.id, type: deleteTarget.type })
+        body: JSON.stringify({ 
+            service: "delete_item", 
+            id: deleteTarget.id, 
+            type: deleteTarget.type 
+        })
     });
     
+    // 3. ORA ricarica i dati e chiudi il modal della nota
     closeModal();
-    loadStats(); // Ricarica la griglia
+    await loadStats(); // Questo pulirà la lista degli extra e le note
 }
 
 // NUOVA: Funzione per switchare il PIN
@@ -513,7 +519,8 @@ function setFilter(type, el) {
 
 function handleSearch() {
     const input = document.getElementById('search-input');
-    searchQuery = (input.value || "").toLowerCase(); // Prende il valore in minuscolo
+    searchQuery = (input.value || "").toLowerCase();
+    // Forza il rendering della griglia con il filtro
     if (lastStatsData) renderGrid(lastStatsData);
 }
 
@@ -526,22 +533,21 @@ function toggleSearch(show) {
     if (show) {
         title.style.opacity = "0";
         trigger.style.opacity = "0";
-        wrapper.classList.add('active');
+        wrapper.classList.add('active'); // Slida verso sinistra
         setTimeout(() => input.focus(), 400);
     } else {
-        // La ricerca si chiude solo se il campo è vuoto
+        // Ritorna a destra solo se il campo è vuoto
         if (input.value === "") {
             wrapper.classList.remove('active');
             setTimeout(() => {
                 title.style.opacity = "1";
                 trigger.style.opacity = "1";
             }, 300);
-            searchQuery = ""; // Reset della ricerca
+            searchQuery = ""; // Reset termine ricerca
             if (lastStatsData) renderGrid(lastStatsData);
         }
     }
 }
-
 
 //AGENDA
 
