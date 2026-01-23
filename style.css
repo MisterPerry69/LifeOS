@@ -155,16 +155,36 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     }
 }
 
+#note-detail {
+    display: none; 
+    flex-direction: column;
+    overflow: hidden; /* Impedisce alla roba di uscire */
+}
+
 #modal-backdrop { 
     position: fixed; inset: 0; background: rgba(0,0,0,0.8); 
     backdrop-filter: blur(4px); z-index: 20500; display: none; 
 }
 
-#detail-text {
-    width: 100%; height: 60vh; background: transparent; border: none;
-    color: var(--text); font-family: inherit; font-size: 16px; outline: none; resize: none; padding: 20px;
+.modal-body {
+    flex: 1; /* Prende tutto lo spazio centrale */
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    overflow-y: auto;
 }
 
+#detail-text {
+    width: 100%;
+    flex: 1; /* Fondamentale: il testo occupa lo spazio ma non spinge fuori i tasti */
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 16px;
+    outline: none;
+    resize: none;
+}
 
 /* --- 8. SIDE MENU & MODALS --- */
 #side-menu {
@@ -178,7 +198,16 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 .menu-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 8px; color: var(--text); cursor: pointer; }
 .menu-item.active { background: rgba(0,255,65,0.1); color: var(--accent); border: 1px solid rgba(0,255,65,0.3); }
 
-#delete-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+#delete-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 30000; /* Più alto di note-detail */
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
 .modal-content { background: #111; border: 1px solid #333; padding: 30px; border-radius: 4px; text-align: center; width: 280px; }
 
 /* --- 9. FOOTER & TOOLS --- */
@@ -188,8 +217,15 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     display: flex; justify-content: space-around; padding: 15px; z-index: 999;
 }
 .btn { background: none; border: none; color: var(--text); font-size: 18px; cursor: pointer; }
-.note-toolbar { display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #333; margin-top: auto; }
-.tool-icon { font-size: 18px; color: var(--dim); cursor: pointer; }
+.note-toolbar {
+    height: 60px; /* Altezza fissa per i tasti */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #333;
+    background: rgba(255,255,255,0.05);
+    flex-shrink: 0; /* Impedisce alla toolbar di rimpicciolirsi */
+}.tool-icon { font-size: 18px; color: var(--dim); cursor: pointer; }
 
 
 /* AGENDA */
