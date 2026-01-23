@@ -135,33 +135,31 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 
 #dump-input { background: #111; border: 1px solid #333; margin-top: 10px; }
 
-@media (min-width: 768px) {
-    .note-overlay {
-        inset: auto;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 600px;
-        height: 80vh;
+
+@media (min-width: 1024px) {
+    /* Usiamo l'ID specifico per non sbagliare */
+    #note-detail {
+        width: 600px !important;
+        height: 70vh !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
         border: 1px solid var(--accent);
-        box-shadow: 0 0 30px rgba(0,0,0,0.5);
         border-radius: 8px;
+        box-shadow: 0 0 50px #000;
+        /* IMPORTANTE: Deve rimanere nascosto se non ha display: flex o block */
     }
 }
 
-@media (min-width: 1024px) {
-    #note-detail.note-overlay {
-        width: 600px !important;
-        height: 80vh !important;
-        margin: auto !important;
-        border: 1px solid var(--accent);
-        box-shadow: 0 0 40px rgba(0,0,0,0.8);
-        border-radius: 8px;
-        /* Lo centra perfettamente */
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-    }
+/* Assicurati che di base sia invisibile */
+.note-overlay {
+    display: none; 
+}
+
+/* Quando la apri tramite JS, deve diventare visibile */
+.note-overlay.active {
+    display: flex !important;
+}
     
     #modal-backdrop {
         display: block; /* Assicurati che il backdrop sia visibile */
