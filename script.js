@@ -187,6 +187,8 @@ function renderGrid(data) {
         const isDraggable = (currentFilter === 'ALL' && !isSearching);
         card.draggable = isDraggable;
 
+        const noteColor = note[3] || 'default';
+
         card.innerHTML = `
             <div class="aug-glow" aria-hidden="true">
                 <div data-augmented-ui="tl-clip br-clip border" 
