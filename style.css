@@ -450,54 +450,52 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 
 
 
+/* Caricamento core (se non hai messo il link nell'head) */
+@import "https://unpkg.com/augmented-ui@2.0.0/aug-core.min.css";
 
-
-
-/* Reset della Card per Augmented UI */
 .keep-card {
-    position: relative;
-    background: transparent !important; /* Il fondo lo gestisce il div augment */
-    border: none !important;
-    padding: 15px !important;
-    min-height: 120px;
-    cursor: pointer;
-    transition: transform 0.2s ease;
+  /* Setup Base */
+  --aug-border: initial;
+  --aug-border-all: 2px;
+  --aug-inlay: initial;
+  --aug-inlay-all: 0px;
+  --aug-inlay-bg: #0b0d33; /* Sfondo scuro tipo pallet1 */
+  --aug-inlay-opacity: 0.8;
+  
+  /* Tagli degli angoli (Tr e Br come nel tuo esempio) */
+  --aug-clip-tr1: initial;
+  --aug-clip-br1: initial;
+  --aug-tr1: 10px;
+  --aug-br1: 20px;
+  
+  /* La decorazione laterale a sinistra (rect-l) */
+  --aug-rect-l1: initial;
+  --aug-l1: 4px;
+  --aug-l-extend1: 20px;
+  
+  border: none;
+  outline: none;
+  padding: 20px;
+  color: white;
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: none !important; /* Fondamentale: disabilita il bg standard */
 }
 
-.keep-card:hover { transform: scale(1.02); }
+/* Mapping colori dinamico basato sulle tue classi */
+.aug-blue   { --aug-border-bg: #00edff; color: #00edff; }
+.aug-red    { --aug-border-bg: #ff4e3b; color: #ff4e3b; }
+.aug-green  { --aug-border-bg: #d4e800; color: #d4e800; }
+.aug-yellow { --aug-border-bg: #fbbc05; color: #fbbc05; }
+.aug-pink   { --aug-border-bg: #fb00c3; color: #fb00c3; }
+.aug-default{ --aug-border-bg: #555;     color: #eee;    }
 
-/* Lo strato che brilla e taglia gli angoli */
-.aug-glow, .aug-glow > * {
-    position: absolute;
-    width: 100%; height: 100%;
-    left: 0; top: 0;
-    pointer-events: none;
-    z-index: -1; /* Sta dietro al testo */
+/* Effetto Hover (Glow Cyberpunk) */
+.keep-card:hover {
+  filter: drop-shadow(0 0 8px var(--aug-border-bg));
+  transform: translateY(-3px);
 }
 
-.aug-glow {
-    filter: drop-shadow(0 0 3px var(--aug-border-bg));
-}
 
-.my-augborder {
-    --aug-border: 1px;
-    --aug-border-bg: var(--accent); /* Default */
-    --aug-tl: 12px; /* Taglio in alto a sinistra */
-    --aug-br: 12px; /* Taglio in basso a destra */
-    background: #0a0a0a; /* Sfondo interno della card */
-}
 
-/* Mapping dei tuoi colori sulle variabili Augmented UI */
-.aug-blue   { --aug-border-bg: #4285f4; }
-.aug-red    { --aug-border-bg: #ea4335; }
-.aug-green  { --aug-border-bg: #34a853; }
-.aug-yellow { --aug-border-bg: #fbbc05; }
-.aug-pink   { --aug-border-bg: #ff69b4; }
-.aug-default { --aug-border-bg: #444; }
-
-/* Assicurati che il testo stia sopra */
-.card-content {
-    position: relative;
-    z-index: 2;
-    pointer-events: none; /* Lascia che il click passi alla card */
-}

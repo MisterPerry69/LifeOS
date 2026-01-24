@@ -189,18 +189,17 @@ function renderGrid(data) {
 
         const noteColor = note[3] || 'default';
 
+        // 1. Applica le classi e l'attributo direttamente al div principale 'card'
+        card.className = `keep-card aug-${noteColor}`;
+        card.setAttribute('data-augmented-ui', 'tr-clip br-clip l-rect-side border inlay');
+
+        // 2. Il contenuto torna a essere pulito
         card.innerHTML = `
-            <div class="aug-glow" aria-hidden="true">
-                <div data-augmented-ui="tl-clip br-clip border" 
-                     class="my-augborder aug-${noteColor}"></div>
-            </div>
-            <div class="card-content">
-                ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
-                <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
-                <div class="content-preview">${note[1]}</div>
-                <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
-                    ${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
-                </div>
+            ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
+            <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
+            <div class="content-preview" style="color: white; opacity: 0.9;">${note[1]}</div>
+            <div class="label" style="font-size:9px; margin-top:8px; opacity:0.5; color: white;">
+                ${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
             </div>
         `;
 
