@@ -187,18 +187,11 @@ function renderGrid(data) {
         const isDraggable = (currentFilter === 'ALL' && !isSearching);
         card.draggable = isDraggable;
 
-        const noteColor = note[3] || 'default';
-
-        // 1. Applica le classi e l'attributo direttamente al div principale 'card'
-        card.className = `keep-card aug-${noteColor}`;
-        card.setAttribute('data-augmented-ui', 'tr-clip br-clip l-rect-side border inlay');
-
-        // 2. Il contenuto torna a essere pulito
         card.innerHTML = `
             ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
             <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
-            <div class="content-preview" style="color: white; opacity: 0.9;">${note[1]}</div>
-            <div class="label" style="font-size:9px; margin-top:8px; opacity:0.5; color: white;">
+            <div class="content-preview">${note[1]}</div>
+            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
                 ${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
             </div>
         `;
