@@ -172,22 +172,13 @@
 
 
 <script>
-(function(w,d, s, id) {
-    if(typeof(w.webpushr)!=='undefined') return;
-    w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};
-    var js, fjs = d.getElementsByTagName(s)[0];
-    js = d.createElement(s); js.id = id; js.async=1; 
-    js.src = "https://cdn.webpushr.com/app.min.js";
-    fjs.parentNode.insertBefore(js, fjs);
-}(window,document, 'script', 'webpushr-jssdk'));
-
-// Usiamo un piccolo intervallo per assicurarci che webpushr sia definito prima di chiamarlo
 window.addEventListener('load', function() {
     if (typeof webpushr !== 'undefined') {
         webpushr('setup', {
-            'key':'BA232ZX5Zislw9HMnqgm1ZEyTaz-98EZSrfobgjTbXX3ql4fZ07Y5f91ciO-708ZjGD4iKoquI9IWp35CjUsyoE',
-            'sw': 'https://IL_TUO_UTENTE.github.io/LA_TUA_REPO/webpushr-sw.js'
+            'key':'BA232ZX5Zislw9HMnqgm1ZEyTaz-98EZSrfobgjTbXX3ql4fZ07Y5f91ciO-708ZjGD4iKoquI9IWp35CjUsyoE'
         });
+        // Forza la comparsa della campanella per test
+        webpushr('showSubscriptionBell'); 
     }
 });
 </script>
