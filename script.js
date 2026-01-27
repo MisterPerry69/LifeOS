@@ -78,9 +78,16 @@ function nav(pageId) {
     
     // LOGICA DI ATTIVAZIONE MODULI
     if(pageId === 'habit') drawPixels(historyData);
-    if(pageId === 'agenda') loadAgenda(); // <--- QUESTO MANCAVA!
+    if(pageId === 'agenda') loadAgenda(); 
+    checkSavedPlan();
+    
     
     if(menuOpen) toggleSidebar(); 
+}
+
+async function checkSavedPlan() {
+    // Qui dovremmo fare una fetch per vedere se nel foglio System_State c'è roba di oggi
+    // Per ora, se non lo implementiamo, rimarrà sempre sulla schermata di input.
 }
 
 function toggleMenu() {
@@ -658,27 +665,31 @@ async function synthesizeDaily() {
     if (!prompt) return;
 
     const btn = document.querySelector('#neural-input-zone button');
-    btn.innerText = "SYNTHESIZING...";
-    btn.style.opacity = "0.5";
+    btn.innerText = "SYNTHESIZING_NEURAL_PATH...";
 
     try {
-        // Passiamo a Gemini sia il tuo testo che gli eventi già caricati in window.agendaData
-        const fixedEvents = window.agendaData ? JSON.stringify(window.agendaData[0]) : "[]";
-        
-        const response = await fetch(`${SCRIPT_URL}?action=smartPlan&text=${encodeURIComponent(prompt)}&fixed=${encodeURIComponent(fixedEvents)}`);
+        // Prepariamo i dati da mandare al POST
+        const payload = {
+            service: "smartPlan",
+            text: prompt,
+            fixed: window.agendaData || [] // Gli eventi caricati da CHRONO_SCAN
+        };
+
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
         const data = await response.json();
 
         if (data.status === "SUCCESS") {
             renderNeuralTimeline(data.plan);
-            // Nascondi input, mostra timeline
             document.getElementById('neural-input-zone').style.display = 'none';
             document.getElementById('active-flow-zone').style.display = 'block';
         }
     } catch (e) {
-        console.error("Neural link failed", e);
-        btn.innerText = "LINK_ERROR - RETRY";
-    } finally {
-        btn.style.opacity = "1";
+        console.error("Critical Neural Error", e);
+        btn.innerText = "LINK_FAILED - RETRY";
     }
 }
 
