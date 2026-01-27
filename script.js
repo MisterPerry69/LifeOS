@@ -652,3 +652,47 @@ function testAgenda() {
     ];
     renderAgenda(mockData);
 }
+
+async function synthesizeDaily() {
+    const prompt = document.getElementById('neural-prompt').value;
+    if (!prompt) return;
+
+    const btn = document.querySelector('#neural-input-zone button');
+    btn.innerText = "SYNTHESIZING...";
+    btn.style.opacity = "0.5";
+
+    try {
+        // Passiamo a Gemini sia il tuo testo che gli eventi già caricati in window.agendaData
+        const fixedEvents = window.agendaData ? JSON.stringify(window.agendaData[0]) : "[]";
+        
+        const response = await fetch(`${SCRIPT_URL}?action=smartPlan&text=${encodeURIComponent(prompt)}&fixed=${encodeURIComponent(fixedEvents)}`);
+        const data = await response.json();
+
+        if (data.status === "SUCCESS") {
+            renderNeuralTimeline(data.plan);
+            // Nascondi input, mostra timeline
+            document.getElementById('neural-input-zone').style.display = 'none';
+            document.getElementById('active-flow-zone').style.display = 'block';
+        }
+    } catch (e) {
+        console.error("Neural link failed", e);
+        btn.innerText = "LINK_ERROR - RETRY";
+    } finally {
+        btn.style.opacity = "1";
+    }
+}
+
+function renderNeuralTimeline(plan) {
+    const container = document.getElementById('daily-timeline-content');
+    container.innerHTML = plan.map((task, i) => `
+        <div class="event-node" style="border-left-color: ${task.isFixed ? '#00f3ff' : '#fcee0a'}">
+            <div class="event-time" style="background: ${task.isFixed ? 'rgba(0,243,255,0.1)' : 'rgba(252,238,10,0.1)'}; color: ${task.isFixed ? '#00f3ff' : '#fcee0a'}">
+                ${task.time}
+            </div>
+            <div class="event-title" style="display:flex; justify-content:space-between; width:100%;">
+                <span style="${task.done ? 'text-decoration:line-through; opacity:0.5;' : ''}">${task.text}</span>
+                <input type="checkbox" ${task.done ? 'checked' : ''} onclick="toggleDailyTask(${i})">
+            </div>
+        </div>
+    `).join('');
+}
