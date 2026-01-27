@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>LIFE_OS // DAILY_PROTOCOL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #08080a; color: #d4d4d8; font-family: 'JetBrains Mono', monospace; }
+        .font-cyber { font-family: 'Orbitron', sans-serif; }
+        .glow-cyan { box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); border-color: rgba(0, 243, 255, 0.3); }
+        .glow-yellow { box-shadow: 0 0 15px rgba(252, 238, 10, 0.2); border-color: rgba(252, 238, 10, 0.3); }
+        .clipped-tr { clip-path: polygon(0 0, 90% 0, 100% 20%, 100% 100%, 0 100%); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-10 flex justify-between items-end border-b border-zinc-800 pb-6">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-2 h-2 bg-[#fcee0a] rounded-full animate-pulse shadow-[0_0_8px_#fcee0a]"></span>
+                    <span class="text-[10px] font-cyber text-zinc-500 tracking-[0.2em]">NEURAL_PROTOCOL_v3.0</span>
+                </div>
+                <h1 class="text-4xl font-cyber font-bold text-white italic uppercase tracking-tighter">Daily_Planner</h1>
+            </div>
+            <div class="text-right">
+                <p id="current-date" class="text-[10px] text-zinc-500 font-cyber tracking-widest uppercase"></p>
+            </div>
+        </header>
+
+        <section id="input-section" class="mb-12 animate-in fade-in duration-700">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-zinc-600 text-xs tracking-tighter uppercase font-cyber italic">> CONVERSATIONAL_INPUT_STREAM</span>
+            </div>
+            <textarea id="neural-input" 
+                class="w-full h-40 bg-zinc-900/40 border border-zinc-800 rounded-2xl p-6 text-lg text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:glow-yellow transition-all resize-none italic"
+                placeholder="E.g. Oggi alle 12:00 ho il dentista. Nel pomeriggio voglio studiare 2 ore e poi andare a correre prima di cena..."></textarea>
+            
+            <button onclick="synthesizeDaily()" id="btn-synth"
+                class="mt-6 w-full py-5 bg-[#fcee0a] text-black font-cyber font-black text-xs tracking-[0.4em] clipped-tr hover:bg-white transition-all active:scale-95 flex items-center justify-center gap-3">
+                SYNTHESIZE_DAILY_FLOW
+            </button>
+        </section>
+
+        <section id="timeline-section" class="hidden relative pl-12 space-y-6">
+            <div class="absolute left-[23px] top-0 bottom-0 w-px bg-zinc-800"></div>
+            <div id="timeline-content"></div>
+            
+            <button onclick="resetInput()" class="mt-10 text-[10px] text-zinc-600 font-cyber hover:text-[#fcee0a] transition-colors">
+                [ EDIT_INPUT_STREAM ]
+            </button>
+        </section>
+    </div>
+
+    <script>
+        // Placeholder per la logica di collegamento con Google Script
+        const SCRIPT_URL = "IL_TUO_URL_SCRIPT/exec";
+
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        async function synthesizeDaily() {
+            const input = document.getElementById('neural-input').value;
+            if(!input) return;
+
+            const btn = document.getElementById('btn-synth');
+            btn.innerHTML = "INITIALIZING_NEURAL_SORT...";
+            btn.disabled = true;
+
+            // Chiamata al tuo Google Script (che userà Gemini 3 Flash)
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=smartPlan&text=${encodeURIComponent(input)}`);
+                const data = await response.json();
+                renderTimeline(data.schedule);
+            } catch (err) {
+                console.error("ERRORE:", err);
+                alert("Neural Link Failure.");
+            } finally {
+                btn.innerHTML = "SYNTHESIZE_DAILY_FLOW";
+                btn.disabled = false;
+            }
+        }
+
+        function renderTimeline(tasks) {
+            const container = document.getElementById('timeline-content');
+            const section = document.getElementById('timeline-section');
+            const inputSection = document.getElementById('input-section');
+            
+            container.innerHTML = '';
+            inputSection.classList.add('hidden');
+            section.classList.remove('hidden');
+
+            tasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `relative p-5 rounded-xl border ${task.isFixed ? 'bg-[#00f3ff]/5 border-[#00f3ff]/20' : 'bg-zinc-900/40 border-zinc-800'}`;
+                item.innerHTML = `
+                    <div class="absolute -left-[41px] w-6 h-6 rounded-full border-4 border-[#08080a] ${task.isFixed ? 'bg-[#00f3ff] shadow-[0_0_10px_#00f3ff]' : 'bg-[#fcee0a]'}"></div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xs font-cyber ${task.isFixed ? 'text-[#00f3ff]' : 'text-zinc-500'} w-12">${task.suggestedTime}</span>
+                        <div>
+                            <p class="text-zinc-200 text-sm font-medium">${task.text}</p>
+                            ${task.isFixed ? '<span class="text-[8px] font-cyber text-[#00f3ff]/50 uppercase tracking-widest">Fixed_Event</span>' : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function resetInput() {
+            document.getElementById('timeline-section').classList.add('hidden');
+            document.getElementById('input-section').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
