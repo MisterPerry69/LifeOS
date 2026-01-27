@@ -695,40 +695,52 @@ async function synthesizeDaily() {
 
 function renderNeuralTimeline(plan) {
     const container = document.getElementById('daily-timeline-content');
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
+    if (!plan || !Array.isArray(plan)) return;
 
     container.innerHTML = plan.map((task, i) => {
-        // Calcolo per lo sbiadimento automatico basato sull'orario
-        const [h, m] = task.time.split(':');
-        const taskTime = parseInt(h) * 60 + parseInt(m);
-        const isPast = taskTime < currentTime;
-        
-        // Colore dinamico basato sul tipo o sulla fissità
         const accentColor = task.isFixed ? '#00f3ff' : '#fcee0a';
+        // Se il task è completato, applichiamo subito le classi CSS
+        const isDone = task.completed;
         
         return `
-            <div class="event-node ${isPast ? 'is-past' : ''}" id="task-${i}" 
-                 style="border-left: 2px solid ${accentColor}; margin-bottom: 15px; padding-left: 15px; position: relative; transition: all 0.3s;">
+            <div class="event-node" id="task-${i}" 
+                 style="border-left: 2px solid ${accentColor}; margin-bottom: 12px; padding: 10px 15px; 
+                        background: rgba(255,255,255,0.03); transition: all 0.4s ease;">
                 
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <span style="color: ${accentColor}; font-family: 'Rajdhani'; font-weight: bold; font-size: 12px; letter-spacing: 1px;">
-                            ${task.time || '--:--'}
-                        </span>
-                        <div class="task-text" style="color: #fff; font-size: 14px; text-transform: uppercase; margin-top: 4px; ${task.done ? 'text-decoration: line-through; opacity: 0.4;' : ''}">
+                <div style="display: flex; justify-content: space-between; align-items: center; ${isDone ? 'opacity: 0.3; filter: grayscale(1);' : ''}">
+                    <div style="flex-grow: 1;">
+                        <span style="color: ${accentColor}; font-family: 'Rajdhani'; font-weight: bold; font-size: 11px;">
+                            ${task.suggestedTime} </span>
+                        <div class="task-text" style="color: #fff; font-size: 14px; margin-top: 2px; ${isDone ? 'text-decoration: line-through;' : ''}">
                             ${task.text}
                         </div>
                     </div>
                     
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" ${task.done ? 'checked' : ''} 
-                               onclick="completeTask(${i})" 
-                               style="accent-color: ${accentColor}; width: 18px; height: 18px; cursor: pointer;">
-                        <i class="fas fa-trash" onclick="removeTask(${i})" style="color: #333; font-size: 12px; cursor: pointer;"></i>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="checkbox" ${isDone ? 'checked' : ''} 
+                               onclick="toggleTaskVisual(${i})" 
+                               style="width: 18px; height: 18px; accent-color: ${accentColor}; cursor:pointer;">
+                        <i class="fas fa-grip-vertical" style="color: #222; cursor: move;"></i>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+// Funzione per il check visivo immediato
+function toggleTaskVisual(index) {
+    const node = document.querySelector(`#task-${index} > div`);
+    const text = node.querySelector('.task-text');
+    const checkbox = node.querySelector('input');
+
+    if (checkbox.checked) {
+        node.style.opacity = "0.3";
+        node.style.filter = "grayscale(1)";
+        text.style.textDecoration = "line-through";
+    } else {
+        node.style.opacity = "1";
+        node.style.filter = "none";
+        text.style.textDecoration = "none";
+    }
 }
