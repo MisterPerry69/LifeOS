@@ -695,15 +695,40 @@ async function synthesizeDaily() {
 
 function renderNeuralTimeline(plan) {
     const container = document.getElementById('daily-timeline-content');
-    container.innerHTML = plan.map((task, i) => `
-        <div class="event-node" style="border-left-color: ${task.isFixed ? '#00f3ff' : '#fcee0a'}">
-            <div class="event-time" style="background: ${task.isFixed ? 'rgba(0,243,255,0.1)' : 'rgba(252,238,10,0.1)'}; color: ${task.isFixed ? '#00f3ff' : '#fcee0a'}">
-                ${task.time}
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+
+    container.innerHTML = plan.map((task, i) => {
+        // Calcolo per lo sbiadimento automatico basato sull'orario
+        const [h, m] = task.time.split(':');
+        const taskTime = parseInt(h) * 60 + parseInt(m);
+        const isPast = taskTime < currentTime;
+        
+        // Colore dinamico basato sul tipo o sulla fissità
+        const accentColor = task.isFixed ? '#00f3ff' : '#fcee0a';
+        
+        return `
+            <div class="event-node ${isPast ? 'is-past' : ''}" id="task-${i}" 
+                 style="border-left: 2px solid ${accentColor}; margin-bottom: 15px; padding-left: 15px; position: relative; transition: all 0.3s;">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: ${accentColor}; font-family: 'Rajdhani'; font-weight: bold; font-size: 12px; letter-spacing: 1px;">
+                            ${task.time || '--:--'}
+                        </span>
+                        <div class="task-text" style="color: #fff; font-size: 14px; text-transform: uppercase; margin-top: 4px; ${task.done ? 'text-decoration: line-through; opacity: 0.4;' : ''}">
+                            ${task.text}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" ${task.done ? 'checked' : ''} 
+                               onclick="completeTask(${i})" 
+                               style="accent-color: ${accentColor}; width: 18px; height: 18px; cursor: pointer;">
+                        <i class="fas fa-trash" onclick="removeTask(${i})" style="color: #333; font-size: 12px; cursor: pointer;"></i>
+                    </div>
+                </div>
             </div>
-            <div class="event-title" style="display:flex; justify-content:space-between; width:100%;">
-                <span style="${task.done ? 'text-decoration:line-through; opacity:0.5;' : ''}">${task.text}</span>
-                <input type="checkbox" ${task.done ? 'checked' : ''} onclick="toggleDailyTask(${i})">
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
