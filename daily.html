@@ -68,28 +68,24 @@ async function synthesizeDaily() {
     btn.innerHTML = "INITIALIZING_NEURAL_SORT...";
     btn.disabled = true;
 
-    // URL pulito senza parametri extra di fetch che attivano il CORS check
-    const targetUrl = `${SCRIPT_URL}?action=smartPlan&text=${encodeURIComponent(input)}`;
+    // Costruiamo l'URL
+    const url = `${SCRIPT_URL}?action=smartPlan&text=${encodeURIComponent(input)}`;
 
+    // Metodo alternativo: usiamo un redirect opaco o una fetch senza headers
     try {
-        // La fetch più semplice possibile: Google gestisce il redirect da solo
-        const response = await fetch(targetUrl);
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'no-cors', // Questo evita il pre-flight check
+            cache: 'no-cache'
+        });
+
+        // NOTA: con no-cors non possiamo leggere la risposta direttamente per motivi di sicurezza.
+        // QUINDI, per fare i test ora, usiamo il metodo della vecchia scuola:
+        window.location.href = url; 
+        // Questo ti aprirà una pagina bianca con il JSON, serve a noi per capire se lo script funziona.
         
-        if (!response.ok) throw new Error('Network response was not ok');
-        
-        const data = await response.json();
-        
-        if (data.schedule) {
-            renderTimeline(data.schedule);
-        } else {
-            throw new Error('Dati non validi ricevuti da Gemini');
-        }
     } catch (err) {
-        console.error("ERRORE DETTAGLIATO:", err);
-        alert("Neural Link Failure: " + err.message);
-    } finally {
-        btn.innerHTML = "SYNTHESIZE_DAILY_FLOW";
-        btn.disabled = false;
+        console.error("ERRORE:", err);
     }
 }
         function renderTimeline(tasks) {
