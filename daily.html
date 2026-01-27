@@ -60,28 +60,38 @@
 
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('it-IT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        async function synthesizeDaily() {
-            const input = document.getElementById('neural-input').value;
-            if(!input) return;
+async function synthesizeDaily() {
+    const input = document.getElementById('neural-input').value;
+    if(!input) return;
 
-            const btn = document.getElementById('btn-synth');
-            btn.innerHTML = "INITIALIZING_NEURAL_SORT...";
-            btn.disabled = true;
+    const btn = document.getElementById('btn-synth');
+    btn.innerHTML = "INITIALIZING_NEURAL_SORT...";
+    btn.disabled = true;
 
-            // Chiamata al tuo Google Script (che userà Gemini 3 Flash)
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=smartPlan&text=${encodeURIComponent(input)}`);
-                const data = await response.json();
-                renderTimeline(data.schedule);
-            } catch (err) {
-                console.error("ERRORE:", err);
-                alert("Neural Link Failure.");
-            } finally {
-                btn.innerHTML = "SYNTHESIZE_DAILY_FLOW";
-                btn.disabled = false;
-            }
+    // URL pulito senza parametri extra di fetch che attivano il CORS check
+    const targetUrl = `${SCRIPT_URL}?action=smartPlan&text=${encodeURIComponent(input)}`;
+
+    try {
+        // La fetch più semplice possibile: Google gestisce il redirect da solo
+        const response = await fetch(targetUrl);
+        
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const data = await response.json();
+        
+        if (data.schedule) {
+            renderTimeline(data.schedule);
+        } else {
+            throw new Error('Dati non validi ricevuti da Gemini');
         }
-
+    } catch (err) {
+        console.error("ERRORE DETTAGLIATO:", err);
+        alert("Neural Link Failure: " + err.message);
+    } finally {
+        btn.innerHTML = "SYNTHESIZE_DAILY_FLOW";
+        btn.disabled = false;
+    }
+}
         function renderTimeline(tasks) {
             const container = document.getElementById('timeline-content');
             const section = document.getElementById('timeline-section');
