@@ -83,7 +83,6 @@ function nav(pageId) {
     
     
     if(menuOpen) toggleSidebar(); 
-    lucide.createIcons();
 }
 
 async function checkSavedPlan() {

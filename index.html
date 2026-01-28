@@ -1,36 +1,23 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
   <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <title>LifeOS // Green Terminal</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/augmented-ui@2.0.0/augmented-ui.min.css">
   
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
-  <style>
-    /* Fix veloci per il verde e la pulizia */
-    :root { 
-      --accent: #00ff41 !important; 
-      --cyan: #00ff41 !important; /* Uniformiamo tutto sul verde Matrix */
-    }
-    .header-main h1 { font-size: 1.5rem !important; } /* Ora meno invasiva */
-    .widget .value { font-family: 'JetBrains Mono', monospace; font-size: 18px !important; color: var(--accent); }
-    #side-menu { display: flex; flex-direction: column; } /* Assicura che la sidebar esista */
-  </style>
-
   <script src="https://misterperry69.github.io/LifeOS/script.js"></script>
 </head>
 
 <body>
-  <div id="boot-screen">
+   <div id="boot-screen">
     <div id="boot-text"></div>
     <div id="boot-logo-container">
         <img src="icon.png" id="boot-logo" alt="Logo">
@@ -38,175 +25,176 @@
     </div>
     <div><span class="cursor"></span></div>
   </div>    
-
+ 
   <div id="home" class="page active">
       <div class="header">
-          <div class="header-top">
-              <div class="status">
-                  <span class="blink-dot"></span>
-                  <span>SYSTEM_READY // VER_1.5</span>
-              </div>
-              <div class="info" style="text-align: right;">
-                <span id="dateStr">--/--</span><br>
-                <span id="clock" style="color: var(--accent); font-weight: bold;">00:00</span>
-              </div>
-          </div>
-          <div class="header-main">
-              <h1>Life_OS // CORE</h1>
-          </div>
+        <h1>Life_OS v1.5</h1>
+        <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
       </div>
       
-      <div style="padding: 10px 20px;">
-          <input type="text" id="cmd" placeholder="> DIGITA COMANDO..." onkeypress="sendCmd(event)">
-      </div>
+      <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
 
       <div class="grid">
-          <div class="widget" onclick="nav('braindump')">
-              <i data-lucide="brain"></i>
-              <span class="label">Brain_Dump</span>
-              <div class="value" id="widget-notes">--</div>
-          </div>
-          <div class="widget" onclick="nav('habit')"> 
-              <i data-lucide="check-square"></i>
-              <span class="label">Status</span>
-              <div class="value">ACTIVE</div>
-          </div>
-          <div class="widget" onclick="nav('health')">
-              <i data-lucide="heart"></i>
-              <span class="label">Body</span>
-              <div class="value" id="widget-weight">-- KG</div>
-          </div>
-          <div class="widget" onclick="nav('agenda')">
-              <i data-lucide="calendar"></i>
-              <span class="label">Plan</span>
-              <div class="value" id="widget-tasks">--:--</div>
-          </div>
+        <div class="widget" onclick="nav('braindump')">
+          <span class="label">Brain</span>
+          <div class="value"><i class="fas fa-brain"></i></div>
+        </div>
+        <div class="widget" onclick="nav('habit')"> 
+          <span class="label">Status</span>
+          <div class="value"><i class="fas fa-chart-line"></i></div>
+        </div>
+        <div class="widget" onclick="nav('health')">
+          <span class="label">Body</span>
+          <div class="value"><i class="fas fa-dumbbell"></i></div>
+        </div>
+        <div class="widget" onclick="nav('agenda')">
+          <span class="label">Plan</span>
+          <div class="value"><i class="fas fa-calendar-alt"></i></div>
+        </div>
       </div>
   </div>
 
   <div id="braindump" class="page">
-      <div class="header">
-          <div class="header-top">
-              <div class="status">
-                  <i data-lucide="menu" onclick="toggleSidebar()" style="cursor:pointer; color: var(--accent);"></i>
-                  <span>FS_ROOT // MEMORY</span>
-              </div>
-              <div class="node-info" onclick="nav('home')">ESC [X]</div>
-          </div>
-          <div class="header-main">
-              <h1>BRAIN_DUMP</h1>
-              <i data-lucide="search" onclick="toggleSearch(true)" style="cursor:pointer; width: 18px; color: var(--dim);"></i>
-          </div>
-          <div id="search-wrapper">
-              <input type="text" id="search-input" placeholder="SEARCH_NEURAL_RECORDS..." oninput="handleSearch()">
-          </div>
-      </div>
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px; flex: 1; position: relative;">
+            <i class="fas fa-bars" onclick="toggleSidebar()" style="color: var(--accent); cursor:pointer;"></i>
+            <h1 id="dump-title" style="font-size: 12px;">BRAIN_DUMP</h1>
+            
+            <div id="search-wrapper" class="search-wrapper">
+                <input type="text" id="search-input" placeholder="Cerca..." oninput="handleSearch()" onblur="toggleSearch(false)">
+            </div>
+        </div>
+        <i class="fas fa-search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor:pointer; font-size: 16px; margin-left: 10px;"></i>
+        <div class="info" onclick="nav('home')">ESC [X]</div>
+    </div>
 
-      <div id="menu-backdrop" onclick="toggleSidebar()"></div>
-      <div id="side-menu">
-          <div style="color: var(--accent); font-size: 10px; margin-bottom: 20px; letter-spacing: 2px; font-weight:700;">CATEGORIES</div>
-          <div class="menu-item active" onclick="setFilter('ALL', this)"><i data-lucide="layers"></i> <span>TUTTO</span></div>
-          <div class="menu-item" onclick="setFilter('PINNED', this)"><i data-lucide="pin"></i> <span>PINNATI</span></div>
-          <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="zap"></i> <span>STRAORDINARI</span></div>
-          <div class="menu-item" onclick="setFilter('NOTE', this)"><i data-lucide="file-text"></i> <span>NOTE</span></div>
-          <div class="menu-item" onclick="setFilter('LINK', this)"><i data-lucide="link"></i> <span>LINK</span></div>
-      </div>
+    <div id="menu-backdrop" onclick="toggleSidebar()"></div>
+    <div id="side-menu">
+        <div style="color: var(--accent); font-size: 10px; margin-bottom: 20px; letter-spacing: 2px;">CATEGORIE</div>
+        <div class="menu-item active" onclick="setFilter('ALL', this)">
+            <i class="fas fa-th-large"></i> <span>TUTTO</span>
+        </div>
+        <div class="menu-item" onclick="setFilter('PINNED', this)">
+            <i class="fas fa-thumbtack"></i> <span>PINNATI</span>
+        </div>
+        <div class="menu-item" onclick="setFilter('EXTRA', this)">
+            <i class="fas fa-clock"></i> <span>STRAORDINARI</span>
+        </div>
+        <div class="menu-item" onclick="setFilter('NOTE', this)">
+            <i class="fas fa-sticky-note"></i> <span>NOTE</span>
+        </div>
+        <div class="menu-item" onclick="setFilter('LINK', this)">
+            <i class="fas fa-link"></i> <span>LINK</span>
+        </div>
+    </div>
 
-      <main style="padding: 20px; flex: 1; overflow-y: auto;">
-          <input type="text" id="dump-input" placeholder="ADD_NEW_RECORD..." onkeypress="sendCmd(event)">
-          <div id="keep-grid"></div>
-      </main>
+    <main>
+        <input type="text" id="dump-input" placeholder="Prendi una nota..." onkeypress="sendCmd(event)">
+        <div id="keep-grid"></div>
+    </main>
   </div>
+  
 
-  <div id="agenda" class="page">
-      <div class="header">
-          <div class="header-top">
-              <div class="status"><span class="blink-dot"></span><span>TEMPORAL_LINK</span></div>
-              <div class="node-info" onclick="nav('home')">EXIT [X]</div>
-          </div>
-          <div class="header-main">
-              <h1>PLANNER</h1>
-          </div>
-      </div>
 
-      <main style="padding: 20px;">
-          <textarea id="neural-prompt" placeholder="Butta giù il flusso... Gemini ordina."></textarea>
-          <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid var(--accent); color:var(--accent); font-family:'Rajdhani'; font-weight:700; margin-top:10px;">
-              INITIALIZE_FLOW
-          </button>
+<div id="agenda" class="page">
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="w-2 h-2 bg-[#fcee0a] rounded-full animate-pulse shadow-[0_0_8px_#fcee0a]"></span>
+            <h1 id="agenda-title" style="font-size: 12px; color: #fcee0a;">TEMPORAL_LINK</h1>
+        </div>
+        <div class="info" onclick="nav('home')">EXIT [X]</div>
+    </div>
 
-          <div id="active-flow-zone" style="display:none; margin-top:20px;">
-              <div id="daily-timeline-content"></div>
-              <button onclick="closeDaySession()" style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">[ TERMINATE_SESSION ]</button>
-          </div>
+    <main id="agenda-main" style="padding: 0 20px;">
+        <div id="neural-input-zone">
+            <div style="display: flex; items-center; gap: 8px; color: #555; margin-bottom: 15px;">
+                <i class="fas fa-terminal" style="font-size: 10px; color: #fcee0a;"></i>
+                <span style="font-[Rajdhani]; font-size: 10px; letter-spacing: 2px;">AWAITING_NEURAL_STREAM...</span>
+            </div>
+            <textarea id="neural-prompt" 
+                placeholder="Butta giù la lista della spesa per oggi... impegni, cazzate, task. Gemini mette ordine."
+                style="width:100%; height:120px; background:#000; border:1px dashed #333; color:#eee; padding:15px; font-family:inherit; outline:none; margin-bottom:15px;"></textarea>
+            <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid #fcee0a; color:#fcee0a; font-family:'Rajdhani'; font-weight:bold; letter-spacing:3px;">
+                INITIALIZE_FLOW
+            </button>
+        </div>
 
-          <div style="margin-top:30px;">
-              <div class="day-label">CALENDAR_SCAN</div>
-              <div id="events-container"></div>
-          </div>
-      </main>
-  </div>
+        <div id="active-flow-zone" style="display:none;">
+            <div id="daily-timeline-content"></div>
+            <button onclick="closeDaySession()" style="margin-top:20px; color:#555; font-size:10px; border:none; background:none; cursor:pointer;">
+                [ TERMINATE_SESSION & LOG ]
+            </div>
+        </div>
+
+        <div style="margin-top:40px; border-top: 1px solid #222; pt-20">
+            <div style="display: flex; items-center; gap: 8px; color: #555; margin: 20px 0 10px 0;">
+                <span class="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_8px_#00f3ff]"></span>
+                <span style="font-[Rajdhani]; font-size: 10px; letter-spacing: 2px;">HARD_CALENDAR_SCAN</span>
+            </div>
+            <div id="events-container"></div>
+        </div>
+    </main>
+</div>
 
   <div id="habit" class="page">
-      <div class="header">
-          <div class="header-top">
-              <div class="status"><span>LOG_PIXELS</span></div>
-              <div class="node-info" onclick="nav('home')">EXIT [X]</div>
-          </div>
-          <div class="header-main">
-              <h1>STATUS_FLOW</h1>
-          </div>
-      </div>
-      <div style="padding: 20px;">
-          <div id="viewLabel" class="day-label">MESE</div>
-          <div id="pixels" class="pixel-container grid-30"></div>
-      </div>
+    <div class="header">
+      <h1 id="habitTitle">LOG_PIXELS</h1>
+      <div class="info" onclick="nav('home')">ESC [X]</div>
+    </div>
+    <div id="viewLabel" class="view-label">MESE</div>
+    <div id="pixels" class="pixel-container grid-30"></div>
+    
+    <div class="footer">
+      <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
+      <button class="btn">📅</button>
+      <button class="btn">⚙️</button>
+      <button class="btn" onclick="loadStats()">🔄</button>
+    </div>
   </div>
 
   <div id="modal-backdrop" onclick="saveAndClose()"></div>
 
   <div id="note-detail" class="note-overlay">
       <div class="header">
-          <div class="header-top">
-              <span id="detail-type" style="color: var(--accent); font-size: 10px; letter-spacing: 2px;">RECORD</span>
-              <div class="exit" onclick="saveAndClose()">SAVE [X]</div>
-          </div>
+          <h1 id="detail-type">NOTA</h1>
+          <div class="info" onclick="saveAndClose()">SALVA [X]</div>
       </div>
-      <div class="modal-body" style="padding: 20px; flex: 1;">
-          <textarea id="detail-text" style="height: 100%; border: none; background: transparent; color: #fff;"></textarea>
+      <div class="modal-body">
+          <textarea id="detail-text" spellcheck="false"></textarea>
+          <div id="detail-extra-list" style="display:none;"></div>
       </div>
       <div class="note-toolbar">
-          <span class="tool-icon" onclick="confirmDelete(currentNoteData.id, currentNoteData.type)"><i data-lucide="trash-2"></i></span>
-          <span class="tool-icon" onclick="toggleColorPicker()"><i data-lucide="palette"></i></span>
-          <span class="tool-icon" onclick="togglePin()"><i data-lucide="pin"></i></span>
-          
-          <div id="color-picker-bubble" style="display:none;">
-              <div class="color-dot dot-default" onclick="changeNoteColor('default')"></div>
-              <div class="color-dot dot-blue" onclick="changeNoteColor('blue')"></div>
-              <div class="color-dot dot-red" onclick="changeNoteColor('red')"></div>
-              <div class="color-dot dot-green" onclick="changeNoteColor('green')"></div>
-              <div class="color-dot dot-yellow" onclick="changeNoteColor('yellow')"></div>
+          <span class="tool-icon" onclick="confirmDelete(currentNoteData.id, currentNoteData.type)"><i class="fas fa-trash"></i></span>
+          <div class="color-selector-container">
+              <span class="tool-icon" onclick="toggleColorPicker()"><i class="fas fa-palette"></i></span>
+              <div id="color-picker-bubble" class="color-bubble">
+                  <div class="color-dot dot-default" onclick="changeNoteColor('default')"></div>
+                  <div class="color-dot dot-blue" onclick="changeNoteColor('blue')"></div>
+                  <div class="color-dot dot-red" onclick="changeNoteColor('red')"></div>
+                  <div class="color-dot dot-green" onclick="changeNoteColor('green')"></div>
+                  <div class="color-dot dot-yellow" onclick="changeNoteColor('yellow')"></div>
+                  <div class="color-dot dot-pink" onclick="changeNoteColor('pink')"></div>
+              </div>
           </div>
+          <span class="tool-icon" onclick="togglePin()"><i class="fas fa-thumbtack"></i></span>
       </div>
   </div>
 
-  <div id="delete-modal">
-      <div class="modal-content">
-          <p>ELIMINARE RECORD?</p>
-          <div class="modal-actions">
-              <button class="btn-confirm" onclick="executeDelete()">SÌ</button>
-              <button class="btn-cancel" onclick="cancelDelete()">NO</button>
-          </div>
-      </div>
-  </div>
+<div id="delete-modal">
+    <div class="modal-content">
+        <p>Eliminare record permanentemente?</p>
+        <div class="modal-actions">
+            <button class="btn-modal btn-confirm" onclick="executeDelete()">Sì, Elimina</button>
+            <button class="btn-modal btn-cancel" onclick="cancelDelete()">Annulla</button>
+        </div>
+    </div>
+</div>
+
+
 
 
 <!-- start webpushr tracking code --> 
-<script>
-
-lucide.createIcons();
-    // Chiamalo anche dopo ogni nav() nel tuo script.js
-(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = "https://cdn.webpushr.com/app.min.js";
+<script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = "https://cdn.webpushr.com/app.min.js";
 fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk-alternative'));
 webpushr('init','BA232ZX5Zislw9HMnqgm1ZEyTaz-98EZSrfobgjTbXX3ql4fZ07Y5f91ciO-708ZjGD4iKoquI9IWp35CjUsyoE','https://misterperry69.github.io/LifeOS/webpushr-sw.js','/LifeOS/');</script>
 <!-- end webpushr tracking code -->
