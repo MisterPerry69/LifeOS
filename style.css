@@ -448,3 +448,41 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     transition: all 0.5s;
 }
 
+/* --- NUOVO HEADER COMPONENT --- */
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent); /* Il tuo verde */
+    font-weight: 700;
+}
+
+.blink-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.2); }
+}
+
+.node-info {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    color: #444; /* Grigio scuro per non distrarre */
+}

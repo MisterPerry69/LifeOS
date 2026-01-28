@@ -7,8 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css">
   <link rel="stylesheet" href="https://unpkg.com/augmented-ui@2.0.0/augmented-ui.min.css">
@@ -27,10 +26,23 @@
   </div>    
  
   <div id="home" class="page active">
-      <div class="header">
-        <h1>Life_OS v1.5</h1>
-        <div class="info"><span id="dateStr">--/--</span><br><span id="clock">00:00</span></div>
-      </div>
+            <div class="header">
+                <div class="header-top">
+                    <div class="status-indicator">
+                        <span class="blink-dot"></span>
+                        <span>SYSTEM_OS // READY</span>
+                    </div>
+                    <div class="node-info">LN_72 // SCHIO_NODE</div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <h1 style="margin:0; font-family:'Rajdhani';">Life_OS v1.5</h1>
+                    <div class="info" style="text-align: right;">
+                        <span id="dateStr">--/--</span><br>
+                        <span id="clock" style="color: var(--accent); font-weight: bold;">00:00</span>
+                    </div>
+                </div>
+            </div>
       
       <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
 
