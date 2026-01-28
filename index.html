@@ -26,24 +26,23 @@
   </div>    
  
   <div id="home" class="page active">
-            <div class="header">
-                <div class="header-top">
-                    <div class="status-indicator">
-                        <span class="blink-dot"></span>
-                        <span>SYSTEM_OS // READY</span>
-                    </div>
-                    <div class="node-info">LN_72 // SCHIO_NODE</div>
+        <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
+            
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="blink-dot"></span>
+                    <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">SYSTEM_OS // READY</span>
+                    <span style="font-size: 10px; color: #444; margin-left: 5px;">LN_72 // SCHIO_NODE</span>
                 </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                    <h1 style="margin:0; font-family:'Rajdhani';">Life_OS v1.5</h1>
-                    <div class="info" style="text-align: right;">
-                        <span id="dateStr">--/--</span><br>
-                        <span id="clock" style="color: var(--accent); font-weight: bold;">00:00</span>
-                    </div>
-                </div>
+                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 24px; line-height: 1;">Life_OS v1.5</h1>
             </div>
-      
+
+            <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;">
+                <div id="dateStr" style="font-size: 10px; color: var(--dim);">--/--</div>
+                <div id="clock" style="font-size: 14px; color: var(--accent); font-weight: bold;">00:00</div>
+            </div>
+
+        </div>      
       <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
 
       <div class="grid">

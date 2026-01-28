@@ -474,11 +474,12 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
     border-radius: 50%;
     box-shadow: 0 0 8px var(--accent);
     animation: pulse-glow 1.5s infinite;
+    display: inline-block;
 }
 
 @keyframes pulse-glow {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.3; transform: scale(1.2); }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
 }
 
 .node-info {
