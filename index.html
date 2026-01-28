@@ -7,15 +7,25 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <title>LifeOS // Cyber-Neural Interface</title>
+  <title>LifeOS // Green Terminal</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css">
   
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <style>
+    /* Fix veloci per il verde e la pulizia */
+    :root { 
+      --accent: #00ff41 !important; 
+      --cyan: #00ff41 !important; /* Uniformiamo tutto sul verde Matrix */
+    }
+    .header-main h1 { font-size: 1.5rem !important; } /* Ora meno invasiva */
+    .widget .value { font-family: 'JetBrains Mono', monospace; font-size: 18px !important; color: var(--accent); }
+    #side-menu { display: flex; flex-direction: column; } /* Assicura che la sidebar esista */
+  </style>
+
   <script src="https://misterperry69.github.io/LifeOS/script.js"></script>
 </head>
 
@@ -34,39 +44,42 @@
           <div class="header-top">
               <div class="status">
                   <span class="blink-dot"></span>
-                  <span>SYSTEM_OS // STABLE</span>
+                  <span>SYSTEM_READY // VER_1.5</span>
               </div>
-              <div class="node-info" id="dateStr">--/--</div>
+              <div class="info" style="text-align: right;">
+                <span id="dateStr">--/--</span><br>
+                <span id="clock" style="color: var(--accent); font-weight: bold;">00:00</span>
+              </div>
           </div>
           <div class="header-main">
-              <h1>Life_OS // <span id="clock">00:00</span></h1>
+              <h1>Life_OS // CORE</h1>
           </div>
       </div>
       
-      <div style="padding: 20px;">
+      <div style="padding: 10px 20px;">
           <input type="text" id="cmd" placeholder="> DIGITA COMANDO..." onkeypress="sendCmd(event)">
       </div>
 
       <div class="grid">
           <div class="widget" onclick="nav('braindump')">
-              <i data-lucide="cpu"></i>
-              <span class="label">Neural_Dump</span>
+              <i data-lucide="brain"></i>
+              <span class="label">Brain_Dump</span>
               <div class="value" id="widget-notes">--</div>
           </div>
           <div class="widget" onclick="nav('habit')"> 
-              <i data-lucide="layers"></i>
-              <span class="label">Status_Flow</span>
+              <i data-lucide="check-square"></i>
+              <span class="label">Status</span>
               <div class="value">ACTIVE</div>
           </div>
           <div class="widget" onclick="nav('health')">
-              <i data-lucide="zap"></i>
-              <span class="label">Bio_Status</span>
-              <div class="value">-- KG</div>
+              <i data-lucide="heart"></i>
+              <span class="label">Body</span>
+              <div class="value" id="widget-weight">-- KG</div>
           </div>
           <div class="widget" onclick="nav('agenda')">
-              <i data-lucide="activity"></i>
-              <span class="label">Temporal_Link</span>
-              <div class="value">SYNC</div>
+              <i data-lucide="calendar"></i>
+              <span class="label">Plan</span>
+              <div class="value" id="widget-tasks">--:--</div>
           </div>
       </div>
   </div>
@@ -75,69 +88,60 @@
       <div class="header">
           <div class="header-top">
               <div class="status">
-                  <i data-lucide="menu" onclick="toggleSidebar()" style="cursor:pointer; width:14px;"></i>
-                  <span>NEURAL_DUMP // BROWSER</span>
+                  <i data-lucide="menu" onclick="toggleSidebar()" style="cursor:pointer; color: var(--accent);"></i>
+                  <span>FS_ROOT // MEMORY</span>
               </div>
-              <div class="node-info">RECORDS_ACTIVE</div>
+              <div class="node-info" onclick="nav('home')">ESC [X]</div>
           </div>
           <div class="header-main">
-              <h1 id="dump-title">BRAIN_DUMP</h1>
-              <div class="exit" onclick="nav('home')">BACK [X]</div>
+              <h1>BRAIN_DUMP</h1>
+              <i data-lucide="search" onclick="toggleSearch(true)" style="cursor:pointer; width: 18px; color: var(--dim);"></i>
           </div>
           <div id="search-wrapper">
-              <input type="text" id="search-input" placeholder="CERCA_NELLA_MEMORIA..." oninput="handleSearch()">
+              <input type="text" id="search-input" placeholder="SEARCH_NEURAL_RECORDS..." oninput="handleSearch()">
           </div>
       </div>
 
       <div id="menu-backdrop" onclick="toggleSidebar()"></div>
       <div id="side-menu">
-          <div style="color: var(--accent); font-size: 10px; margin-bottom: 20px; letter-spacing: 2px; font-weight:700;">FILESYSTEM</div>
-          <div class="menu-item active" onclick="setFilter('ALL', this)"><i data-lucide="archive"></i> <span>TUTTO</span></div>
+          <div style="color: var(--accent); font-size: 10px; margin-bottom: 20px; letter-spacing: 2px; font-weight:700;">CATEGORIES</div>
+          <div class="menu-item active" onclick="setFilter('ALL', this)"><i data-lucide="layers"></i> <span>TUTTO</span></div>
           <div class="menu-item" onclick="setFilter('PINNED', this)"><i data-lucide="pin"></i> <span>PINNATI</span></div>
-          <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="star"></i> <span>EXTRA</span></div>
+          <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="zap"></i> <span>STRAORDINARI</span></div>
+          <div class="menu-item" onclick="setFilter('NOTE', this)"><i data-lucide="file-text"></i> <span>NOTE</span></div>
+          <div class="menu-item" onclick="setFilter('LINK', this)"><i data-lucide="link"></i> <span>LINK</span></div>
       </div>
 
-      <main style="padding-top: 20px;">
-          <div style="padding: 0 20px;">
-              <input type="text" id="dump-input" placeholder="AGGIUNGI_RECORD..." onkeypress="sendCmd(event)">
-              <div id="keep-grid"></div>
-          </div>
+      <main style="padding: 20px; flex: 1; overflow-y: auto;">
+          <input type="text" id="dump-input" placeholder="ADD_NEW_RECORD..." onkeypress="sendCmd(event)">
+          <div id="keep-grid"></div>
       </main>
   </div>
 
   <div id="agenda" class="page">
       <div class="header">
           <div class="header-top">
-              <div class="status"><span class="blink-dot"></span><span>TEMPORAL_LINK // SYNC</span></div>
-              <div class="node-info">CHRONO_LOCK</div>
+              <div class="status"><span class="blink-dot"></span><span>TEMPORAL_LINK</span></div>
+              <div class="node-info" onclick="nav('home')">EXIT [X]</div>
           </div>
           <div class="header-main">
-              <h1 id="agenda-title">AGENDA</h1>
-              <div class="exit" onclick="nav('home')">EXIT [X]</div>
+              <h1>PLANNER</h1>
           </div>
       </div>
 
       <main style="padding: 20px;">
-          <div id="neural-input-zone">
-              <div style="display: flex; align-items: center; gap: 8px; color: var(--dim); margin-bottom: 10px;">
-                  <i data-lucide="terminal" style="width:12px; color: var(--accent);"></i>
-                  <span style="font-size: 10px; letter-spacing: 2px;">AWAITING_STREAM...</span>
-              </div>
-              <textarea id="neural-prompt" placeholder="Inserisci il flusso della giornata... Gemini pianifica."></textarea>
-              <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid var(--accent); color:var(--accent); font-family:'Rajdhani'; font-weight:700; letter-spacing:2px; cursor:pointer;">
-                  INITIALIZE_FLOW
-              </button>
-          </div>
+          <textarea id="neural-prompt" placeholder="Butta giù il flusso... Gemini ordina."></textarea>
+          <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid var(--accent); color:var(--accent); font-family:'Rajdhani'; font-weight:700; margin-top:10px;">
+              INITIALIZE_FLOW
+          </button>
 
           <div id="active-flow-zone" style="display:none; margin-top:20px;">
               <div id="daily-timeline-content"></div>
-              <button onclick="closeDaySession()" style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">
-                  [ TERMINATE_SESSION & LOG ]
-              </button>
+              <button onclick="closeDaySession()" style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">[ TERMINATE_SESSION ]</button>
           </div>
 
-          <div id="hard-calendar" style="margin-top:30px;">
-              <div class="day-label">HARD_CALENDAR_SCAN</div>
+          <div style="margin-top:30px;">
+              <div class="day-label">CALENDAR_SCAN</div>
               <div id="events-container"></div>
           </div>
       </main>
@@ -146,22 +150,16 @@
   <div id="habit" class="page">
       <div class="header">
           <div class="header-top">
-              <div class="status"><span>LOG_PIXELS // HABITS</span></div>
-              <div class="node-info">FLOW_PERSISTENCE</div>
+              <div class="status"><span>LOG_PIXELS</span></div>
+              <div class="node-info" onclick="nav('home')">EXIT [X]</div>
           </div>
           <div class="header-main">
-              <h1 id="habitTitle">PIXELS</h1>
-              <div class="exit" onclick="nav('home')">EXIT [X]</div>
+              <h1>STATUS_FLOW</h1>
           </div>
       </div>
       <div style="padding: 20px;">
           <div id="viewLabel" class="day-label">MESE</div>
           <div id="pixels" class="pixel-container grid-30"></div>
-      </div>
-      
-      <div class="footer">
-          <button class="btn" onclick="cycleView()"><i data-lucide="rotate-cw"></i></button>
-          <button class="btn" onclick="loadStats()"><i data-lucide="refresh-cw"></i></button>
       </div>
   </div>
 
@@ -170,15 +168,12 @@
   <div id="note-detail" class="note-overlay">
       <div class="header">
           <div class="header-top">
-              <div class="status"><span id="detail-type">RECORD</span></div>
-          </div>
-          <div class="header-main">
-              <h1>EDIT_DATA</h1>
+              <span id="detail-type" style="color: var(--accent); font-size: 10px; letter-spacing: 2px;">RECORD</span>
               <div class="exit" onclick="saveAndClose()">SAVE [X]</div>
           </div>
       </div>
-      <div class="modal-body">
-          <textarea id="detail-text" spellcheck="false"></textarea>
+      <div class="modal-body" style="padding: 20px; flex: 1;">
+          <textarea id="detail-text" style="height: 100%; border: none; background: transparent; color: #fff;"></textarea>
       </div>
       <div class="note-toolbar">
           <span class="tool-icon" onclick="confirmDelete(currentNoteData.id, currentNoteData.type)"><i data-lucide="trash-2"></i></span>
@@ -197,16 +192,13 @@
 
   <div id="delete-modal">
       <div class="modal-content">
-          <p>ELIMINARE RECORD PERMANENTEMENTE?</p>
+          <p>ELIMINARE RECORD?</p>
           <div class="modal-actions">
-              <button class="btn-modal btn-confirm" onclick="executeDelete()">SÌ, ELIMINA</button>
-              <button class="btn-modal btn-cancel" onclick="cancelDelete()">ANNULLA</button>
+              <button class="btn-confirm" onclick="executeDelete()">SÌ</button>
+              <button class="btn-cancel" onclick="cancelDelete()">NO</button>
           </div>
       </div>
   </div>
-
-  
-
 
 
 <!-- start webpushr tracking code --> 
