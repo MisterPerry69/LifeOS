@@ -31,13 +31,11 @@
             <div style="display: flex; flex-direction: column; gap: 4px;">
                 <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
                     <span class="blink-dot"></span>
-                    <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">SYSTEM_OS // READY</span>
-                    <span style="font-size: 10px; color: #444; margin-left: 5px;">LN_72 // SCHIO_NODE</span>
-                </div>
-                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 24px; line-height: 1;">Life_OS v1.5</h1>
+                    <span style="font-size: 10px; letter-spacing: 2px; color: var(--dim); font-weight: 700;">SYSTEM_OS // READY</span>
+                    <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">Life_OS v1.5</h1>
             </div>
 
-            <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;">
+            <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;margin-top: 15px;">
                 <div id="dateStr" style="font-size: 10px; color: var(--dim);">--/--</div>
                 <div id="clock" style="font-size: 14px; color: var(--accent); font-weight: bold;">00:00</div>
             </div>
@@ -45,24 +43,31 @@
         </div>      
       <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
 
-      <div class="grid">
-        <div class="widget" onclick="nav('braindump')">
-          <span class="label">Brain</span>
-          <div class="value"><i class="fas fa-brain"></i></div>
-        </div>
-        <div class="widget" onclick="nav('habit')"> 
-          <span class="label">Status</span>
-          <div class="value"><i class="fas fa-chart-line"></i></div>
-        </div>
-        <div class="widget" onclick="nav('health')">
-          <span class="label">Body</span>
-          <div class="value"><i class="fas fa-dumbbell"></i></div>
-        </div>
-        <div class="widget" onclick="nav('agenda')">
-          <span class="label">Plan</span>
-          <div class="value"><i class="fas fa-calendar-alt"></i></div>
-        </div>
-      </div>
+<div class="grid">
+    <div class="widget" onclick="nav('braindump')">
+        <i data-lucide="brain"></i>
+        <div class="label">Brain</div>
+        <div class="value"><span id="widget-notes">0</span> RECORDS</div>
+    </div>
+
+    <div class="widget" onclick="nav('habit')">
+        <i data-lucide="activity"></i>
+        <div class="label">Trackers</div>
+        <div class="value"><span id="widget-habits">0</span> ACTIVE</div>
+    </div>
+
+    <div class="widget" onclick="nav('health')">
+        <i data-lucide="zap"></i>
+        <div class="label">Body</div>
+        <div class="value"><span id="widget-weight">--</span> KG</div>
+    </div>
+
+    <div class="widget" onclick="nav('agenda')">
+        <i data-lucide="calendar"></i>
+        <div class="label">Plan</div>
+        <div class="value" id="widget-tasks">NO EVENTS</div>
+    </div>
+</div>
   </div>
 
   <div id="braindump" class="page">
@@ -205,7 +210,9 @@
 
 
 <!-- start webpushr tracking code --> 
-<script>(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = "https://cdn.webpushr.com/app.min.js";
+<script>
+lucide.createIcons();
+(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = "https://cdn.webpushr.com/app.min.js";
 fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk-alternative'));
 webpushr('init','BA232ZX5Zislw9HMnqgm1ZEyTaz-98EZSrfobgjTbXX3ql4fZ07Y5f91ciO-708ZjGD4iKoquI9IWp35CjUsyoE','https://misterperry69.github.io/LifeOS/webpushr-sw.js','/LifeOS/');</script>
 <!-- end webpushr tracking code -->
