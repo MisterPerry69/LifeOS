@@ -91,16 +91,33 @@ body {
 }
 
 /* --- 5. KEEP GRID --- */
-#keep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
-@media (min-width: 768px) { #keep-grid { grid-template-columns: repeat(4, 1fr); } }
+.keep-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Una colonna su mobile per evitare overflow */
+    gap: 12px;
+    padding: 15px;
+}@media (min-width: 768px) { #keep-grid { grid-template-columns: repeat(4, 1fr); } }
 
 .keep-card {
-    background: #0d0d0d !important; /* Nero profondo */
-    border: 1px solid #1a1a1a !important;
-    border-left: 3px solid var(--accent) !important; /* Bordo laterale stile IDE */
+    background: #0a0a0a !important;
+    border: 1px solid #222 !important;
     padding: 15px !important;
     position: relative;
-    transition: transform 0.2s, border-color 0.2s;
+    overflow: hidden;
+    /* Effetto griglia di sottofondo molto sottile */
+    background-image: radial-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+    background-size: 15px 15px;
+}
+
+.keep-card::after {
+    content: "REC_ID_" attr(id);
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    font-family: 'JetBrains Mono';
+    font-size: 7px;
+    color: var(--dim);
+    opacity: 0.5;
 }
 
 .keep-card:active {
@@ -109,20 +126,32 @@ body {
 }
 
 .keep-card .title-row {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: var(--dim);
-    margin-bottom: 8px;
-    text-transform: uppercase;
+    font-family: 'JetBrains Mono';
+    font-size: 9px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.keep-card .content-preview {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 15px;
-    color: #eee;
-    line-height: 1.3;
+/* Barretta di categoria */
+.keep-card .cat-tag {
+    height: 2px;
+    width: 30px;
+    background: var(--accent);
+    margin-bottom: 8px;
 }
+
+
+.keep-card .content-preview {
+    font-family: 'Rajdhani';
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    line-height: 1.2;
+}
+
 .keep-card.dragging { opacity: 0.4; transform: scale(0.95); border: 1px solid var(--accent) !important; }
 .keep-card.drag-over { border: 2px dashed var(--accent) !important; }
 

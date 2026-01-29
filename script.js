@@ -549,18 +549,20 @@ function toggleSearch(show) {
     const trigger = document.getElementById('search-trigger');
 
     if (show) {
-        wrapper.style.display = 'flex';
-        title.style.opacity = "0";
-        setTimeout(() => input.focus(), 100);
+        wrapper.style.display = 'block';
+        title.style.visibility = 'hidden'; // Nasconde ma mantiene lo spazio
+        setTimeout(() => input.focus(), 50);
     } else {
         if (input.value === "") {
             wrapper.style.display = 'none';
-            title.style.opacity = "1";
+            title.style.visibility = 'visible';
             searchQuery = "";
             renderGrid(lastStatsData);
         }
     }
-}//AGENDA
+}
+
+//AGENDA
 
 // Aggiungiamo un flag isInternal per capire da dove arriva il comando
 function handleAgendaCommand(input, isInternal = false) {

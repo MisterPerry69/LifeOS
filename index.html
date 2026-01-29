@@ -71,26 +71,26 @@
       </div>
   </div>
   <div id="braindump" class="page">
-<div class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; position: relative;">
-    
-    <div style="display: flex; align-items: center; gap: 12px; z-index: 10;">
-        <i data-lucide="brain" onclick="toggleSidebar()" style="color: var(--accent); width: 26px; height: 26px; cursor: pointer;"></i>
-        <h1 id="dump-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; transition: 0.3s;">BRAIN_DUMP</h1>
-    </div>
+<div class="header" style="padding: 15px 20px; min-height: 70px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        
+        <div id="header-left" style="display: flex; align-items: center; gap: 12px; overflow: hidden;">
+            <i data-lucide="brain" onclick="toggleSidebar()" style="color: var(--accent); width: 24px; height: 24px; flex-shrink: 0;"></i>
+            <h1 id="dump-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.6rem; white-space: nowrap;">BRAIN_DUMP</h1>
+        </div>
 
-    <div style="display: flex; align-items: center; gap: 15px; z-index: 10;">
-        <i data-lucide="search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor: pointer; width: 18px;"></i>
-        <div class="node-info" onclick="nav('home')" style="cursor: pointer; font-size: 10px; letter-spacing: 1px; color: var(--accent); border: 1px solid rgba(0,255,65,0.3); padding: 4px 8px; font-family: 'JetBrains Mono';">
-            ESC [X]
+        <div style="display: flex; align-items: center; gap: 15px; flex-shrink: 0;">
+            <i data-lucide="search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); width: 20px;"></i>
+            <div onclick="nav('home')" style="font-family: 'JetBrains Mono'; font-size: 12px; color: var(--accent); cursor: pointer;">[esc X]</div>
         </div>
     </div>
 
-    <div id="search-wrapper" style="position: absolute; left: 55px; right: 85px; display: none; align-items: center;">
+    <div id="search-wrapper" style="display: none; position: absolute; top: 15px; left: 55px; right: 90px; background: #000; z-index: 100;">
         <input type="text" id="search-input" 
-               placeholder="SEARCH_RECORDS..." 
+               placeholder="TYPE_TO_SEARCH..." 
                oninput="handleSearch()" 
                onblur="toggleSearch(false)"
-               style="width: 100%; background: #000; border: none; border-bottom: 1px solid var(--accent); color: #fff; font-family: 'JetBrains Mono'; font-size: 14px; outline: none;">
+               style="width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--accent); color: var(--accent); font-family: 'JetBrains Mono'; font-size: 16px; outline: none; padding-bottom: 2px;">
     </div>
 </div>
 
