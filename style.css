@@ -56,6 +56,8 @@ body {
     padding: 0 20px 100px 20px;
 }
 
+/* --- 4. RICERCA FIXATA --- */
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -79,6 +81,8 @@ body {
     display: flex;
     align-items: center;
     flex: 1;
+    height: 40px; 
+    overflow: visible;
 }
 
 #dump-title {
@@ -91,43 +95,43 @@ body {
 }
 
 
-/* --- 4. RICERCA FIXATA --- */
-.title-zone {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    height: 40px; /* Altezza fissa: serve a contenere la ricerca senza che nulla si sposti */
-    overflow: visible; /* Fondamentale per non tagliare le scritte */
-}
-
 .search-wrapper {
     position: absolute;
-    right: 0;          /* Si ancora a DESTRA */
-    width: 0;          /* Parte invisibile */
-    height: 100%;
+    right: 0;          /* Parte da destra, vicino alla lente */
+    width: 0;
+    height: 30px;      /* Più bassa per non essere enorme */
     background: var(--bg);
     overflow: hidden;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     z-index: 50;
+    border-radius: 0 !important; /* Toglie il radius a caso */
 }
 
 .search-wrapper.active {
-    width: 110%; /* Copre tutto il titolo */
+    width: calc(100% + 20px); /* Si espande verso sinistra fino a sfiorare il cervello */
 }
 
 #search-input {
-    width: 100%;
+    width: 100% !important;
     background: transparent !important;
     border: none !important;
-    border-bottom: 2px solid var(--accent) !important;
+    border-bottom: 1px solid var(--accent) !important; /* Linea più sottile */
     color: var(--accent) !important;
     font-family: 'JetBrains Mono';
-    font-size: 18px;
-    outline: none;
-    padding: 0;
+    font-size: 13px !important;    /* Testo più piccolo */
+    text-transform: none !important; /* NON tutto maiuscolo */
+    padding: 2px 5px !important;    /* Un po' di padding interno */
+    margin: 0 !important;           /* TOGLIE IL MARGIN 20px che sballa tutto */
+    border-radius: 0 !important;    /* Forza il reset del radius */
+    outline: none !important;
+}
+
+/* Nasconde la lente quando la ricerca è attiva */
+.search-icon.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* Fix per il buco enorme tra header e cards */

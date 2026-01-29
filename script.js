@@ -550,24 +550,20 @@ function toggleSearch(show) {
 
     if (show) {
         wrapper.classList.add('active');
+        trigger.classList.add('hidden'); // Nasconde la lente
         title.style.opacity = "0";
-        trigger.style.opacity = "0";
-        // Aspettiamo un attimo che lo slide inizi prima di dare il focus
-        setTimeout(() => input.focus(), 200);
+        setTimeout(() => input.focus(), 400);
     } else {
-        // Chiude solo se non c'è testo scritto
         if (input.value === "") {
             wrapper.classList.remove('active');
-            // Ritardiamo la ricomparsa del titolo per assecondare lo slide
-            setTimeout(() => {
-                title.style.opacity = "1";
-                trigger.style.opacity = "1";
-            }, 400);
+            trigger.classList.remove('hidden'); // Rifa apparire la lente
+            setTimeout(() => { title.style.opacity = "1"; }, 300);
             searchQuery = "";
-            renderGrid(lastStatsData);
+            if (typeof renderGrid === "function") renderGrid(lastStatsData);
         }
     }
 }
+
 //AGENDA
 
 // Aggiungiamo un flag isInternal per capire da dove arriva il comando
