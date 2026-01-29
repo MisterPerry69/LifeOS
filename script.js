@@ -550,25 +550,20 @@ function toggleSearch(show) {
 
     if (show) {
         wrapper.classList.add('active');
-        title.style.opacity = "0";
-        trigger.style.opacity = "0";
-        // Aspettiamo un attimo che lo slide inizi prima di dare il focus
-        setTimeout(() => input.focus(), 200);
+        trigger.classList.add('hidden');
+        // Opzionale: sfuma il titolo mentre la barra scorre sopra
+        title.style.opacity = "0.3"; 
+        setTimeout(() => input.focus(), 300);
     } else {
-        // Chiude solo se non c'è testo scritto
         if (input.value === "") {
             wrapper.classList.remove('active');
-            // Ritardiamo la ricomparsa del titolo per assecondare lo slide
-            setTimeout(() => {
-                title.style.opacity = "1";
-                trigger.style.opacity = "1";
-            }, 400);
+            trigger.classList.remove('hidden');
+            title.style.opacity = "1";
             searchQuery = "";
             renderGrid(lastStatsData);
         }
     }
-}
-//AGENDA
+}//AGENDA
 
 // Aggiungiamo un flag isInternal per capire da dove arriva il comando
 function handleAgendaCommand(input, isInternal = false) {
