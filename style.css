@@ -78,7 +78,7 @@ body {
     background: var(--bg); /* Assicurati che copra il titolo sotto */
 }
 #search-wrapper.active {
-    width: 100%;
+    display: block !important;
     opacity: 1;
 }
 #search-input {
