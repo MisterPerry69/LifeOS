@@ -71,23 +71,22 @@
       </div>
   </div>
   <div id="braindump" class="page">
-<div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
-    
-    <div style="display: flex; flex-direction: column; gap: 4px;">
-        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
-            <span class="blink-dot"></span>
-            <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">NEURAL_SYNC // ACTIVE</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <i data-lucide="brain" onclick="toggleSidebar()" style="color: var(--accent); width: 28px; height: 28px; cursor: pointer;"></i>
-            <h1 id="dump-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; transition: opacity 0.3s;">BRAIN_DUMP</h1>
+<div class="header">
+    <div class="header-left">
+        <i data-lucide="brain" class="brain-icon" onclick="toggleSidebar()"></i>
+        <div class="title-zone">
+            <h1 id="dump-title">BRAIN_DUMP</h1>
+            <div id="search-wrapper" class="search-wrapper">
+                <input type="text" id="search-input" placeholder="SEARCH..." oninput="handleSearch()" onblur="toggleSearch(false)">
+            </div>
         </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
-        <i data-lucide="search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor: pointer; width: 20px;"></i>
-        <div class="node-info" onclick="nav('home')" style="cursor: pointer; font-weight: bold; color: var(--accent); font-family: 'JetBrains Mono';">[X]</div>
+    <div class="header-right">
+        <i data-lucide="search" id="search-trigger" class="search-icon" onclick="toggleSearch(true)"></i>
+        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
     </div>
+</div>
 
     <div id="search-wrapper" class="search-wrapper">
         <input type="text" id="search-input" placeholder="SEARCH_NEURAL_RECORDS..." 
