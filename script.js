@@ -135,7 +135,7 @@ function renderGrid(data) {
     lastStatsData = data; 
     loadedNotesData = data.notes;
 
-    document.getElementById('widget-notes').innerText = loadedNotesData.length;
+    document.getElementById('widget-notes').innerText = (loadedNotesData.length + 1);
     if(data.weight) document.getElementById('widget-weight').innerText = data.weight;
     if(data.history) document.getElementById('widget-habits').innerText = data.history.length;
 

@@ -157,11 +157,7 @@ body {
     letter-spacing: 1px;
 }
 .widget .value i { color: var(--accent); }
-#widget-notes {
-    color: var(--accent);
-    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
-    font-weight: bold;
-}
+
 
 .pixel-container { display: grid; gap: 5px; width: 100%; margin-top: 20px; }
 .grid-7, .grid-30 { grid-template-columns: repeat(7, 1fr); }
@@ -237,9 +233,27 @@ input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 #side-menu.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
 #menu-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 20000; display: none; }
 
-.menu-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 8px; color: var(--text); cursor: pointer; }
-.menu-item.active { background: rgba(0,255,65,0.1); color: var(--accent); border: 1px solid rgba(0,255,65,0.3); }
-
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: var(--dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.menu-item i, .menu-item svg {
+    width: 18px;
+    height: 18px;
+    color: var(--accent);
+}
+.menu-item.active {
+    background: rgba(0, 255, 65, 0.1);
+    color: #fff;
+    border-left: 3px solid var(--accent);
+}
 #delete-modal {
     position: fixed;
     inset: 0;
