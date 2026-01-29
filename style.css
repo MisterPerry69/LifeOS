@@ -90,50 +90,56 @@ body {
     transition: opacity 0.3s;
 }
 
-/* --- 4. RICERCA (ANIMAZIONE DA DESTRA) --- */
+
+/* --- 4. RICERCA FIXATA --- */
+.title-zone {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    height: 100%; /* Forza l'altezza per l'allineamento */
+}
+
 .search-wrapper {
     position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 0; /* Parte da zero */
-    height: 40px;
-    background: #000; /* Copre il titolo */
+    left: 0;           /* ANCORAGGIO A SINISTRA */
+    top: 0;
+    width: 0;          /* PARTE DA ZERO */
+    height: 100%;
+    background: var(--bg); /* Nero solido per coprire il titolo */
     overflow: hidden;
-    transition: width 0.4s ease;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     z-index: 20;
 }
 
 .search-wrapper.active {
-    width: 100%; /* Si espande fino alla fine della title-zone */
+    width: 110%; /* Copre tutto il titolo */
 }
 
 #search-input {
     width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid var(--accent);
-    color: var(--accent);
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid var(--accent) !important;
+    color: var(--accent) !important;
     font-family: 'JetBrains Mono';
     font-size: 18px;
     outline: none;
+    padding: 0;
 }
 
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-left: 10px;
+/* Fix per il buco enorme tra header e cards */
+#braindump main {
+    padding-top: 0 !important; /* Rimuove lo spazio extra */
 }
 
-.brain-icon { color: var(--accent); width: 28px; height: 28px; cursor: pointer; }
-.search-icon { color: var(--dim); width: 20px; cursor: pointer; }
-.esc-btn { color: var(--accent); font-family: 'JetBrains Mono'; font-size: 14px; cursor: pointer; white-space: nowrap; }
+#dump-input {
+    margin-top: 10px; /* Sposta l'input delle note più vicino all'header */
+}
 
-/* Nasconde la lente quando cerchi */
-.search-icon.hidden { opacity: 0; pointer-events: none; }
+
 /* --- 5. KEEP GRID --- */
 #keep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
 @media (min-width: 768px) { #keep-grid { grid-template-columns: repeat(4, 1fr); } }

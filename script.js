@@ -136,8 +136,8 @@ function renderGrid(data) {
     loadedNotesData = data.notes;
 
     document.getElementById('widget-notes').innerText = (loadedNotesData.length + 1);
-    if(data.weight) document.getElementById('widget-weight').innerText = data.weight;
-    if(data.history) document.getElementById('widget-habits').innerText = data.history.length;
+       document.getElementById('widget-weight').innerText = data.weight || "94.5";    
+//     if(data.history) document.getElementById('widget-habits').innerText = data.history.length;
 
     const fragment = document.createDocumentFragment();
     const isSearching = typeof searchQuery !== 'undefined' && searchQuery.length > 0;

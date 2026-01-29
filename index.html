@@ -70,30 +70,29 @@
           </div>
       </div>
   </div>
-  <div id="braindump" class="page">
-<div class="header">
-    <div class="header-left">
-        <i data-lucide="brain" class="brain-icon" onclick="toggleSidebar()"></i>
-        <div class="title-zone">
-            <h1 id="dump-title">BRAIN_DUMP</h1>
-            <div id="search-wrapper" class="search-wrapper">
-                <input type="text" id="search-input" placeholder="SEARCH..." oninput="handleSearch()" onblur="toggleSearch(false)">
+<div id="braindump" class="page">
+    <div class="header">
+        <div class="header-left">
+            <i data-lucide="brain" class="brain-icon" onclick="toggleSidebar()"></i>
+            <div class="title-zone">
+                <h1 id="dump-title">BRAIN_DUMP</h1>
+                <div id="search-wrapper" class="search-wrapper">
+                    <input type="text" id="search-input" placeholder="SEARCH_NEURAL_RECORDS..." oninput="handleSearch()" onblur="toggleSearch(false)">
+                </div>
             </div>
+        </div>
+
+        <div class="header-right">
+            <i data-lucide="search" id="search-trigger" class="search-icon" onclick="toggleSearch(true)"></i>
+            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
         </div>
     </div>
 
-    <div class="header-right">
-        <i data-lucide="search" id="search-trigger" class="search-icon" onclick="toggleSearch(true)"></i>
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-    </div>
+    <main>
+        <input type="text" id="dump-input" placeholder="Prendi una nota..." onkeypress="sendCmd(event)">
+        <div id="keep-grid"></div>
+    </main>
 </div>
-
-    <div id="search-wrapper" class="search-wrapper">
-        <input type="text" id="search-input" placeholder="SEARCH_NEURAL_RECORDS..." 
-               oninput="handleSearch()" onblur="toggleSearch(false)">
-    </div>
-</div>
-
     <div id="menu-backdrop" onclick="toggleSidebar()"></div>
     <div id="side-menu">
         <div style="color: var(--accent); font-size: 10px; margin-bottom: 25px; letter-spacing: 2px; font-weight: 700; padding-left: 10px;">FILESYSTEM_ROOT</div>
