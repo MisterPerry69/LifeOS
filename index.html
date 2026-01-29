@@ -6,8 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css">
   <link rel="stylesheet" href="https://unpkg.com/augmented-ui@2.0.0/augmented-ui.min.css">
@@ -25,51 +25,51 @@
     <div><span class="cursor"></span></div>
   </div>    
  
-  <div id="home" class="page active">
-        <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
-            
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
-                    <span class="blink-dot"></span>
-                    <span style="font-size: 10px; letter-spacing: 2px; color: var(--dim); font-weight: 700;">SYSTEM_OS // READY</span>
-                    <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">Life_OS v1.5</h1>
-            </div>
+<div id="home" class="page active">
+      <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
+          
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
+                  <span class="blink-dot"></span>
+                  <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">SYSTEM_OS // READY</span>
+              </div>
+              <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">Life_OS v1.5</h1>
+          </div>
 
-            <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;margin-top: 15px;">
-                <div id="dateStr" style="font-size: 10px; color: var(--dim);">--/--</div>
-                <div id="clock" style="font-size: 14px; color: var(--accent); font-weight: bold;">00:00</div>
-            </div>
+          <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;">
+              <div id="dateStr" style="font-size: 10px; color: var(--dim);">--/--</div>
+              <div id="clock" style="font-size: 14px; color: var(--accent); font-weight: bold;">00:00</div>
+          </div>
+      </div> <div style="padding: 10px 20px;">
+          <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
+      </div>
 
-        </div>      
-      <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
+      <div class="grid">
+          <div class="widget" onclick="nav('braindump')">
+              <i data-lucide="brain"></i>
+              <div class="label">Brain</div>
+              <div class="value"><span id="widget-notes">0</span> RECORDS</div>
+          </div>
 
-<div class="grid">
-    <div class="widget" onclick="nav('braindump')">
-        <i data-lucide="brain"></i>
-        <div class="label">Brain</div>
-        <div class="value"><span id="widget-notes">0</span> RECORDS</div>
-    </div>
+          <div class="widget" onclick="nav('habit')">
+              <i data-lucide="activity"></i>
+              <div class="label">Trackers</div>
+              <div class="value"><span id="widget-habits">0</span> ACTIVE</div>
+          </div>
 
-    <div class="widget" onclick="nav('habit')">
-        <i data-lucide="activity"></i>
-        <div class="label">Trackers</div>
-        <div class="value"><span id="widget-habits">0</span> ACTIVE</div>
-    </div>
+          <div class="widget" onclick="nav('health')">
+              <i data-lucide="zap"></i>
+              <div class="label">Body</div>
+              <div class="value"><span id="widget-weight">--</span> KG</div>
+          </div>
 
-    <div class="widget" onclick="nav('health')">
-        <i data-lucide="zap"></i>
-        <div class="label">Body</div>
-        <div class="value"><span id="widget-weight">--</span> KG</div>
-    </div>
-
-    <div class="widget" onclick="nav('agenda')">
-        <i data-lucide="calendar"></i>
-        <div class="label">Plan</div>
-        <div class="value" id="widget-tasks">NO EVENTS</div>
-    </div>
-</div>
+          <div class="widget" onclick="nav('agenda')">
+              <i data-lucide="calendar"></i>
+              <div class="label">Plan</div>
+              <div class="value" id="widget-tasks">NO EVENTS</div>
+          </div>
+      </div>
   </div>
-
   <div id="braindump" class="page">
     <div class="header">
         <div style="display: flex; align-items: center; gap: 15px; flex: 1; position: relative;">
