@@ -542,20 +542,30 @@ function handleSearch() {
     if (lastStatsData) renderGrid(lastStatsData);
 }
 
-function toggleSearchDirect() {
+function toggleSearch(show) {
     const wrapper = document.getElementById('search-wrapper');
     const input = document.getElementById('search-input');
-        const trigger = document.getElementById('search-trigger');
     const title = document.getElementById('dump-title');
+    const trigger = document.getElementById('search-trigger');
 
-    if (wrapper.style.display === 'none' || wrapper.style.display === '') {
-        wrapper.style.display = 'block';
-        input.focus();
+    if (show) {
+        wrapper.classList.add('active');
+        title.style.opacity = "0";
+        trigger.style.opacity = "0";
+        // Aspettiamo un attimo che lo slide inizi prima di dare il focus
+        setTimeout(() => input.focus(), 200);
     } else {
-        wrapper.style.display = 'none';
-        input.value = '';
-        searchQuery = '';
-        renderGrid(lastStatsData);
+        // Chiude solo se non c'è testo scritto
+        if (input.value === "") {
+            wrapper.classList.remove('active');
+            // Ritardiamo la ricomparsa del titolo per assecondare lo slide
+            setTimeout(() => {
+                title.style.opacity = "1";
+                trigger.style.opacity = "1";
+            }, 400);
+            searchQuery = "";
+            renderGrid(lastStatsData);
+        }
     }
 }
 //AGENDA
