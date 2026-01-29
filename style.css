@@ -66,10 +66,16 @@ body {
 .header .info { font-size: 10px; color: var(--dim); text-align: right; cursor: pointer; }
 
 /* --- 4. RICERCA (ANIMAZIONE DA DESTRA) --- */
-.search-wrapper {
-    display: none; /* Nascosto di base */
+#search-wrapper {
+    position: absolute;
+    right: 0;
+    width: 0;
     opacity: 0;
-    transition: all 0.3s ease;
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+    display: flex; /* Sempre flex, ma con larghezza 0 */
+    align-items: center;
+    background: var(--bg); /* Assicurati che copra il titolo sotto */
 }
 #search-wrapper.active {
     width: 100%;
