@@ -157,6 +157,11 @@ body {
     letter-spacing: 1px;
 }
 .widget .value i { color: var(--accent); }
+#widget-notes {
+    color: var(--accent);
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+    font-weight: bold;
+}
 
 .pixel-container { display: grid; gap: 5px; width: 100%; margin-top: 20px; }
 .grid-7, .grid-30 { grid-template-columns: repeat(7, 1fr); }
