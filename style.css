@@ -114,15 +114,12 @@ body {
 #search-input {
     width: 100% !important;
     background: transparent !important;
-    border: none !important;
     border: 1px solid var(--accent) !important; /* Linea più sottile */
     color: var(--accent) !important;
-    font-family: 'JetBrains Mono';
     font-size: 13px !important;    /* Testo più piccolo */
     text-transform: none !important; /* NON tutto maiuscolo */
-    padding: 2px 5px !important;    /* Un po' di padding interno */
+    padding: 2px 10px !important;    /* Un po' di padding interno */
     margin: 0 !important;           /* TOGLIE IL MARGIN 20px che sballa tutto */
-    border-radius: 0 !important;    /* Forza il reset del radius */
     outline: none !important;
 }
 
