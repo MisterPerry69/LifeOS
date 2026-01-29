@@ -71,35 +71,28 @@
       </div>
   </div>
   <div id="braindump" class="page">
-    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
+<div class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; position: relative;">
     
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-            <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
-                <span class="blink-dot"></span>
-                <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">NEURAL_SYNC //
-                    ACTIVE</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <i data-lucide="brain" onclick="toggleSidebar()"
-                    style="color: var(--accent); width: 28px; height: 28px; cursor: pointer;"></i>
-                <h1 id="dump-title"
-                    style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; transition: opacity 0.3s;">
-                    BRAIN_DUMP</h1>
-            </div>
+    <div style="display: flex; align-items: center; gap: 12px; z-index: 10;">
+        <i data-lucide="brain" onclick="toggleSidebar()" style="color: var(--accent); width: 26px; height: 26px; cursor: pointer;"></i>
+        <h1 id="dump-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; transition: 0.3s;">BRAIN_DUMP</h1>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 15px; z-index: 10;">
+        <i data-lucide="search" id="search-trigger" onclick="toggleSearch(true)" style="color: var(--dim); cursor: pointer; width: 18px;"></i>
+        <div class="node-info" onclick="nav('home')" style="cursor: pointer; font-size: 10px; letter-spacing: 1px; color: var(--accent); border: 1px solid rgba(0,255,65,0.3); padding: 4px 8px; font-family: 'JetBrains Mono';">
+            ESC [X]
         </div>
-        
-        <div style="display: flex; align-items: center; gap: 15px; margin-top: 5px;">
-            <i data-lucide="search" id="search-trigger" onclick="toggleSearch(true)"
-                style="color: var(--dim); cursor: pointer; width: 20px;"></i>
-            <div class="node-info" onclick="nav('home')" style="cursor: pointer; font-weight: bold; color: var(--accent);">[X]
-            </div>
-        </div>
-        
-        <div id="search-wrapper" class="search-wrapper">
-            <input type="text" id="search-input" placeholder="SEARCH_NEURAL_RECORDS..." oninput="handleSearch()"
-                onblur="toggleSearch(false)">
-        </div>
-        </div>
+    </div>
+
+    <div id="search-wrapper" style="position: absolute; left: 55px; right: 85px; display: none; align-items: center;">
+        <input type="text" id="search-input" 
+               placeholder="SEARCH_RECORDS..." 
+               oninput="handleSearch()" 
+               onblur="toggleSearch(false)"
+               style="width: 100%; background: #000; border: none; border-bottom: 1px solid var(--accent); color: #fff; font-family: 'JetBrains Mono'; font-size: 14px; outline: none;">
+    </div>
+</div>
 
     <div id="menu-backdrop" onclick="toggleSidebar()"></div>
     <div id="side-menu">
