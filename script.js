@@ -542,26 +542,22 @@ function handleSearch() {
     if (lastStatsData) renderGrid(lastStatsData);
 }
 
-function toggleSearch(show) {
+function toggleSearchDirect() {
     const wrapper = document.getElementById('search-wrapper');
     const input = document.getElementById('search-input');
+        const trigger = document.getElementById('search-trigger');
     const title = document.getElementById('dump-title');
-    const trigger = document.getElementById('search-trigger');
 
-    if (show) {
+    if (wrapper.style.display === 'none' || wrapper.style.display === '') {
         wrapper.style.display = 'block';
-        title.style.visibility = 'hidden'; // Nasconde ma mantiene lo spazio
-        setTimeout(() => input.focus(), 50);
+        input.focus();
     } else {
-        if (input.value === "") {
-            wrapper.style.display = 'none';
-            title.style.visibility = 'visible';
-            searchQuery = "";
-            renderGrid(lastStatsData);
-        }
+        wrapper.style.display = 'none';
+        input.value = '';
+        searchQuery = '';
+        renderGrid(lastStatsData);
     }
 }
-
 //AGENDA
 
 // Aggiungiamo un flag isInternal per capire da dove arriva il comando
