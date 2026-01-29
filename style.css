@@ -110,14 +110,14 @@ body {
 }
 
 .search-wrapper.active {
-    width: calc(100% + 20px); /* Si espande verso sinistra fino a sfiorare il cervello */
+    width: calc(100% + 5px); /* Si espande verso sinistra fino a sfiorare il cervello */
 }
 
 #search-input {
     width: 100% !important;
     background: transparent !important;
     border: none !important;
-    border-bottom: 1px solid var(--accent) !important; /* Linea più sottile */
+    border: 1px solid var(--accent) !important; /* Linea più sottile */
     color: var(--accent) !important;
     font-family: 'JetBrains Mono';
     font-size: 13px !important;    /* Testo più piccolo */
@@ -127,6 +127,8 @@ body {
     border-radius: 0 !important;    /* Forza il reset del radius */
     outline: none !important;
 }
+
+#search-input:focus { border-color: var(--accent); background: rgba(0, 255, 65, 0.05); }
 
 /* Nasconde la lente quando la ricerca è attiva */
 .search-icon.hidden {
