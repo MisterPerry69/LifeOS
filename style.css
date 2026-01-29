@@ -68,26 +68,37 @@ body {
 /* --- 4. RICERCA (ANIMAZIONE DA DESTRA) --- */
 #search-wrapper {
     position: absolute;
-    right: 0;
-    width: 0;
+    /* Posizionamento sopra il titolo */
+    left: 55px; 
+    top: 45px;
+    right: 80px; /* Si ferma prima dei tasti a destra */
+    
+    height: 35px;
     opacity: 0;
-    overflow: hidden;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
-    display: flex; /* Sempre flex, ma con larghezza 0 */
+    pointer-events: none; /* Non cliccabile quando nascosto */
+    transition: opacity 0.3s ease;
+    display: flex;
     align-items: center;
-    background: var(--bg); /* Assicurati che copra il titolo sotto */
+    background: #000; /* Copre il titolo */
+    z-index: 100;
 }
+
 #search-wrapper.active {
-    display: block !important;
     opacity: 1;
+    pointer-events: auto;
+    display: flex !important;
 }
+
 #search-input {
     width: 100% !important;
     background: #000 !important;
-    border: 1px solid var(--accent) !important;
-    padding: 6px 12px !important;
-    margin-bottom: 0 !important;
-    font-size: 12px;
+    border: none !important;
+    border-bottom: 2px solid var(--accent) !important; /* Molto più Cyberpunk */
+    color: var(--accent) !important;
+    padding: 4px 0 !important;
+    font-size: 16px !important;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
 }
 
 /* --- 5. KEEP GRID --- */
