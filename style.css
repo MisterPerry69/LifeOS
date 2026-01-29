@@ -97,21 +97,21 @@ body {
     display: flex;
     align-items: center;
     flex: 1;
-    height: 100%; /* Forza l'altezza per l'allineamento */
+    height: 40px; /* Altezza fissa: serve a contenere la ricerca senza che nulla si sposti */
+    overflow: visible; /* Fondamentale per non tagliare le scritte */
 }
 
 .search-wrapper {
     position: absolute;
-    left: 0;           /* ANCORAGGIO A SINISTRA */
-    top: 0;
-    width: 0;          /* PARTE DA ZERO */
+    right: 0;          /* Si ancora a DESTRA */
+    width: 0;          /* Parte invisibile */
     height: 100%;
-    background: var(--bg); /* Nero solido per coprire il titolo */
+    background: var(--bg);
     overflow: hidden;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
-    z-index: 20;
+    z-index: 50;
 }
 
 .search-wrapper.active {
@@ -137,6 +137,13 @@ body {
 
 #dump-input {
     margin-top: 10px; /* Sposta l'input delle note più vicino all'header */
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;         /* Crea lo spazio tra la lente e il tasto [esc X] */
+    flex-shrink: 0;    /* Impedisce ai tasti di rimpicciolirsi */
 }
 
 
