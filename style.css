@@ -70,9 +70,7 @@ body {
 .header .info { font-size: 10px; color: var(--dim); text-align: right; cursor: pointer; }
 
 .header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+display: flex; flex-direction: column; gap: 4px;
     flex: 1; /* Prende tutto lo spazio disponibile */
 }
 
