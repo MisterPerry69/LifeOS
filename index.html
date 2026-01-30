@@ -134,51 +134,102 @@
         <div class="info" onclick="nav('home')">EXIT [X]</div>
     </div>
 
-    <main id="agenda-main" style="padding: 0 20px;">
-        <div id="neural-input-zone">
-            <div style="display: flex;  gap: 8px; color: #555; margin-bottom: 15px;">
-                <i class="fas fa-terminal" style="font-size: 10px; color: #fcee0a;"></i>
-                <span style="font-[Rajdhani]; font-size: 10px; letter-spacing: 2px;">AWAITING_NEURAL_STREAM...</span>
+   <div id="agenda" class="page">
+    <div class="header">
+        <div class="header-left">
+            <div class="status-indicator">
+                <span class="blink-dot" style="background-color: #fcee0a; box-shadow: 0 0 8px #fcee0a;"></span>
+                <span style="font-size: 10px; letter-spacing: 2px; color: #fcee0a; font-weight: 700;">TEMPORAL_LINK // ACTIVE</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="calendar" style="color: #fcee0a; width: 28px; height: 28px;"></i>
+                <h1 id="agenda-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">AGENDA</h1>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+        </div>
+    </div>
+
+    <main id="agenda-main" style="padding: 0 20px; flex: 1; overflow-y: auto;">
+        <div id="neural-input-zone" style="margin-top: 20px;">
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; opacity: 0.6;">
+                <i data-lucide="terminal" style="width: 12px; color: #fcee0a;"></i>
+                <span style="font-family: 'Rajdhani'; font-size: 10px; letter-spacing: 2px;">AWAITING_NEURAL_STREAM...</span>
             </div>
             <textarea id="neural-prompt" 
-                placeholder="Butta giù la lista della spesa per oggi... impegni, cazzate, task. Gemini mette ordine."
-                style="width:100%; height:120px; background:#000; border:1px dashed #333; color:#eee; padding:15px; font-family:inherit; outline:none; margin-bottom:15px;"></textarea>
-            <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid #fcee0a; color:#fcee0a; font-family:'Rajdhani'; font-weight:bold; letter-spacing:3px;">
+                placeholder="Butta giù la lista della spesa, impegni, task... Gemini mette ordine."
+                style="width:100%; height:120px; background:#111; border:1px dashed #333; color:#eee; padding:15px; font-family:inherit; outline:none; margin-bottom:15px; border-radius: 4px;"></textarea>
+            <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid #fcee0a; color:#fcee0a; font-family:'Rajdhani'; font-weight:bold; letter-spacing:3px; cursor: pointer;">
                 INITIALIZE_FLOW
             </button>
         </div>
 
         <div id="active-flow-zone" style="display:none;">
             <div id="daily-timeline-content"></div>
-            <button onclick="closeDaySession()" style="margin-top:20px; color:#555; font-size:10px; border:none; background:none; cursor:pointer;">
+            <button onclick="closeDaySession()" style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">
                 [ TERMINATE_SESSION & LOG ]
-            </div>
+            </button>
+        </div>
 
-        <div style="margin-top:40px; border-top: 1px solid #222;">
-            <div style="display: flex; gap: 8px; color: #555; margin: 20px 0 10px 0;">
-                <span class="w-2 h-2 bg-[#00f3ff] rounded-full shadow-[0_0_8px_#00f3ff]"></span>
-                <span style="font-[Rajdhani]; font-size: 10px; letter-spacing: 2px;">HARD_CALENDAR_SCAN</span>
+        <div style="margin-top:40px; border-top: 1px solid #222; padding-top: 20px; padding-bottom: 100px;">
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; opacity: 0.6;">
+                <span style="width: 6px; height: 6px; background: #00f3ff; border-radius: 50%; box-shadow: 0 0 8px #00f3ff;"></span>
+                <span style="font-family: 'Rajdhani'; font-size: 10px; letter-spacing: 2px;">HARD_CALENDAR_SCAN</span>
             </div>
             <div id="events-container"></div>
         </div>
     </main>
 </div>
 
-  <div id="habit" class="page">
+<div id="habit" class="page">
     <div class="header">
-      <h1 id="habitTitle">LOG_PIXELS</h1>
-      <div class="info" onclick="nav('home')">ESC [X]</div>
+        <div class="header-left">
+            <div class="status-indicator">
+                <span class="blink-dot"></span>
+                <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">NEURAL_HABITS // LOGGING</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="activity" class="brain-icon"></i>
+                <h1 id="habitTitle" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">LOG_PIXELS</h1>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+        </div>
     </div>
-    <div id="viewLabel" class="view-label">MESE</div>
-    <div id="pixels" class="pixel-container grid-30"></div>
+
+    <main style="padding: 0 20px; flex: 1;">
+        <div id="viewLabel" class="view-label" style="text-align: center; margin-top: 10px; color: var(--dim); font-size: 10px; letter-spacing: 2px;">MESE</div>
+        <div id="pixels" class="pixel-container grid-30"></div>
+    </main>
     
     <div class="footer">
-      <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
-      <button class="btn">📅</button>
-      <button class="btn">⚙️</button>
-      <button class="btn" onclick="loadStats()">🔄</button>
+        <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
+        <button class="btn"><i data-lucide="calendar"></i></button>
+        <button class="btn"><i data-lucide="settings"></i></button>
+        <button class="btn" onclick="loadStats()"><i data-lucide="refresh-cw"></i></button>
     </div>
-  </div>
+</div>
+
+
+    <div id="health" class="page">
+        <div class="header">
+            <div class="header-left">
+                <div class="status-indicator">
+                    <span class="blink-dot"></span>
+                    <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">BIO_METRICS // SYNC</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i data-lucide="zap" class="brain-icon"></i>
+                    <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">BODY_STATS</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+            </div>
+        </div>
+    </div>
 
   <div id="modal-backdrop" onclick="saveAndClose()"></div>
 
