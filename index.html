@@ -7,277 +7,207 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css">
-  <link rel="stylesheet" href="https://unpkg.com/augmented-ui@2.0.0/augmented-ui.min.css">
-  
-  <script src="https://misterperry69.github.io/LifeOS/script.js"></script>
+  <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/script.css"> <script src="https://misterperry69.github.io/LifeOS/script.js"></script>
 </head>
 
 <body>
-   <div id="boot-screen">
+  <div id="boot-screen">
     <div id="boot-text"></div>
     <div id="boot-logo-container">
-        <img src="icon.png" id="boot-logo" alt="Logo">
-        <div class="boot-spinner"></div>
+      <img src="icon.png" id="boot-logo" alt="Logo">
+      <div class="boot-spinner"></div>
     </div>
     <div><span class="cursor"></span></div>
   </div>    
- 
-<div id="home" class="page active">
-      <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
-          
-          <div style="display: flex; flex-direction: column; gap: 4px;">
-              <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
-                  <span class="blink-dot"></span>
-                  <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">SYSTEM_OS // READY</span>
-              </div>
-              <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">Life_OS v1.5</h1>
-          </div>
 
-          <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;">
-              <div id="dateStr" style="font-size: 10px; color: var(--dim);">--/--</div>
-              <div id="clock" style="font-size: 14px; color: var(--accent); font-weight: bold;">00:00</div>
-          </div>
-      </div> <div style="padding: 10px 20px;">
-          <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
+  <div id="home" class="page active">
+    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
+          <span class="blink-dot"></span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">SYSTEM_OS // READY</span>
+        </div>
+        <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">Life_OS v1.5</h1>
       </div>
-
-      <div class="grid">
-          <div class="widget" onclick="nav('braindump')">
-              <i data-lucide="brain"></i>
-              <div class="label">Brain</div>
-              <div class="value"><span id="widget-notes">0</span> RECORDS</div>
-          </div>
-
-          <div class="widget" onclick="nav('habit')">
-              <i data-lucide="activity"></i>
-              <div class="label">Trackers</div>
-              <div class="value"><span id="widget-habits">0</span> ACTIVE</div>
-          </div>
-
-          <div class="widget" onclick="nav('health')">
-              <i data-lucide="zap"></i>
-              <div class="label">Body</div>
-              <div class="value"><span id="widget-weight">--</span> KG</div>
-          </div>
-
-          <div class="widget" onclick="nav('agenda')">
-              <i data-lucide="calendar"></i>
-              <div class="label">Plan</div>
-              <div class="value" id="widget-tasks">NO EVENTS</div>
-          </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;">
+        <div id="dateStr" style="font-size: 10px; color: var(--dim);">--/--</div>
+        <div id="clock" style="font-size: 14px; color: var(--accent); font-weight: bold;">00:00</div>
       </div>
+    </div> 
+    <div style="padding: 10px 20px;">
+      <input type="text" id="cmd" placeholder="> DIGITA..." onkeypress="sendCmd(event)">
+    </div>
+    <div class="grid" style="padding: 0 20px;">
+      <div class="widget" onclick="nav('braindump')">
+        <i data-lucide="brain"></i>
+        <div class="label">Brain</div>
+        <div class="value"><span id="widget-notes">0</span> RECORDS</div>
+      </div>
+      <div class="widget" onclick="nav('habit')">
+        <i data-lucide="activity"></i>
+        <div class="label">Trackers</div>
+        <div class="value"><span id="widget-habits">0</span> ACTIVE</div>
+      </div>
+      <div class="widget" onclick="nav('health')">
+        <i data-lucide="zap"></i>
+        <div class="label">Body</div>
+        <div class="value"><span id="widget-weight">94,5</span> KG</div>
+      </div>
+      <div class="widget" onclick="nav('agenda')">
+        <i data-lucide="calendar"></i>
+        <div class="label">Plan</div>
+        <div class="value" id="widget-tasks">NO EVENTS</div>
+      </div>
+    </div>
   </div>
-<div id="braindump" class="page">
-<div class="header" style="flex-direction: column; align-items: stretch; height: auto; min-height: 80px; gap: 10px;">
-    <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
+
+  <div id="braindump" class="page">
+    <div class="header" style="flex-direction: column; align-items: stretch; height: auto; min-height: 80px; gap: 10px;">
+      <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
         <span class="blink-dot"></span>
         <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">NEURAL_SYNC // ACTIVE</span>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
         <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-            <i data-lucide="brain" class="brain-icon" onclick="toggleSidebar()"></i>
-            
-            <div class="title-zone" style="position: relative; flex: 1; display: flex; align-items: center;">
-                <h1 id="dump-title" style="margin: 0;">BRAIN_DUMP</h1>
-                
-                <div id="search-wrapper" class="search-wrapper">
-                    <input type="text" id="search-input" placeholder="Cerca nota..." oninput="handleSearch()" onblur="toggleSearch(false)">
-                </div>
+          <i data-lucide="brain" class="brain-icon" onclick="toggleSidebar()"></i>
+          <div class="title-zone">
+            <h1 id="dump-title" style="margin: 0;">BRAIN_DUMP</h1>
+            <div id="search-wrapper" class="search-wrapper">
+              <input type="text" id="search-input" placeholder="Cerca nota..." oninput="handleSearch()" onblur="toggleSearch(false)">
             </div>
+          </div>
         </div>
-
-        <div class="header-right" style="margin-top: 0;">
-            <i data-lucide="search" id="search-trigger" class="search-icon" onclick="toggleSearch(true)"></i>
-            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+        <div class="header-right">
+          <i data-lucide="search" id="search-trigger" class="search-icon" onclick="toggleSearch(true)"></i>
+          <div class="esc-btn" onclick="nav('home')">[esc X]</div>
         </div>
+      </div>
     </div>
-</div>
     <main>
-        <input type="text" id="dump-input" placeholder="Prendi una nota..." onkeypress="sendCmd(event)">
-        <div id="keep-grid"></div>
+      <input type="text" id="dump-input" placeholder="Prendi una nota..." onkeypress="sendCmd(event)">
+      <div id="keep-grid"></div>
     </main>
-</div>
-    <div id="menu-backdrop" onclick="toggleSidebar()"></div>
-    <div id="side-menu">
-        <div style="color: var(--accent); font-size: 10px; margin-bottom: 25px; letter-spacing: 2px; font-weight: 700; padding-left: 10px;">FILESYSTEM_ROOT</div>
-        
-        <div class="menu-item active" onclick="setFilter('ALL', this)">
-            <i data-lucide="layers"></i> <span>TUTTO</span>
+  </div>
+
+  <div id="menu-backdrop" onclick="toggleSidebar()"></div>
+  <div id="side-menu">
+    <div style="color: var(--accent); font-size: 10px; margin-bottom: 25px; letter-spacing: 2px; font-weight: 700; padding-left: 10px;">FILESYSTEM_ROOT</div>
+    <div class="menu-item active" onclick="setFilter('ALL', this)"><i data-lucide="layers"></i> <span>TUTTO</span></div>
+    <div class="menu-item" onclick="setFilter('PINNED', this)"><i data-lucide="pin"></i> <span>PINNATI</span></div>
+    <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="zap"></i> <span>STRAORDINARI</span></div>
+    <div class="menu-item" onclick="setFilter('NOTE', this)"><i data-lucide="file-text"></i> <span>NOTE</span></div>
+    <div class="menu-item" onclick="setFilter('LINK', this)"><i data-lucide="link"></i> <span>LINK</span></div>
+  </div>
+
+  <div id="agenda" class="page">
+    <div class="header">
+      <div class="header-left">
+        <div class="status-indicator">
+          <span class="blink-dot" style="background-color: #fcee0a; box-shadow: 0 0 8px #fcee0a;"></span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: #fcee0a; font-weight: 700;">TEMPORAL_LINK // ACTIVE</span>
         </div>
-        <div class="menu-item" onclick="setFilter('PINNED', this)">
-            <i data-lucide="pin"></i> <span>PINNATI</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="calendar" style="color: #fcee0a; width: 28px; height: 28px;"></i>
+          <h1 id="agenda-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">AGENDA</h1>
         </div>
-        <div class="menu-item" onclick="setFilter('EXTRA', this)">
-            <i data-lucide="zap"></i> <span>STRAORDINARI</span>
+      </div>
+      <div class="header-right">
+        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+      </div>
+    </div>
+    <main id="agenda-main" style="padding: 0 20px; flex: 1; overflow-y: auto;">
+      <div id="neural-input-zone" style="margin-top: 20px;">
+        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; opacity: 0.6;">
+          <i data-lucide="terminal" style="width: 12px; color: #fcee0a;"></i>
+          <span style="font-family: 'Rajdhani'; font-size: 10px; letter-spacing: 2px;">AWAITING_NEURAL_STREAM...</span>
         </div>
-        <div class="menu-item" onclick="setFilter('NOTE', this)">
-            <i data-lucide="file-text"></i> <span>NOTE</span>
+        <textarea id="neural-prompt" placeholder="Butta giù la lista della spesa, impegni, task... Gemini mette ordine." style="width:100%; height:120px; background:#111; border:1px dashed #333; color:#eee; padding:15px; font-family:inherit; outline:none; margin-bottom:15px; border-radius: 4px;"></textarea>
+        <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid #fcee0a; color:#fcee0a; font-family:'Rajdhani'; font-weight:bold; letter-spacing:3px; cursor: pointer;">INITIALIZE_FLOW</button>
+      </div>
+      <div id="active-flow-zone" style="display:none;">
+        <div id="daily-timeline-content"></div>
+        <button onclick="closeDaySession()" style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">[ TERMINATE_SESSION & LOG ]</button>
+      </div>
+      <div style="margin-top:40px; border-top: 1px solid #222; padding-top: 20px; padding-bottom: 100px;">
+        <div id="events-container"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="habit" class="page">
+    <div class="header">
+      <div class="header-left">
+        <div class="status-indicator">
+          <span class="blink-dot"></span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">NEURAL_HABITS // LOGGING</span>
         </div>
-        <div class="menu-item" onclick="setFilter('LINK', this)">
-            <i data-lucide="link"></i> <span>LINK</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="activity" class="brain-icon"></i>
+          <h1 id="habitTitle" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">LOG_PIXELS</h1>
         </div>
+      </div>
+      <div class="header-right">
+        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+      </div>
+    </div>
+    <main style="padding: 0 20px; flex: 1;">
+      <div id="viewLabel" class="view-label" style="text-align: center; margin-top: 10px; color: var(--dim); font-size: 10px; letter-spacing: 2px;">MESE</div>
+      <div id="pixels" class="pixel-container grid-30"></div>
+    </main>
+    <div class="footer">
+      <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
+      <button class="btn"><i data-lucide="calendar"></i></button>
+      <button class="btn"><i data-lucide="settings"></i></button>
+      <button class="btn" onclick="loadStats()"><i data-lucide="refresh-cw"></i></button>
     </div>
   </div>
-  
 
-
-<div id="agenda" class="page">
+  <div id="health" class="page">
     <div class="header">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="w-2 h-2 bg-[#fcee0a] rounded-full animate-pulse shadow-[0_0_8px_#fcee0a]"></span>
-            <h1 id="agenda-title" style="font-size: 12px; color: #fcee0a;">TEMPORAL_LINK</h1>
+      <div class="header-left">
+        <div class="status-indicator">
+          <span class="blink-dot"></span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">BIO_METRICS // SYNC</span>
         </div>
-        <div class="info" onclick="nav('home')">EXIT [X]</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="zap" class="brain-icon"></i>
+          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">BODY_STATS</h1>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+      </div>
     </div>
-
-   <div id="agenda" class="page">
-    <div class="header">
-        <div class="header-left">
-            <div class="status-indicator">
-                <span class="blink-dot" style="background-color: #fcee0a; box-shadow: 0 0 8px #fcee0a;"></span>
-                <span style="font-size: 10px; letter-spacing: 2px; color: #fcee0a; font-weight: 700;">TEMPORAL_LINK // ACTIVE</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <i data-lucide="calendar" style="color: #fcee0a; width: 28px; height: 28px;"></i>
-                <h1 id="agenda-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">AGENDA</h1>
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-        </div>
-    </div>
-
-    <main id="agenda-main" style="padding: 0 20px; flex: 1; overflow-y: auto;">
-        <div id="neural-input-zone" style="margin-top: 20px;">
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; opacity: 0.6;">
-                <i data-lucide="terminal" style="width: 12px; color: #fcee0a;"></i>
-                <span style="font-family: 'Rajdhani'; font-size: 10px; letter-spacing: 2px;">AWAITING_NEURAL_STREAM...</span>
-            </div>
-            <textarea id="neural-prompt" 
-                placeholder="Butta giù la lista della spesa, impegni, task... Gemini mette ordine."
-                style="width:100%; height:120px; background:#111; border:1px dashed #333; color:#eee; padding:15px; font-family:inherit; outline:none; margin-bottom:15px; border-radius: 4px;"></textarea>
-            <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid #fcee0a; color:#fcee0a; font-family:'Rajdhani'; font-weight:bold; letter-spacing:3px; cursor: pointer;">
-                INITIALIZE_FLOW
-            </button>
-        </div>
-
-        <div id="active-flow-zone" style="display:none;">
-            <div id="daily-timeline-content"></div>
-            <button onclick="closeDaySession()" style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">
-                [ TERMINATE_SESSION & LOG ]
-            </button>
-        </div>
-
-        <div style="margin-top:40px; border-top: 1px solid #222; padding-top: 20px; padding-bottom: 100px;">
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; opacity: 0.6;">
-                <span style="width: 6px; height: 6px; background: #00f3ff; border-radius: 50%; box-shadow: 0 0 8px #00f3ff;"></span>
-                <span style="font-family: 'Rajdhani'; font-size: 10px; letter-spacing: 2px;">HARD_CALENDAR_SCAN</span>
-            </div>
-            <div id="events-container"></div>
-        </div>
+    <main style="padding: 20px;">
+        <p style="color: var(--dim); font-size: 12px;">Puntiamo ai 90kg, Perry? ;)</p>
     </main>
-</div>
-
-<div id="habit" class="page">
-    <div class="header">
-        <div class="header-left">
-            <div class="status-indicator">
-                <span class="blink-dot"></span>
-                <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">NEURAL_HABITS // LOGGING</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <i data-lucide="activity" class="brain-icon"></i>
-                <h1 id="habitTitle" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">LOG_PIXELS</h1>
-            </div>
-        </div>
-        <div class="header-right">
-            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-        </div>
-    </div>
-
-    <main style="padding: 0 20px; flex: 1;">
-        <div id="viewLabel" class="view-label" style="text-align: center; margin-top: 10px; color: var(--dim); font-size: 10px; letter-spacing: 2px;">MESE</div>
-        <div id="pixels" class="pixel-container grid-30"></div>
-    </main>
-    
-    <div class="footer">
-        <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
-        <button class="btn"><i data-lucide="calendar"></i></button>
-        <button class="btn"><i data-lucide="settings"></i></button>
-        <button class="btn" onclick="loadStats()"><i data-lucide="refresh-cw"></i></button>
-    </div>
-</div>
-
-
-    <div id="health" class="page">
-        <div class="header">
-            <div class="header-left">
-                <div class="status-indicator">
-                    <span class="blink-dot"></span>
-                    <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">BIO_METRICS // SYNC</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <i data-lucide="zap" class="brain-icon"></i>
-                    <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">BODY_STATS</h1>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-            </div>
-        </div>
-    </div>
+  </div>
 
   <div id="modal-backdrop" onclick="saveAndClose()"></div>
-
   <div id="note-detail" class="note-overlay">
-      <div class="header">
-          <h1 id="detail-type">NOTA</h1>
-          <div class="info" onclick="saveAndClose()">SALVA [X]</div>
-      </div>
-      <div class="modal-body">
-          <textarea id="detail-text" spellcheck="false"></textarea>
-          <div id="detail-extra-list" style="display:none;"></div>
-      </div>
-      <div class="note-toolbar">
-          <span class="tool-icon" onclick="confirmDelete(currentNoteData.id, currentNoteData.type)"><i class="fas fa-trash"></i></span>
-          <div class="color-selector-container">
-              <span class="tool-icon" onclick="toggleColorPicker()"><i class="fas fa-palette"></i></span>
-              <div id="color-picker-bubble" class="color-bubble">
-                  <div class="color-dot dot-default" onclick="changeNoteColor('default')"></div>
-                  <div class="color-dot dot-blue" onclick="changeNoteColor('blue')"></div>
-                  <div class="color-dot dot-red" onclick="changeNoteColor('red')"></div>
-                  <div class="color-dot dot-green" onclick="changeNoteColor('green')"></div>
-                  <div class="color-dot dot-yellow" onclick="changeNoteColor('yellow')"></div>
-                  <div class="color-dot dot-pink" onclick="changeNoteColor('pink')"></div>
-              </div>
-          </div>
-          <span class="tool-icon" onclick="togglePin()"><i class="fas fa-thumbtack"></i></span>
-      </div>
+    <div class="header">
+      <h1 id="detail-type">NOTA</h1>
+      <div class="info" onclick="saveAndClose()">SALVA [X]</div>
+    </div>
+    <div class="modal-body">
+      <textarea id="detail-text" spellcheck="false"></textarea>
+    </div>
+    <div class="note-toolbar">
+      <span class="tool-icon" onclick="confirmDelete(currentNoteData.id, currentNoteData.type)"><i class="fas fa-trash"></i></span>
+      <span class="tool-icon" onclick="toggleColorPicker()"><i class="fas fa-palette"></i></span>
+      <span class="tool-icon" onclick="togglePin()"><i class="fas fa-thumbtack"></i></span>
+    </div>
   </div>
 
-<div id="delete-modal">
+  <div id="delete-modal">
     <div class="modal-content">
-        <p>Eliminare record permanentemente?</p>
-        <div class="modal-actions">
-            <button class="btn-modal btn-confirm" onclick="executeDelete()">Sì, Elimina</button>
-            <button class="btn-modal btn-cancel" onclick="cancelDelete()">Annulla</button>
-        </div>
+      <p>Eliminare record permanentemente?</p>
+      <div class="modal-actions">
+        <button class="btn-modal btn-confirm" onclick="executeDelete()">Sì, Elimina</button>
+        <button class="btn-modal btn-cancel" onclick="cancelDelete()">Annulla</button>
+      </div>
     </div>
-</div>
-
-
-
-
-<!-- start webpushr tracking code --> 
-<script>
-lucide.createIcons();
-(function(w,d, s, id) {if(typeof(w.webpushr)!=='undefined') return;w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};var js, fjs = d.getElementsByTagName(s)[0];js = d.createElement(s); js.id = id;js.src = "https://cdn.webpushr.com/app.min.js";
-fjs.parentNode.appendChild(js);}(window,document, 'script', 'webpushr-jssdk-alternative'));
-webpushr('init','BA232ZX5Zislw9HMnqgm1ZEyTaz-98EZSrfobgjTbXX3ql4fZ07Y5f91ciO-708ZjGD4iKoquI9IWp35CjUsyoE','https://misterperry69.github.io/LifeOS/webpushr-sw.js','/LifeOS/');</script>
-<!-- end webpushr tracking code -->
-</body>
-</html>
+  </div>
