@@ -296,6 +296,31 @@ async function sendCmd(event) {
             input.focus(); // RIPRISTINA FOCUS
         }, 1500);
     }
+
+
+    // Aggiungi questo pezzo dentro sendCmd(event)
+if (val.startsWith('-') || val.startsWith('+') || val.startsWith('spesa ')) {
+    recordFinance(val);
+    cmdInput.value = '';
+    return;
+}
+
+// Funzione per gestire l'input finanziario
+        function recordFinance(rawText) {
+            console.log("Inviando dato finanziario:", rawText);
+            
+            // Mostra un feedback visivo sul widget
+            const widget = document.querySelector('.finance-widget');
+            widget.style.borderColor = "#fff";
+            setTimeout(() => widget.style.borderColor = "#00d4ff", 500);
+
+            // Chiamata al database (Google Script)
+            // Qui manderemo rawText alla colonna B del foglio 'Finance'
+            google.script.run.withSuccessHandler(() => {
+                console.log("Dato registrato nel DB!");
+                // Volendo qui potresti triggerare Gemini per la categorizzazione immediata
+            }).addFinanceEntry(rawText);
+        }
 }
 
 // --- 5. UI MODALS & ACTIONS ---
