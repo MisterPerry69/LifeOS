@@ -277,6 +277,15 @@ async function sendCmd(event) {
         const input = event.target;
         const val = input.value.trim();
         if (!val) return;
+
+        // --- NUOVO CONTROLLO FINANCE (DEVE STARE DENTRO LE GRAFFE DI ENTER) ---
+        if (val.startsWith('-') || val.startsWith('+') || val.startsWith('spesa ')) {
+            recordFinance(val);
+            input.value = "";
+            return; // Esci così non crea anche una nota
+        }
+        // ---------------------------------------------------------------------
+
         input.value = "";
         input.placeholder = "> SYNCING...";
         
@@ -293,14 +302,8 @@ async function sendCmd(event) {
         
         setTimeout(() => { 
             input.placeholder = "> DIGITA...";
-            input.focus(); // RIPRISTINA FOCUS
+            input.focus(); 
         }, 1500);
-    }
-    
-    if (val.startsWith('-') || val.startsWith('+') || val.startsWith('spesa ')) {
-    recordFinance(val);
-    cmdInput.value = '';
-    return;
     }
 }
 
@@ -308,17 +311,24 @@ async function sendCmd(event) {
 function recordFinance(rawText) {
     console.log("Inviando dato finanziario:", rawText);
     
-    // Mostra un feedback visivo sul widget
+    // Feedback visivo immediato
     const widget = document.querySelector('.finance-widget');
-    widget.style.borderColor = "#fff";
-    setTimeout(() => widget.style.borderColor = "#00d4ff", 500);
+    if(widget) {
+        widget.style.borderColor = "#fff";
+        widget.style.boxShadow = "0 0 15px #00d4ff";
+        setTimeout(() => {
+            widget.style.borderColor = "#00d4ff";
+            widget.style.boxShadow = "none";
+        }, 500);
+    }
 
-    // Chiamata al database (Google Script)
-    // Qui manderemo rawText alla colonna B del foglio 'Finance'
-    google.script.run.withSuccessHandler(() => {
-        console.log("Dato registrato nel DB!");
-        // Volendo qui potresti triggerare Gemini per la categorizzazione immediata
-    }).addFinanceEntry(rawText);
+    // Per ora lo mandiamo al server come "finance_raw"
+    // Dovremo poi gestire questo service nel tuo file .gs su Google
+    fetch(SCRIPT_URL, { 
+        method: 'POST', 
+        mode: 'no-cors', 
+        body: JSON.stringify({ service: "finance_add", text: rawText })
+    });
 }
 
 // --- 5. UI MODALS & ACTIONS ---
