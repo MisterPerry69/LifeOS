@@ -294,14 +294,21 @@ async function sendCmd(event) {
         
         let service = "note";
         if (val.toLowerCase().startsWith('t ')) service = "agenda_add";
-        else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) service = "extra_hours";
-
+        else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) {
+        service = "extra_hours";
+        // Feedback immediato
+        input.placeholder = "> RECORDING HOURS...";
         try {
             await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ service: service, text: val })});
-            await new Promise(r => setTimeout(r, 1200));
+            await new Promise(r => setTimeout(r, 1500));
             await loadStats();
-            input.placeholder = "> SUCCESS.";
-        } catch (e) { input.placeholder = "!! ERROR !!"; }
+            if (document.getElementById('note-detail').style.display === 'flex') {
+            openExtraDetail();
+            }
+            input.placeholder = "> HOURS_SYNCED.";
+            } catch (e) { 
+            input.placeholder = "!! SYNC_ERROR !!"; 
+}
         
         setTimeout(() => { 
             input.placeholder = "> DIGITA...";
@@ -369,18 +376,13 @@ function openExtraDetail() {
     const modal = document.getElementById('note-detail');
     const list = document.getElementById('detail-extra-list');
     
-    // Check di sicurezza: se gli elementi non esistono, fermati
-    if (!modal || !list) {
-        console.error("Elementi modal non trovati!");
-        return;
-    }
+    if (!modal || !list) return;
 
-    // Calcolo mese per il titolo
     const now = new Date();
+    // Calcoliamo la data del mese che stiamo visualizzando nel dettaglio
     const viewDate = new Date(now.getFullYear(), now.getMonth() + detailMonthOffset, 1);
     const monthLabel = viewDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
 
-    // Reset UI interna
     document.getElementById('detail-type').innerHTML = `
         <div style="display:flex; align-items:center; gap:15px; justify-content:center; width:100%">
             <i class="fas fa-chevron-left" id="prevMonth" style="cursor:pointer; padding:10px;"></i>
@@ -392,19 +394,22 @@ function openExtraDetail() {
     document.getElementById('detail-text').style.display = "none";
     list.style.display = "block";
 
-    // Filtro dati (usiamo un try/catch per evitare blocchi se extraItemsGlobal è vuoto)
-    try {
-        const filteredExtra = (window.extraItemsGlobal || []).filter(item => {
-            // Gestione provvidenziale per date in formato stringa o oggetto
-            const d = new Date(item.data);
-            if (isNaN(d.getTime())) return false; // Salta se la data è invalida
+    // DEBUG: Controlliamo in console se i dati ci sono
+    console.log("Dati globali disponibili:", extraItemsGlobal);
 
+    try {
+        const filteredExtra = (extraItemsGlobal || []).filter(item => {
+            // Trasformiamo item.data in un oggetto Date vero
+            const d = new Date(item.data);
+            if (isNaN(d.getTime())) return false; 
+
+            // Confronto Mese e Anno
             return d.getMonth() === viewDate.getMonth() && 
-                d.getFullYear() === viewDate.getFullYear();
-        }).sort((a, b) => new Date(b.data) - new Date(a.data)); // Dalla più recente alla più vecchia
+                   d.getFullYear() === viewDate.getFullYear();
+        }).sort((a, b) => new Date(b.data) - new Date(a.data));
 
         if (filteredExtra.length === 0) {
-            list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px; font-family:var(--font-cyber);">NESSUN_DATO_RILEVATO</div>`;
+            list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">NESSUN_DATO_PER_${monthLabel}</div>`;
         } else {
             list.innerHTML = filteredExtra.map(item => `
                 <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #222;">
@@ -413,19 +418,17 @@ function openExtraDetail() {
                 </div>`).join('');
         }
     } catch (err) {
-        console.error("Errore nel filtraggio dati:", err);
-        list.innerHTML = "Errore caricamento dati.";
+        list.innerHTML = "Errore filtraggio.";
     }
 
-    // Mostra il modal
     modal.className = 'note-overlay extra-card';
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
 
-    // Agganciamo gli eventi ai pulsanti appena creati (più sicuro del onclick nell'HTML)
     document.getElementById('prevMonth').onclick = (e) => { e.stopPropagation(); changeDetailMonth(-1); };
     document.getElementById('nextMonth').onclick = (e) => { e.stopPropagation(); changeDetailMonth(1); };
 }
+
 
 // 2. FUNZIONE DI CAMBIO MESE (Assicurati che esista!)
 function changeDetailMonth(delta) {
