@@ -395,10 +395,13 @@ function openExtraDetail() {
     // Filtro dati (usiamo un try/catch per evitare blocchi se extraItemsGlobal è vuoto)
     try {
         const filteredExtra = (window.extraItemsGlobal || []).filter(item => {
-            const itemDate = new Date(item.data);
-            return itemDate.getMonth() === viewDate.getMonth() && 
-                   itemDate.getFullYear() === viewDate.getFullYear();
-        }).sort((a, b) => new Date(a.data) - new Date(b.data));
+            // Gestione provvidenziale per date in formato stringa o oggetto
+            const d = new Date(item.data);
+            if (isNaN(d.getTime())) return false; // Salta se la data è invalida
+
+            return d.getMonth() === viewDate.getMonth() && 
+                d.getFullYear() === viewDate.getFullYear();
+        }).sort((a, b) => new Date(b.data) - new Date(a.data)); // Dalla più recente alla più vecchia
 
         if (filteredExtra.length === 0) {
             list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px; font-family:var(--font-cyber);">NESSUN_DATO_RILEVATO</div>`;
@@ -426,13 +429,25 @@ function openExtraDetail() {
 
 // 2. FUNZIONE DI CAMBIO MESE (Assicurati che esista!)
 function changeDetailMonth(delta) {
-    detailMonthOffset += delta;
-    if (detailMonthOffset > 0) detailMonthOffset = 0;
+    const newOffset = detailMonthOffset + delta;
+    
+    // Limite futuro
+    if (newOffset > 0) return;
+    
+    // Limite passato: non andare oltre gennaio 2025 (o il mese che preferisci)
+    // Se vuoi bloccarlo quando non ci sono più dati:
+    const hasData = (window.extraItemsGlobal || []).some(item => {
+        const d = new Date(item.data);
+        const targetDate = new Date();
+        targetDate.setMonth(targetDate.getMonth() + newOffset);
+        return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
+    });
+
+    // Se vai indietro e non c'è nulla, e stavi già andando indietro, potresti volerlo bloccare
+    // Ma per ora lasciamolo navigare, sistemiamo la visualizzazione:
+    detailMonthOffset = newOffset;
     openExtraDetail();
 }
-
-
-
 
 // Chiusura istantanea per eliminare il lag
 function saveAndClose() {
