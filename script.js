@@ -373,6 +373,7 @@ function recordFinance(rawText) {
 
 // --- 5. UI MODALS & ACTIONS ---
 
+// 1. RIPRISTINO PIN NELLE NOTE NORMALI
 function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
@@ -381,18 +382,19 @@ function openNoteByIndex(index) {
     
     const modal = document.getElementById('note-detail');
     const colorBtn = document.querySelector('.color-selector-container');
+    const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
     const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
 
-    // Reset UI
+    // MOSTRA di nuovo i tasti (nel caso fossimo passati prima da un Extra)
+    if(colorBtn) colorBtn.style.display = "block";
+    if(pinTool) pinTool.style.display = "flex";
+    
+    // Reset UI classica
     document.getElementById('detail-type').innerText = note[5] || "NOTA";
     document.getElementById('detail-text').value = note[1];
     document.getElementById('detail-text').style.display = "block";
     document.getElementById('detail-extra-list').style.display = "none";
     
-    // Mostra tavolozza (per le note normali)
-    if(colorBtn) colorBtn.style.display = "block";
-    
-    // Illumina Pin se la nota è già pinnata
     if(pinIcon) pinIcon.style.color = (note[2] === "PINNED") ? "var(--accent)" : "var(--dim)";
 
     modal.className = `note-overlay bg-${note[3]}`;
@@ -400,7 +402,7 @@ function openNoteByIndex(index) {
     document.getElementById('modal-backdrop').style.display = 'block';
 }
 
-
+// 2. NASCONDI PIN SOLO NEGLI EXTRA
 function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
@@ -408,24 +410,22 @@ function openExtraDetail() {
     
     if (!modal || !list) return;
 
-    // Calcolo date
+    // Nascondi strumenti non necessari per il recap ore
+    const colorTool = document.querySelector('.color-selector-container');
+    const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
+    if(colorTool) colorTool.style.display = "none";
+    if(pinTool) pinTool.style.display = "none";
+
     const now = new Date();
     const viewDate = new Date(now.getFullYear(), now.getMonth() + detailMonthOffset, 1);
     const targetMonth = viewDate.getMonth();
     const targetYear = viewDate.getFullYear();
     const monthLabel = viewDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
 
-    // Pulizia UI: Nascondiamo selettore colore e pin per l'extra
-    const colorTool = document.querySelector('.color-selector-container');
-    const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
-    if(colorTool) colorTool.style.display = "none";
-    if(pinTool) pinTool.style.display = "none";
-
-    // Header con navigazione
     document.getElementById('detail-type').innerHTML = `
         <div style="display:flex; align-items:center; gap:15px; justify-content:center; width:100%">
             <i class="fas fa-chevron-left" id="prevMonth" style="cursor:pointer; padding:10px;"></i>
-            <span style="letter-spacing:1px">RECAP: ${monthLabel}</span>
+            <span>RECAP: ${monthLabel}</span>
             <i class="fas fa-chevron-right" id="nextMonth" style="cursor:pointer; padding:10px;"></i>
         </div>
     `;
@@ -434,35 +434,31 @@ function openExtraDetail() {
     list.style.display = "block";
 
     try {
-        const filteredExtra = (extraItemsGlobal || []).filter(item => {
+        const filteredExtra = (window.extraItemsGlobal || []).filter(item => {
             const d = new Date(item.data);
             return !isNaN(d.getTime()) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
         }).sort((a, b) => new Date(b.data) - new Date(a.data));
 
-        // Calcolo totale del mese visualizzato
         const monthTotal = filteredExtra.reduce((acc, curr) => acc + (parseFloat(curr.ore) || 0), 0);
 
         if (filteredExtra.length === 0) {
-            list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ NESSUN_DATO_RILEVATO ]</div>`;
+            list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ NESSUN_DATO ]</div>`;
         } else {
-            // Aggiungiamo il Totale in cima alla lista
             let html = `
                 <div style="margin-bottom:15px; padding:15px; background:rgba(0,212,255,0.1); border:1px solid var(--accent); border-radius:4px; text-align:center;">
-                    <span style="font-size:10px; opacity:0.6; display:block">TOTALE_PERIODO</span>
+                    <span style="font-size:10px; opacity:0.6; display:block">TOTALE_ORE</span>
                     <span style="font-size:24px; color:var(--accent); font-weight:bold">${monthTotal.toFixed(1)}h</span>
-                </div>
-            `;
+                </div>`;
             
             html += filteredExtra.map(item => `
                 <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #222;">
                     <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} ➔ <b style="color:var(--accent)">+${item.ore}h</b></span>
-                    <span style="font-size:10px; opacity:0.4; max-width:50%; text-align:right">${item.nota || ''}</span>
+                    <span style="font-size:10px; opacity:0.4;">${item.nota || ''}</span>
                 </div>`).join('');
-            
             list.innerHTML = html;
         }
     } catch (err) {
-        list.innerHTML = "ERRORE_DATA_SYNC";
+        list.innerHTML = "ERRORE_SYNC";
     }
 
     modal.className = 'note-overlay extra-card';
