@@ -281,21 +281,33 @@ async function sendCmd(event) {
         const val = input.value.trim();
         if (!val) return;
 
+        // --- 1. FINANCE ---
         if (val.startsWith('-') || val.startsWith('spesa ')) {
             recordFinance(val);
             input.value = "";
             return; 
         }
 
-        // --- OPTIMISTIC UI: Crea una card finta subito ---
-        if (!val.startsWith('t ') && !val.includes('+')) {
-            const tempId = "temp-" + Date.now();
+        // --- 2. OPTIMISTIC UI (Solo per le Note) ---
+        // Se non è un comando agenda (t ) o ore (+), creiamo la preview
+        if (!val.toLowerCase().startsWith('t ') && !val.includes('+')) {
             const grid = document.getElementById('keep-grid');
             const tempCard = document.createElement('div');
-            tempCard.className = "keep-card bg-default blink"; // blink indica che sta syncando
-            tempCard.id = tempId;
-            tempCard.innerHTML = `<div class="title-row">SYNCING...</div><div class="content-preview">${val}</div>`;
-            grid.prepend(tempCard); // La mette in cima
+            // La creiamo con classe default, ma il renderGrid vero poi la sistemerà
+            tempCard.className = "keep-card bg-default blink temp-note"; 
+            tempCard.innerHTML = `
+                <div class="title-row">SYNCING...</div>
+                <div class="content-preview">${val}</div>
+                <div class="label" style="font-size:9px; opacity:0.4;">JUST NOW</div>
+            `;
+            // Se ci sono pinnati, la mettiamo dopo l'ultima card pinnata, 
+            // altrimenti in cima.
+            const lastPinned = grid.querySelector('.pinnato:last-of-type');
+            if (lastPinned) {
+                lastPinned.after(tempCard);
+            } else {
+                grid.prepend(tempCard);
+            }
         }
 
         input.value = "";
@@ -306,24 +318,23 @@ async function sendCmd(event) {
         else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) service = "extra_hours";
 
         try {
-            // Invio in background (non usiamo await per la fetch se vogliamo velocità totale, 
-            // ma usiamolo qui per gestire il successo visivo)
+            // Invio al server
             fetch(SCRIPT_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
                 body: JSON.stringify({ service: service, text: val })
             });
 
-            // Feedback immediato di successo (anche se il server sta ancora lavorando)
+            // Feedback placeholder
             input.placeholder = "> COMMAND_SENT.";
             
-            // Aspettiamo un secondo e ricarichiamo i dati veri per sostituire la card finta
+            // Ricarica i dati reali dopo un po' per consolidare i PIN e i Titoli
             setTimeout(async () => {
-                await loadStats();
+                await loadStats(); // Questo ripristina i PIN corretti dal DB
                 if (document.getElementById('note-detail').style.display === 'flex' && service === "extra_hours") {
                     openExtraDetail();
                 }
-            }, 3500); // Diamo tempo a Gemini di finire sul server
+            }, 3000);
 
         } catch (e) { 
             input.placeholder = "!! SYNC_ERROR !!"; 
