@@ -547,13 +547,20 @@ function toggleColorPicker() {
 }
 
 // MODIFICA: Aggiornamento immediato del colore (Optimistic UI)
-function changeNoteColor(colorName) {
-    if (currentNoteData) {
-        currentNoteData.color = colorName;
-        // Cambia colore al modal subito
-        document.getElementById('note-detail').className = `note-overlay bg-${colorName}`;
-        // Chiude la bolla dei colori
-        document.getElementById('color-picker-bubble').style.display = 'none';
+function changeNoteColor(color) {
+    if (!currentNoteData) return;
+    
+    // Aggiorna dato temporaneo
+    currentNoteData.color = color;
+    
+    // Aggiorna visivamente il modal SUBITO
+    const modal = document.getElementById('note-detail');
+    modal.className = `note-overlay bg-${color}`;
+    
+    // Se vuoi feedback anche sulla card nella griglia mentre il modal è aperto:
+    const card = document.querySelector(`.keep-card[onclick*="openNoteByIndex(${currentNoteData.index})"]`);
+    if (card) {
+        card.className = `keep-card bg-${color}${currentNoteData.type === 'PINNED' ? ' pinnato' : ''}`;
     }
 }
 
@@ -901,3 +908,73 @@ async function recordFinance(rawText) {
         feedbackArea.innerText = "Analisi fallita. Spendi e taci.";
     }
 }
+
+function closeNoteDetail() {
+    const modal = document.getElementById('note-detail');
+    const textArea = document.getElementById('detail-text');
+    const backdrop = document.getElementById('modal-backdrop');
+    
+    // Se non c'è il modal aperto, non fare nulla
+    if (!modal || modal.style.display === 'none') return;
+
+    // --- LOGICA SALVATAGGIO NOTE (NON EXTRA) ---
+    if (currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
+        const newText = textArea.value.trim();
+        // Recuperiamo i vecchi dati per il confronto
+        const oldNote = loadedNotesData[currentNoteData.index];
+        const oldText = oldNote ? oldNote[1] : "";
+        const oldColor = oldNote ? oldNote[3] : "default";
+
+        // SALVA SOLO SE CAMBIATO QUALCOSA
+        if (newText !== oldText || currentNoteData.color !== oldColor) {
+            console.log("Modifiche rilevate. Sync in corso...");
+            
+            // Aggiorna subito la griglia per feedback visivo
+            if (currentNoteData.index !== undefined) {
+                loadedNotesData[currentNoteData.index][1] = newText;
+                loadedNotesData[currentNoteData.index][3] = currentNoteData.color;
+                renderGrid(loadedNotesData); 
+            }
+
+            // Chiama il server (Google Script)
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    service: "update_note",
+                    id: currentNoteData.id,
+                    text: newText,
+                    color: currentNoteData.color
+                })
+            });
+        }
+    }
+
+    // --- CHIUSURA FISICA DEL MODAL ---
+    modal.style.display = 'none';
+    if (backdrop) backdrop.style.display = 'none';
+    
+    // Reset dello stato
+    currentNoteData = null;
+    detailMonthOffset = 0; // Resetta il calendario extra per la prossima apertura
+}
+
+// --- LOGICA DI AGGANCIO EVENTI (SISTEMA DI CHIUSURA) ---
+document.addEventListener('DOMContentLoaded', () => {
+    const backdrop = document.getElementById('modal-backdrop');
+    const closeBtn = document.querySelector('.close-btn'); // Il tasto 'X' o 'Chiudi'
+
+    if (backdrop) {
+        backdrop.onclick = () => {
+            console.log("Chiusura da backdrop...");
+            closeNoteDetail();
+        };
+    }
+
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            console.log("Chiusura da tasto...");
+            closeNoteDetail();
+        };
+    }
+});
