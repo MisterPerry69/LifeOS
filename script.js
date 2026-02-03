@@ -12,6 +12,7 @@ let currentView = 30;       // Vista Pixel (7, 30, 365)
 let menuOpen = false;
 let currentFilter = 'ALL'; // Filtro BRAIN DUMP
 let searchQuery = ""; // Casella di ricerca BD
+let currentMonthOffset = 0;
 
 // --- 2. CORE & NAVIGATION ---
 
@@ -361,35 +362,66 @@ function openNoteByIndex(index) {
 }
 
 
-
 function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
     const list = document.getElementById('detail-extra-list');
-    const colorBtn = document.querySelector('.color-selector-container');
-    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+    
+    // --- NAVIGAZIONE NEL MODAL ---
+    const now = new Date();
+    const viewDate = new Date(now.getFullYear(), now.getMonth() + detailMonthOffset, 1);
+    const monthLabel = viewDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
 
-    document.getElementById('detail-type').innerText = "RECAP_EXTRA";
+    // Impostiamo il titolo con le frecce per navigare
+    document.getElementById('detail-type').innerHTML = `
+        <div style="display:flex; align-items:center; gap:15px; justify-content:center; width:100%">
+            <i class="fas fa-chevron-left" onclick="changeDetailMonth(-1)" style="cursor:pointer; font-size:14px; opacity:0.6"></i>
+            <span>RECAP_EXTRA: ${monthLabel}</span>
+            <i class="fas fa-chevron-right" onclick="changeDetailMonth(1)" style="cursor:pointer; font-size:14px; opacity:0.6"></i>
+        </div>
+    `;
+
     document.getElementById('detail-text').style.display = "none";
     list.style.display = "block";
 
-    // Nascondi tavolozza e illumina Pin (Hours è sempre pinnato)
-    if(colorBtn) colorBtn.style.display = "none";
-    if(pinIcon) pinIcon.style.color = "var(--accent)";
+    // --- FILTRO DEI DATI ---
+    // Filtriamo extraItemsGlobal per mostrare solo i dati del mese selezionato
+    const filteredExtra = extraItemsGlobal.filter(item => {
+        const itemDate = new Date(item.data);
+        return itemDate.getMonth() === viewDate.getMonth() && 
+               itemDate.getFullYear() === viewDate.getFullYear();
+    }).sort((a, b) => new Date(a.data) - new Date(b.data));
 
-    // Ordinamento Cronologico
-    const sortedExtra = [...extraItemsGlobal].sort((a, b) => new Date(a.data) - new Date(b.data));
-    
-    list.innerHTML = sortedExtra.map(item => `
-        <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #222;">
-            <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} ➔ <b>+${item.ore}h</b></span>
-            <i class="fas fa-trash" onclick="confirmDelete(${item.id}, 'EXTRA')" style="color:#555; cursor:pointer;"></i>
-        </div>`).join('');
-    
+    // Render della lista filtrata
+    if (filteredExtra.length === 0) {
+        list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:20px;">NESSUN DATO PER QUESTO MESE</div>`;
+    } else {
+        list.innerHTML = filteredExtra.map(item => `
+            <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #222;">
+                <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} ➔ <b>+${item.ore}h</b></span>
+                <i class="fas fa-trash" onclick="confirmDelete(${item.id}, 'EXTRA')" style="color:#555; cursor:pointer;"></i>
+            </div>`).join('');
+    }
+
     modal.className = 'note-overlay extra-card';
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
 }
+
+
+function changeDetailMonth(delta) {
+    detailMonthOffset += delta;
+    
+    // Non permettere di andare oltre il mese corrente
+    if (detailMonthOffset > 0) {
+        detailMonthOffset = 0;
+        return;
+    }
+    
+    // Rieseguiamo il render del contenuto
+    openExtraDetail();
+}
+
 
 // Chiusura istantanea per eliminare il lag
 function saveAndClose() {
@@ -424,6 +456,7 @@ function closeModal() {
     document.getElementById('note-detail').style.display = 'none';
     document.getElementById('modal-backdrop').style.display = 'none';
     document.body.classList.remove('modal-open');
+    // Nella funzione dove chiudi il modal (es. closeNoteDetail)
     
     // RESET INTERFACCIA: Chiude bubble colori e modal cancellazione se aperti
     document.getElementById('color-picker-bubble').style.display = 'none';
