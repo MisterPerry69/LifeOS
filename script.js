@@ -777,3 +777,26 @@ function toggleTaskVisual(index) {
         text.style.textDecoration = "none";
     }
 } 
+
+
+async function recordFinance(rawText) {
+    const feedbackArea = document.getElementById('ai-advice-text'); // Crea un div con questo ID
+    feedbackArea.innerText = "> NEURAL_ANALYSIS_IN_PROGRESS...";
+
+    try {
+        // Chiamata al server che ora usa Gemini
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ service: "finance_neural", text: rawText })
+        });
+        const data = await response.json();
+
+        // Se il server ci rimanda anche il commento cinico
+        feedbackArea.innerText = `"${data.advice}"`; 
+        
+        // Aggiorna i widget della UI
+        loadStats(); 
+    } catch (e) {
+        feedbackArea.innerText = "Analisi fallita. Spendi e taci.";
+    }
+}
