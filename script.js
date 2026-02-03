@@ -13,6 +13,8 @@ let menuOpen = false;
 let currentFilter = 'ALL'; // Filtro BRAIN DUMP
 let searchQuery = ""; // Casella di ricerca BD
 let currentMonthOffset = 0;
+let detailMonthOffset = 0; 
+
 
 // --- 2. CORE & NAVIGATION ---
 
@@ -367,60 +369,69 @@ function openExtraDetail() {
     const modal = document.getElementById('note-detail');
     const list = document.getElementById('detail-extra-list');
     
-    // --- NAVIGAZIONE NEL MODAL ---
+    // Check di sicurezza: se gli elementi non esistono, fermati
+    if (!modal || !list) {
+        console.error("Elementi modal non trovati!");
+        return;
+    }
+
+    // Calcolo mese per il titolo
     const now = new Date();
     const viewDate = new Date(now.getFullYear(), now.getMonth() + detailMonthOffset, 1);
     const monthLabel = viewDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
 
-    // Impostiamo il titolo con le frecce per navigare
+    // Reset UI interna
     document.getElementById('detail-type').innerHTML = `
         <div style="display:flex; align-items:center; gap:15px; justify-content:center; width:100%">
-            <i class="fas fa-chevron-left" onclick="changeDetailMonth(-1)" style="cursor:pointer; font-size:14px; opacity:0.6"></i>
+            <i class="fas fa-chevron-left" id="prevMonth" style="cursor:pointer; padding:10px;"></i>
             <span>RECAP_EXTRA: ${monthLabel}</span>
-            <i class="fas fa-chevron-right" onclick="changeDetailMonth(1)" style="cursor:pointer; font-size:14px; opacity:0.6"></i>
+            <i class="fas fa-chevron-right" id="nextMonth" style="cursor:pointer; padding:10px;"></i>
         </div>
     `;
 
     document.getElementById('detail-text').style.display = "none";
     list.style.display = "block";
 
-    // --- FILTRO DEI DATI ---
-    // Filtriamo extraItemsGlobal per mostrare solo i dati del mese selezionato
-    const filteredExtra = extraItemsGlobal.filter(item => {
-        const itemDate = new Date(item.data);
-        return itemDate.getMonth() === viewDate.getMonth() && 
-               itemDate.getFullYear() === viewDate.getFullYear();
-    }).sort((a, b) => new Date(a.data) - new Date(b.data));
+    // Filtro dati (usiamo un try/catch per evitare blocchi se extraItemsGlobal è vuoto)
+    try {
+        const filteredExtra = (window.extraItemsGlobal || []).filter(item => {
+            const itemDate = new Date(item.data);
+            return itemDate.getMonth() === viewDate.getMonth() && 
+                   itemDate.getFullYear() === viewDate.getFullYear();
+        }).sort((a, b) => new Date(a.data) - new Date(b.data));
 
-    // Render della lista filtrata
-    if (filteredExtra.length === 0) {
-        list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:20px;">NESSUN DATO PER QUESTO MESE</div>`;
-    } else {
-        list.innerHTML = filteredExtra.map(item => `
-            <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #222;">
-                <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} ➔ <b>+${item.ore}h</b></span>
-                <i class="fas fa-trash" onclick="confirmDelete(${item.id}, 'EXTRA')" style="color:#555; cursor:pointer;"></i>
-            </div>`).join('');
+        if (filteredExtra.length === 0) {
+            list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px; font-family:var(--font-cyber);">NESSUN_DATO_RILEVATO</div>`;
+        } else {
+            list.innerHTML = filteredExtra.map(item => `
+                <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #222;">
+                    <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} ➔ <b style="color:var(--accent)">+${item.ore}h</b></span>
+                    <i class="fas fa-trash" onclick="confirmDelete(${item.id}, 'EXTRA')" style="color:#444; cursor:pointer; padding:5px;"></i>
+                </div>`).join('');
+        }
+    } catch (err) {
+        console.error("Errore nel filtraggio dati:", err);
+        list.innerHTML = "Errore caricamento dati.";
     }
 
+    // Mostra il modal
     modal.className = 'note-overlay extra-card';
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
+
+    // Agganciamo gli eventi ai pulsanti appena creati (più sicuro del onclick nell'HTML)
+    document.getElementById('prevMonth').onclick = (e) => { e.stopPropagation(); changeDetailMonth(-1); };
+    document.getElementById('nextMonth').onclick = (e) => { e.stopPropagation(); changeDetailMonth(1); };
 }
 
-
+// 2. FUNZIONE DI CAMBIO MESE (Assicurati che esista!)
 function changeDetailMonth(delta) {
     detailMonthOffset += delta;
-    
-    // Non permettere di andare oltre il mese corrente
-    if (detailMonthOffset > 0) {
-        detailMonthOffset = 0;
-        return;
-    }
-    
-    // Rieseguiamo il render del contenuto
+    if (detailMonthOffset > 0) detailMonthOffset = 0;
     openExtraDetail();
 }
+
+
 
 
 // Chiusura istantanea per eliminare il lag
