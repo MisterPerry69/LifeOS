@@ -281,51 +281,54 @@ async function sendCmd(event) {
         const val = input.value.trim();
         if (!val) return;
 
-        // --- 1. LOGICA FINANCE ---
-        // Se inizia con '-' (spesa) o 'spesa ', ma NON se è solo un numero positivo (ore)
         if (val.startsWith('-') || val.startsWith('spesa ')) {
             recordFinance(val);
             input.value = "";
             return; 
         }
 
-        // --- 2. PREPARAZIONE SERVICE ---
-        input.value = "";
-        input.placeholder = "> SYNCING...";
-        
-        let service = "note";
-        if (val.toLowerCase().startsWith('t ')) {
-            service = "agenda_add";
-        } else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) {
-            service = "extra_hours";
+        // --- OPTIMISTIC UI: Crea una card finta subito ---
+        if (!val.startsWith('t ') && !val.includes('+')) {
+            const tempId = "temp-" + Date.now();
+            const grid = document.getElementById('keep-grid');
+            const tempCard = document.createElement('div');
+            tempCard.className = "keep-card bg-default blink"; // blink indica che sta syncando
+            tempCard.id = tempId;
+            tempCard.innerHTML = `<div class="title-row">SYNCING...</div><div class="content-preview">${val}</div>`;
+            grid.prepend(tempCard); // La mette in cima
         }
 
-        // --- 3. ESECUZIONE ---
+        input.value = "";
+        input.placeholder = "> SYNC_STARTING...";
+        
+        let service = "note";
+        if (val.toLowerCase().startsWith('t ')) service = "agenda_add";
+        else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) service = "extra_hours";
+
         try {
-            await fetch(SCRIPT_URL, { 
+            // Invio in background (non usiamo await per la fetch se vogliamo velocità totale, 
+            // ma usiamolo qui per gestire il successo visivo)
+            fetch(SCRIPT_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
                 body: JSON.stringify({ service: service, text: val })
             });
 
-            // Delay per permettere a Google Sheets di scrivere
-            await new Promise(r => setTimeout(r, 1500));
+            // Feedback immediato di successo (anche se il server sta ancora lavorando)
+            input.placeholder = "> COMMAND_SENT.";
             
-            // Ricarica i dati globali
-            await loadStats();
+            // Aspettiamo un secondo e ricarichiamo i dati veri per sostituire la card finta
+            setTimeout(async () => {
+                await loadStats();
+                if (document.getElementById('note-detail').style.display === 'flex' && service === "extra_hours") {
+                    openExtraDetail();
+                }
+            }, 3500); // Diamo tempo a Gemini di finire sul server
 
-            // Se hai il dettaglio EXTRA aperto, lo aggiorniamo al volo
-            if (document.getElementById('note-detail').style.display === 'flex' && service === "extra_hours") {
-                openExtraDetail();
-            }
-
-            input.placeholder = "> SUCCESS.";
         } catch (e) { 
-            console.error("Errore sendCmd:", e);
-            input.placeholder = "!! ERROR !!"; 
+            input.placeholder = "!! SYNC_ERROR !!"; 
         }
         
-        // --- 4. RESET INPUT ---
         setTimeout(() => { 
             input.placeholder = "> DIGITA...";
             input.focus(); 
@@ -394,18 +397,24 @@ function openExtraDetail() {
     
     if (!modal || !list) return;
 
+    // Calcolo date
     const now = new Date();
-    // Usiamo l'offset per navigare
     const viewDate = new Date(now.getFullYear(), now.getMonth() + detailMonthOffset, 1);
     const targetMonth = viewDate.getMonth();
     const targetYear = viewDate.getFullYear();
-    
     const monthLabel = viewDate.toLocaleString('it-IT', { month: 'long', year: 'numeric' }).toUpperCase();
 
+    // Pulizia UI: Nascondiamo selettore colore e pin per l'extra
+    const colorTool = document.querySelector('.color-selector-container');
+    const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
+    if(colorTool) colorTool.style.display = "none";
+    if(pinTool) pinTool.style.display = "none";
+
+    // Header con navigazione
     document.getElementById('detail-type').innerHTML = `
         <div style="display:flex; align-items:center; gap:15px; justify-content:center; width:100%">
             <i class="fas fa-chevron-left" id="prevMonth" style="cursor:pointer; padding:10px;"></i>
-            <span>RECAP_EXTRA: ${monthLabel}</span>
+            <span style="letter-spacing:1px">RECAP: ${monthLabel}</span>
             <i class="fas fa-chevron-right" id="nextMonth" style="cursor:pointer; padding:10px;"></i>
         </div>
     `;
@@ -413,38 +422,36 @@ function openExtraDetail() {
     document.getElementById('detail-text').style.display = "none";
     list.style.display = "block";
 
-    // --- LOG DI DEBUG (Apri la console F12 per vederlo) ---
-    console.log(`Filtrando per: ${targetMonth + 1}/${targetYear}`);
-    console.log("Dati totali ricevuti dal server:", extraItemsGlobal.length);
-
     try {
         const filteredExtra = (extraItemsGlobal || []).filter(item => {
-            // Proviamo a convertire la data in vari modi
-            let d = new Date(item.data);
-            
-            // Se la data è nel formato DD/MM/YYYY, il costruttore Date() potrebbe fallire
-            if (isNaN(d.getTime()) && typeof item.data === 'string') {
-                const parts = item.data.split('/');
-                if(parts.length === 3) d = new Date(parts[2], parts[1] - 1, parts[1]);
-            }
-
-            if (isNaN(d.getTime())) return false;
-
-            return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+            const d = new Date(item.data);
+            return !isNaN(d.getTime()) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
         }).sort((a, b) => new Date(b.data) - new Date(a.data));
+
+        // Calcolo totale del mese visualizzato
+        const monthTotal = filteredExtra.reduce((acc, curr) => acc + (parseFloat(curr.ore) || 0), 0);
 
         if (filteredExtra.length === 0) {
             list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ NESSUN_DATO_RILEVATO ]</div>`;
         } else {
-            list.innerHTML = filteredExtra.map(item => `
+            // Aggiungiamo il Totale in cima alla lista
+            let html = `
+                <div style="margin-bottom:15px; padding:15px; background:rgba(0,212,255,0.1); border:1px solid var(--accent); border-radius:4px; text-align:center;">
+                    <span style="font-size:10px; opacity:0.6; display:block">TOTALE_PERIODO</span>
+                    <span style="font-size:24px; color:var(--accent); font-weight:bold">${monthTotal.toFixed(1)}h</span>
+                </div>
+            `;
+            
+            html += filteredExtra.map(item => `
                 <div class="extra-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #222;">
                     <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})} ➔ <b style="color:var(--accent)">+${item.ore}h</b></span>
-                    <i class="fas fa-trash" onclick="confirmDelete(${item.id}, 'EXTRA')" style="color:#444; cursor:pointer; padding:5px;"></i>
+                    <span style="font-size:10px; opacity:0.4; max-width:50%; text-align:right">${item.nota || ''}</span>
                 </div>`).join('');
+            
+            list.innerHTML = html;
         }
     } catch (err) {
-        console.error("Errore filtro:", err);
-        list.innerHTML = "ERRORE_PARSING_DATI";
+        list.innerHTML = "ERRORE_DATA_SYNC";
     }
 
     modal.className = 'note-overlay extra-card';
