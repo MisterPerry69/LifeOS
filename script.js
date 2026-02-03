@@ -776,4 +776,4 @@ function toggleTaskVisual(index) {
         node.style.filter = "none";
         text.style.textDecoration = "none";
     }
-}
+} 
