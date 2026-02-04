@@ -137,6 +137,8 @@ async function loadStats() {
                 
                 if (document.getElementById('burn-percentage'))
                     document.getElementById('burn-percentage').innerText = Math.round(burnPct) + "%";
+
+                renderFinanceLog(data.finance.transactions);
             }
         }
     } catch (err) {
@@ -917,15 +919,18 @@ function toggleAnalyst() {
 }
 
 function toggleFinanceInput(show) {
-const wrapper = document.getElementById('finance-input-wrapper');
+    const zone = document.getElementById('finance-input-zone');
+    const fab = document.getElementById('fab-finance');
+    
     if (show) {
-        wrapper.classList.add('active');
+        zone.classList.add('active');
+        fab.style.opacity = "0"; // Nasconde il + mentre scrivi
         document.getElementById('finance-input').focus();
     } else {
-        wrapper.classList.remove('active');
+        zone.classList.remove('active');
+        fab.style.opacity = "1";
     }
 }
-
 // Chiudi se clicchi fuori
 document.getElementById('finance-input').addEventListener('blur', () => {
     setTimeout(() => toggleFinanceInput(false), 200);
@@ -942,4 +947,24 @@ function updateFinanceUI(stats) {
     let burn = (stats.total_spent / 1000) * 100;
     document.getElementById('efficiency-fill').style.width = burn + "%";
     document.getElementById('burn-percentage').innerText = Math.round(burn) + "%";
+}
+
+function renderFinanceLog(transactions) {
+    const log = document.getElementById('finance-log');
+    if (!log) return;
+    
+    if (!transactions || transactions.length === 0) {
+        log.innerHTML = "<div>NO_DATA_FOUND</div>";
+        return;
+    }
+
+    log.innerHTML = transactions.map(t => `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px solid #111; padding-bottom: 2px;">
+            <span style="color: var(--dim);">${t.date}</span>
+            <span style="flex: 1; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.desc}</span>
+            <span style="color: ${t.amt < 0 ? '#ff4d4d' : '#00ff88'}; font-weight: bold; margin-left: 10px;">
+                ${t.amt > 0 ? '+' : ''}${parseFloat(t.amt).toFixed(2)}€
+            </span>
+        </div>
+    `).join('');
 }
