@@ -230,51 +230,56 @@
   <!-- ============================================ -->
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
-  <div id="finance" class="page">
-    <div class="header" style="flex-direction: column; align-items: stretch; height: auto; gap: 5px;">
-      <div class="status-indicator">
-        <span class="blink-dot" style="background-color: #00d4ff; box-shadow: 0 0 8px #00d4ff;"></span>
-        <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700;">FINANCIAL_CORE // ENCRYPTED</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="wallet" style="color: #00d4ff; width: 28px; height: 28px;"></i>
-          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">ECON_SYNC</h1>
+<div id="finance" class="page">
+    <div class="header finance-header">
+        <div class="status-indicator">
+            <span class="blink-dot" style="background-color: #00d4ff;"></span>
+            <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff;">FINANCIAL_CORE // v2.0</span>
+        </div>
+        <div class="analyst-anchor" onclick="triggerAnalyst()">
+            <i data-lucide="eye" class="analyst-eye"></i>
+            <div id="analyst-bubble" class="analyst-bubble">Awaiting data stream...</div>
         </div>
         <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-      </div>
     </div>
-    <main style="padding: 20px;">
-      <div id="ai-advice-panel" class="neural-panel">
-        <div class="panel-header">
-          <span class="status-dot"></span>
-          <span class="panel-title">NEURAL_ADVICE_v3</span>
-        </div>
-        <p id="ai-advice-text">In attesa di dati... non aver paura, non mordo (quasi mai).</p>
-      </div>
 
-      <div class="terminal-input-wrapper">
-        <span class="terminal-prefix">></span>
-        <input type="text" id="finance-input" placeholder="Esempio: -20 pizza con amici">
-        <button onclick="handleFinanceSubmit()">INVIO</button>
-      </div>
+    <main class="finance-main">
+        <div class="balance-display">
+            <div class="label">TOTAL_LIQUID_CAPITAL</div>
+            <div id="total-balance" class="big-money">0.00 €</div>
+            <div class="efficiency-bar-container">
+                <div id="efficiency-fill" class="efficiency-fill" style="width: 0%"></div>
+            </div>
+            <div class="efficiency-label">BURN_RATE: <span id="burn-percentage">0%</span></div>
+        </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-        <div style="background: rgba(0,212,255,0.05); border: 1px solid #00d4ff33; padding: 15px; border-radius: 4px;">
-          <div class="label" style="font-size: 10px; color: #00d4ff;">MONTHLY_OUT</div>
-          <div id="finance-total-out" style="font-size: 1.5rem; color: #fff;">0.00 €</div>
+        <div class="asset-grid">
+            <div class="asset-card">
+                <span class="label">DIGITAL_CREDITS</span>
+                <span id="bank-val" class="asset-val">-- €</span>
+            </div>
+            <div class="asset-card">
+                <span class="label">PHYSICAL_ASSETS</span>
+                <span id="cash-val" class="asset-val">-- €</span>
+            </div>
         </div>
-        <div style="background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 15px; border-radius: 4px;">
-          <div class="label" style="font-size: 10px; color: var(--dim);">ESTIMATED_CASH</div>
-          <div id="finance-cash-bal" style="font-size: 1.5rem; color: #fff;">-- €</div>
+
+        <div id="finance-analytics" class="analytics-row">
+            </div>
+
+        <div class="transaction-history">
+            <div class="label" style="margin-bottom:10px; opacity:0.5">RECENT_TRANSACTIONS</div>
+            <div id="finance-log" class="terminal-log"></div>
         </div>
-      </div>
-      <div style="margin-bottom: 10px; font-size: 10px; letter-spacing: 2px; color: var(--dim);">RECENT_TRANSACTIONS</div>
-      <div id="finance-log" style="font-family: 'JetBrains Mono'; font-size: 12px; border-left: 1px solid #222; padding-left: 15px;">
-        <div style="color: #444; font-style: italic;">AWAITING_DATA_STREAM...</div>
-      </div>
     </main>
-  </div>
+
+    <div id="finance-input-zone" class="stealth-input-wrapper">
+        <input type="text" id="finance-input" placeholder="> -20 pizza, -5 caffe *c, +50 bonus" onkeypress="handleFinanceSubmit(event)">
+    </div>
+    <div class="fab-btn" onclick="toggleFinanceInput()">
+        <i data-lucide="plus"></i>
+    </div>
+</div>
 
   <!-- ============================================ -->
   <!-- MODAL: NOTE DETAIL -->

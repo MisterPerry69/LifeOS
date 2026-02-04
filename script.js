@@ -327,26 +327,6 @@ async function sendCmd(event) {
     }, 1500);
 }
 
-// FIX: Funzione finance rinominata e semplificata
-function recordFinanceCommand(rawText) {
-    console.log("Inviando dato finanziario:", rawText);
-    
-    const widget = document.querySelector('.finance-widget');
-    if(widget) {
-        widget.style.borderColor = "#fff";
-        widget.style.boxShadow = "0 0 15px #00d4ff";
-        setTimeout(() => {
-            widget.style.borderColor = "#00d4ff";
-            widget.style.boxShadow = "none";
-        }, 500);
-    }
-
-    fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ service: "finance_add", text: rawText })
-    });
-}
 
 // ============================================
 // 5. UI MODALS & ACTIONS
@@ -839,3 +819,56 @@ document.addEventListener('DOMContentLoaded', () => {
         closeBtn.onclick = () => closeNoteDetail(true);
     }
 });
+
+
+// ============================================
+// 10. FINANCE
+// ============================================
+
+async function handleFinanceSubmit(event) {
+    if (event.key !== 'Enter') return;
+    
+    const input = document.getElementById('finance-input');
+    const rawText = input.value.trim();
+    if (!rawText) return;
+
+    // 1. Splittiamo per virgola per gestire input multipli
+    const entries = rawText.split(',');
+    
+    input.value = ''; // Puliamo subito per feedback rapido
+    toggleFinanceInput(); // Chiudiamo la barra
+
+    for (let entry of entries) {
+        entry = entry.trim();
+        if (!entry) continue;
+
+        // Capiamo se è CASH o BANK (default bank)
+        const isCash = entry.includes('*c');
+        const cleanEntry = entry.replace('*c', '').trim();
+
+        // Invio al server (Codice.gs dovrà gestire questo nuovo formato)
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                service: "process_finance_entry",
+                text: cleanEntry,
+                wallet: isCash ? "CASH" : "BANK"
+            })
+        });
+    }
+
+    // Feedback dell'analista (Punto 2)
+    showAnalystQuote("Transazioni inviate al core. Sto ricalcolando il tuo destino...");
+    
+    // Refresh dati dopo un breve delay
+    setTimeout(loadStats, 1500);
+}
+
+function toggleFinanceInput() {
+    const wrapper = document.getElementById('finance-input-zone');
+    wrapper.classList.toggle('active');
+    if (wrapper.classList.contains('active')) {
+        document.getElementById('finance-input').focus();
+    }
+}
