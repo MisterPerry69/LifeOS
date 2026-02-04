@@ -1068,7 +1068,7 @@ input:focus {
 /* Animazione Bolla Analista (da sinistra) */
 .side-bubble {
     position: absolute; bottom: 70px; left: -110%; /* Nascosta */
-    width: auto; max-width: 70%; background: #111;    border: 1px solid var(--accent)
+    width: auto; max-width: 70%; background: #111;    border: 1px solid var(--accent);
     border-radius: 4px;
     padding: 15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: auto;
