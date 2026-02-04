@@ -236,9 +236,9 @@
             <span class="blink-dot" style="background-color: #00d4ff;"></span>
             <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff;">FINANCIAL_CORE // v2.0</span>
         </div>
-        <div class="analyst-anchor" onclick="triggerAnalyst()">
-            <i data-lucide="eye" class="analyst-eye"></i>
-            <div id="analyst-bubble" class="analyst-bubble">Awaiting data stream...</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="finance" class="brain-icon"></i>
+          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">CREDITS</h1>
         </div>
         <div class="esc-btn" onclick="nav('home')">[esc X]</div>
     </div>
@@ -278,21 +278,20 @@
 </main>
 
     <div class="finance-controls">
-        <div class="chip-btn" onclick="toggleAnalyst()">
+        <div id="analyst-btn" class="square-btn btn-left" onclick="toggleAnalyst()">
             <i data-lucide="cpu"></i>
         </div>
         
-        <div id="analyst-bubble" class="side-bubble analyst-left">
-            <div class="label" style="font-size: 8px; color: var(--accent);">NEURAL_ANALYST_v2</div>
-            <p id="analyst-text">In attesa di dati...</p>
+        <div id="fab-finance" class="square-btn btn-right" onclick="toggleFinanceInput()">
+            <i data-lucide="plus"></i>
         </div>
 
         <div id="finance-input-zone" class="side-input-wrapper">
-            <input type="text" id="finance-input" placeholder="> DIGITA TRANSAZIONE..." onkeypress="handleFinanceSubmit(event)">
+            <input type="text" id="finance-input" placeholder="> DIGITA..." onkeypress="handleFinanceSubmit(event)">
         </div>
-
-        <div class="fab-btn" onclick="toggleFinanceInput()">
-            <i data-lucide="plus"></i>
+        
+        <div id="analyst-bubble" class="side-bubble">
+            <p id="analyst-text">SISTEMA_PRONTO...</p>
         </div>
     </div>
 </div>

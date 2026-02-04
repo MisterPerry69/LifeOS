@@ -832,29 +832,29 @@ async function handleFinanceSubmit(event) {
     const rawText = input.value.trim();
     if (!rawText) return;
 
-    // Chiudi barra e reset input
+    // Chiudi e pulisci subito
     toggleFinanceInput();
     input.value = '';
 
-    // Esegui split e invio (come avevamo pianificato)
     const entries = rawText.split(',');
-    showAnalystQuote("Analisi flussi in corso...");
+    showAnalystQuote("Analisi transazioni in corso...");
 
     for (let entry of entries) {
         const isCash = entry.includes('*c');
-        const cleanEntry = entry.replace('*c', '').trim();
+        const cleanText = entry.replace('*c', '').trim();
 
-        // Chiamata al server
+        // Mandiamo al server con un nuovo service dedicato
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify({
-                service: "process_finance_entry",
-                text: cleanEntry,
-                wallet: isCash ? "CASH" : "BANK"
+                service: "finance_smart_entry", // Cambiato nome per evitare conflitti
+                text: cleanText,
+                wallet: isCash ? "PHYSICAL_ASSETS" : "DIGITAL_CREDITS"
             })
         });
     }
+    setTimeout(loadStats, 2000);
 }
 
 // Funzione per il fumetto dell'analista (L'occhio verde in alto)
