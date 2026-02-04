@@ -834,31 +834,33 @@ async function handleFinanceSubmit(event) {
 
     toggleFinanceInput(false);
     input.value = '';
-    
-    // Mostra bolla con caricamento
+
+    const entries = rawText.split(',');
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
+    
     text.innerText = "ANALISI_FLUSSI...";
     bubble.classList.add('active');
 
-    const entries = rawText.split(',');
     for (let entry of entries) {
         const isCash = entry.includes('*c');
         const cleanText = entry.replace('*c', '').trim();
 
-        // Passiamo i dati puliti
-        const response = await fetch(SCRIPT_URL + "?action=finance_smart_entry&text=" + encodeURIComponent(cleanText) + "&wallet=" + (isCash ? "CASH" : "BANK"));
-        const result = await response.json();
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                service: "finance_smart_entry",
+                text: cleanText,
+                wallet: isCash ? "CASH" : "BANK"
+            })
+        });
         
-        // MOSTRA IL CONSIGLIO VERO NELLA BOLLA
-        text.innerText = result.advice;
+        const result = await response.json();
+        text.innerText = result.advice; // Qui appare il consiglio cinico!
     }
-    
-    // Aggiorna i numeri della dashboard
-    loadStats();
-    
-    // Chiudi bolla dopo 8 secondi
-    setTimeout(() => bubble.classList.remove('active'), 8000);
+
+    setTimeout(loadStats, 1500); // Aggiorna i numeri (Saldo/HP Bar)
+    setTimeout(() => bubble.classList.remove('active'), 7000);
 }
 
 // Funzione per il fumetto dell'analista (L'occhio verde in alto)

@@ -231,67 +231,68 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
 <div id="finance" class="page">
-    <div class="header finance-header">
-        <div class="status-indicator">
+    <div class="header" style="flex-direction: column; align-items: stretch; height: auto; min-height: 80px; gap: 10px;">
+        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
             <span class="blink-dot" style="background-color: #00d4ff;"></span>
-            <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff;">FINANCIAL_CORE // v2.0</span>
+            <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700;">FINANCIAL_CORE // ACTIVE</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="finance" class="brain-icon"></i>
-          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">CREDITS</h1>
-        </div>
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-    </div>
-
-    <main class="finance-main">
-    <div class="finance-card-main">
-        <div class="label" style="color: var(--accent);">TOTAL_LIQUID_ASSETS</div>
-        <div id="total-balance" class="big-money">0.00 €</div>
-        
-        <div class="sub-assets">
-            <div class="sub-item">
-                <span class="label">DIGITAL_CREDITS</span>
-                <span id="bank-val">0.00 €</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                <i data-lucide="wallet" class="brain-icon"></i>
+                <div class="title-zone" style="position: relative; flex: 1; display: flex; align-items: center;">
+                    <h1 id="finance-title" style="margin: 0;">ECON_SYNC</h1>
+                </div>
             </div>
-            <div class="sub-item" style="text-align: right;">
-                <span class="label">PHYSICAL_ASSETS</span>
-                <span id="cash-val">0.00 €</span>
+            <div class="header-right" style="margin-top: 0;">
+                <div class="esc-btn" onclick="nav('home')">[esc X]</div>
             </div>
         </div>
     </div>
 
-    <div class="burn-rate-container">
-        <div class="burn-header">
-            <span class="label">NEURAL_BURN_RATE</span>
-            <span id="burn-percentage" class="value">0%</span>
+    <main class="finance-main" style="padding: 0 20px;">
+        <div class="finance-card-main" style="background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 20px; border-radius: 4px; margin-top: 20px;">
+            <div class="label" style="color: var(--accent); font-size: 10px; letter-spacing: 1px;">TOTAL_LIQUID_ASSETS</div>
+            <div id="total-balance" class="big-money" style="font-size: 2.5rem; font-family: 'Rajdhani'; font-weight: 700; margin: 10px 0;">0.00 €</div>
+            
+            <div class="sub-assets" style="display: flex; justify-content: space-between; border-top: 1px solid #222; padding-top: 15px;">
+                <div class="sub-item">
+                    <div class="label" style="font-size: 8px; opacity: 0.5;">DIGITAL_CREDITS</div>
+                    <div id="bank-val" style="color: var(--accent); font-family: 'JetBrains Mono';">0.00 €</div>
+                </div>
+                <div class="sub-item" style="text-align: right;">
+                    <div class="label" style="font-size: 8px; opacity: 0.5;">PHYSICAL_ASSETS</div>
+                    <div id="cash-val" style="color: var(--accent); font-family: 'JetBrains Mono';">0.00 €</div>
+                </div>
+            </div>
         </div>
-        <div class="hp-bar-outer">
-            <div id="efficiency-fill" class="hp-bar-fill"></div>
-            <div class="hp-bar-glitch"></div>
-        </div>
-    </div>
 
-    <div class="transaction-history">
-        <div class="label" style="margin-bottom:10px; opacity:0.3; font-size: 9px;">TERMINAL_LOG</div>
-        <div id="finance-log" class="terminal-log"></div>
-    </div>
-</main>
+        <div class="burn-rate-container" style="margin-top: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <span class="label" style="font-size: 10px; letter-spacing: 1px;">NEURAL_BURN_RATE</span>
+                <span id="burn-percentage" style="color: var(--accent); font-weight: bold;">0%</span>
+            </div>
+            <div style="width: 100%; height: 12px; background: #111; border: 1px solid #333; position: relative;">
+                <div id="efficiency-fill" style="height: 100%; background: var(--accent); width: 0%; transition: width 1s ease;"></div>
+            </div>
+        </div>
+
+        <div id="finance-log" style="margin-top: 30px; font-size: 11px; font-family: 'JetBrains Mono'; opacity: 0.7;"></div>
+    </main>
 
     <div class="finance-controls">
         <div id="analyst-btn" class="square-btn btn-left" onclick="toggleAnalyst()">
             <i data-lucide="cpu"></i>
         </div>
-        
-        <div id="fab-finance" class="square-btn btn-right" onclick="toggleFinanceInput()">
+        <div id="analyst-bubble" class="side-bubble"><p id="analyst-text">SISTEMA_PRONTO...</p></div>
+
+        <div id="fab-finance" class="square-btn btn-right" onclick="toggleFinanceInput(true)">
             <i data-lucide="plus"></i>
         </div>
 
         <div id="finance-input-zone" class="side-input-wrapper">
-            <input type="text" id="finance-input" placeholder="> DIGITA..." onkeypress="handleFinanceSubmit(event)">
-        </div>
-        
-        <div id="analyst-bubble" class="side-bubble">
-            <p id="analyst-text">SISTEMA_PRONTO...</p>
+            <input type="text" id="finance-input" placeholder="> DIGITA TRANSAZIONE..." 
+                   onkeypress="handleFinanceSubmit(event)"
+                   onblur="setTimeout(() => toggleFinanceInput(false), 200)">
         </div>
     </div>
 </div>
