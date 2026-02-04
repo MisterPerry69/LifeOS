@@ -1,74 +1,68 @@
 /**
- * SYSTEM_OS - CORE JAVASCRIPT
- * Struttura Modulare per GitHub
+ * SYSTEM_OS - CORE JAVASCRIPT (CLEANED)
+ * Versione pulita e ottimizzata
  */
 
-// --- 1. CONFIGURAZIONE E STATO GLOBALE ---
+// ============================================
+// 1. CONFIGURAZIONE E STATO GLOBALE
+// ============================================
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQPQYYG6qBHwPcZRUFnNYILkm1xgiwWlFZWofg8M2u12xsOBgJDeB8HJmH2JIM0csI/exec";
+
+// Stato applicazione centralizzato
 let historyData = [];
 let extraItemsGlobal = [];
-let currentNoteData = null; // Memorizza la nota attiva nel modal
-let currentView = 30;       // Vista Pixel (7, 30, 365)
-let menuOpen = false;
-let currentFilter = 'ALL'; // Filtro BRAIN DUMP
-let searchQuery = ""; // Casella di ricerca BD
+let loadedNotesData = [];
+let lastStatsData = null; // FIX: Dichiarata esplicitamente
+let currentNoteData = null;
+let currentView = 30;
+let currentFilter = 'ALL';
+let searchQuery = "";
 let currentMonthOffset = 0;
-let detailMonthOffset = 0; 
+let detailMonthOffset = 0;
+let draggedItem = null;
 
+// ============================================
+// 2. CORE & NAVIGATION
+// ============================================
 
-// --- 2. CORE & NAVIGATION ---
-
-// Inizializzazione al caricamento
-// --- 2. CORE & NAVIGATION ---
-
-// Inizializzazione al caricamento
 window.onload = async () => {
     updateClock();
     setInterval(updateClock, 1000);
     
-    // Avvia la sequenza di boot visiva
     await runBootSequence();
+    await loadStats();
     
-    // Carica i dati reali
-    await loadStats(); 
-    
-    // Nasconde il boot screen dopo un breve delay per far leggere l'ultimo log
     setTimeout(() => {
         const boot = document.getElementById('boot-screen');
         if(boot) boot.style.display = 'none';
     }, 500);
-    document.getElementById('search-input').addEventListener('blur', function() {
-    // Se l'input è vuoto quando clicchi fuori, chiudi la barra
-    if (this.value === "") {
-        toggleSearch(false);
-    }
+    
+    // FIX: Event listener con controllo null
     const searchInput = document.getElementById('search-input');
     if (searchInput) {
-    searchInput.addEventListener('blur', () => {
-        setTimeout(() => { toggleSearch(false); }, 200);
-    });
-}
-});
+        searchInput.addEventListener('blur', function() {
+            if (this.value === "") {
+                toggleSearch(false);
+            }
+        });
+    }
 };
 
-// Funzione per scrivere i log nel boot screen
 async function bootLog(text, delay = 150) {
     const logEl = document.getElementById('boot-text');
     if (logEl) {
         logEl.innerHTML += `> ${text}<br>`;
-        // Scroll automatico verso il basso se i log sono tanti
         logEl.scrollTop = logEl.scrollHeight;
     }
     return new Promise(res => setTimeout(res, delay));
 }
 
-// Sequenza di log "estetici"
 async function runBootSequence() {
     await bootLog("INITIALIZING SYSTEM_OS...", 300);
     await bootLog("LOADING KERNEL MODULES...", 200);
     await bootLog("ESTABLISHING CONNECTION TO GAS_ENGINE...", 400);
     await bootLog("FETCHING USER_DATA FROM SPREADSHEET...", 100);
-    // Qui il codice passerà a loadStats() nel window.onload
 }
 
 function updateClock() {
@@ -85,27 +79,19 @@ function nav(pageId) {
     const target = document.getElementById(pageId);
     if(target) target.classList.add('active');
     
-    // LOGICA DI ATTIVAZIONE MODULI
     if(pageId === 'habit') drawPixels(historyData);
-    if(pageId === 'agenda') loadAgenda(); 
-    checkSavedPlan();
-    
-    
-    if(menuOpen) toggleSidebar(); 
-}
-
-async function checkSavedPlan() {
-    // Qui dovremmo fare una fetch per vedere se nel foglio System_State c'è roba di oggi
-    // Per ora, se non lo implementiamo, rimarrà sempre sulla schermata di input.
+    if(pageId === 'agenda') loadAgenda();
 }
 
 function toggleMenu() {
     const menu = document.getElementById('side-menu');
-    menuOpen = !menuOpen;
-    if(menu) menu.style.width = menuOpen ? "180px" : "0";
+    const isOpen = menu && menu.style.width !== "0";
+    if(menu) menu.style.width = isOpen ? "0" : "180px";
 }
 
-// --- 3. DATA ENGINE (GET) ---
+// ============================================
+// 3. DATA ENGINE (GET)
+// ============================================
 
 async function loadStats() {
     try {
@@ -113,15 +99,14 @@ async function loadStats() {
         const data = await response.json();
         
         if (data.status === "ONLINE") {
-            // Aggiorniamo le variabili globali
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
             window.agendaData = data.agenda || [];
+            loadedNotesData = data.notes || [];
+            lastStatsData = data; // FIX: Salvataggio corretto
             
-            // Ridisegniamo la UI
-            renderGrid(data); 
+            renderGrid(data);
             
-            // Se siamo nella pagina agenda, ridisegnamo anche quella
             if (document.getElementById('agenda').classList.contains('active')) {
                 renderAgenda(window.agendaData);
             }
@@ -131,27 +116,20 @@ async function loadStats() {
     }
 }
 
-// Variabile globale per contenere le note caricate ed evitare problemi di parsing nell'HTML
-let loadedNotesData = [];
-
-let draggedItem = null;
-
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
     
-    // 1. SALVATAGGIO DATI GLOBALI
-    lastStatsData = data; 
-    loadedNotesData = data.notes;
+    lastStatsData = data;
+    loadedNotesData = data.notes || [];
 
     document.getElementById('widget-notes').innerText = (loadedNotesData.length + 1);
-       document.getElementById('widget-weight').innerText = data.weight || "94.5";    
-//     if(data.history) document.getElementById('widget-habits').innerText = data.history.length;
+    document.getElementById('widget-weight').innerText = data.weight || "94.5";
 
     const fragment = document.createDocumentFragment();
-    const isSearching = typeof searchQuery !== 'undefined' && searchQuery.length > 0;
+    const isSearching = searchQuery.length > 0;
     
-    // --- 3. CARD EXTRA (Pinnata in alto a sinistra) ---
+    // Card EXTRA pinnata
     if ((currentFilter === 'ALL' || currentFilter === 'EXTRA') && !isSearching) {
         const extraCard = document.createElement('div');
         extraCard.className = "keep-card bg-default extra-card pinnato";
@@ -165,38 +143,37 @@ function renderGrid(data) {
         fragment.appendChild(extraCard);
     }
 
-    // --- 4. FILTRAGGIO E ORDINAMENTO ---
-    // Manteniamo la tua logica di filtraggio, ma aggiungiamo un sort per i Pinnati
-    const filteredNotes = loadedNotesData.map((note, originalIndex) => ({ note, originalIndex }))
-    .filter(item => {
-        const title = String(item.note[5] || "").toLowerCase();
-        const content = String(item.note[1] || "").toLowerCase();
-        const type = item.note[2];
-        const searchLower = searchQuery.toLowerCase(); // searchQuery è già minuscola se usi handleSearch
-        
-        const matchesSearch = !isSearching || title.includes(searchLower) || content.includes(searchLower);
-        if (!matchesSearch) return false;
+    // Filtraggio e ordinamento note
+    const filteredNotes = loadedNotesData
+        .map((note, originalIndex) => ({ note, originalIndex }))
+        .filter(item => {
+            const title = String(item.note[5] || "").toLowerCase();
+            const content = String(item.note[1] || "").toLowerCase();
+            const type = item.note[2];
+            const searchLower = searchQuery.toLowerCase();
+            
+            const matchesSearch = !isSearching || title.includes(searchLower) || content.includes(searchLower);
+            if (!matchesSearch) return false;
 
-        if (currentFilter === 'ALL') return true;
-        if (currentFilter === 'PINNED') return type === 'PINNED';
-        if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
-        if (currentFilter === 'LINK') return content.includes('http');
-        if (currentFilter === 'EXTRA') return false; 
-        return true;
-    })
-    .sort((a, b) => {
-        // Forza i Pinnati in alto se siamo in visualizzazione ALL
-        if (currentFilter === 'ALL' && !isSearching) {
-            if (a.note[2] === "PINNED" && b.note[2] !== "PINNED") return -1;
-            if (a.note[2] !== "PINNED" && b.note[2] === "PINNED") return 1;
-        }
-        return 0;
-    });
+            if (currentFilter === 'ALL') return true;
+            if (currentFilter === 'PINNED') return type === 'PINNED';
+            if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
+            if (currentFilter === 'LINK') return content.includes('http');
+            if (currentFilter === 'EXTRA') return false;
+            return true;
+        })
+        .sort((a, b) => {
+            if (currentFilter === 'ALL' && !isSearching) {
+                if (a.note[2] === "PINNED" && b.note[2] !== "PINNED") return -1;
+                if (a.note[2] !== "PINNED" && b.note[2] === "PINNED") return 1;
+            }
+            return 0;
+        });
 
-    // --- 5. GENERAZIONE DELLE CARD NOTE (Col tuo Drag & Drop) ---
+    // Generazione card
     filteredNotes.forEach((item) => {
         const note = item.note;
-        const index = item.originalIndex; 
+        const index = item.originalIndex;
         const isPinned = note[2] === "PINNED";
         
         const card = document.createElement('div');
@@ -216,9 +193,12 @@ function renderGrid(data) {
             </div>
         `;
 
-        // --- I TUOI EVENTI DRAG & DROP (INTATTI) ---
+        // Eventi Drag & Drop
         card.ondragstart = (e) => {
-            if (!isDraggable) return; 
+            if (!isDraggable) {
+                e.preventDefault(); // FIX: Blocca drag se non permesso
+                return;
+            }
             draggedItem = card;
             card.classList.add('dragging');
         };
@@ -226,12 +206,12 @@ function renderGrid(data) {
         card.ondragend = () => {
             card.classList.remove('dragging');
             document.querySelectorAll('.keep-card').forEach(c => c.classList.remove('drag-over'));
-            if (isDraggable) saveNewOrder(); 
+            if (isDraggable) saveNewOrder();
         };
 
         card.ondragover = (e) => e.preventDefault();
 
-        card.ondragenter = (e) => {
+        card.ondragenter = () => {
             if (isDraggable && draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
                 card.classList.add('drag-over');
             }
@@ -260,8 +240,7 @@ function renderGrid(data) {
         fragment.appendChild(card);
     });
 
-    // --- 6. SWITCH ISTANTANEO ---
-    grid.innerHTML = ""; 
+    grid.innerHTML = "";
     grid.appendChild(fragment);
 }
 
@@ -279,83 +258,100 @@ async function saveNewOrder() {
     });
 }
 
-// --- 4. COMMAND CENTER (POST) ---
+// ============================================
+// 4. COMMAND CENTER (POST)
+// ============================================
 
 async function sendCmd(event) {
-    if (event.key === 'Enter') {
-        const input = event.target;
-        const val = input.value.trim();
-        if (!val) return;
+    if (event.key !== 'Enter') return;
+    
+    const input = event.target;
+    const val = input.value.trim();
+    if (!val) return;
 
-        // --- 1. FINANCE ---
-        if (val.startsWith('-') || val.startsWith('spesa ')) {
-            recordFinance(val);
-            input.value = "";
-            return; 
-        }
-
-        // --- 2. OPTIMISTIC UI (Solo per le Note) ---
-        // Se non è un comando agenda (t ) o ore (+), creiamo la preview
-        if (!val.toLowerCase().startsWith('t ') && !val.includes('+')) {
-            const grid = document.getElementById('keep-grid');
-            const tempCard = document.createElement('div');
-            // La creiamo con classe default, ma il renderGrid vero poi la sistemerà
-            tempCard.className = "keep-card bg-default blink temp-note"; 
-            tempCard.innerHTML = `
-                <div class="title-row">SYNCING...</div>
-                <div class="content-preview">${val}</div>
-                <div class="label" style="font-size:9px; opacity:0.4;">JUST NOW</div>
-            `;
-            // Se ci sono pinnati, la mettiamo dopo l'ultima card pinnata, 
-            // altrimenti in cima.
-            const lastPinned = grid.querySelector('.pinnato:last-of-type');
-            if (lastPinned) {
-                lastPinned.after(tempCard);
-            } else {
-                grid.prepend(tempCard);
-            }
-        }
-
+    // Finance command
+    if (val.startsWith('-') || val.startsWith('spesa ')) {
+        recordFinanceCommand(val);
         input.value = "";
-        input.placeholder = "> SYNC_STARTING...";
-        
-        let service = "note";
-        if (val.toLowerCase().startsWith('t ')) service = "agenda_add";
-        else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) service = "extra_hours";
-
-        try {
-            // Invio al server
-            fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify({ service: service, text: val })
-            });
-
-            // Feedback placeholder
-            input.placeholder = "> COMMAND_SENT.";
-            
-            // Ricarica i dati reali dopo un po' per consolidare i PIN e i Titoli
-            setTimeout(async () => {
-                await loadStats(); // Questo ripristina i PIN corretti dal DB
-                if (document.getElementById('note-detail').style.display === 'flex' && service === "extra_hours") {
-                    openExtraDetail();
-                }
-            }, 3000);
-
-        } catch (e) { 
-            input.placeholder = "!! SYNC_ERROR !!"; 
-        }
-        
-        setTimeout(() => { 
-            input.placeholder = "> DIGITA...";
-            input.focus(); 
-        }, 1500);
+        return;
     }
+
+    // Optimistic UI per note normali
+    if (!val.toLowerCase().startsWith('t ') && !val.includes('+')) {
+        const grid = document.getElementById('keep-grid');
+        const tempCard = document.createElement('div');
+        tempCard.className = "keep-card bg-default blink temp-note";
+        tempCard.innerHTML = `
+            <div class="title-row">SYNCING...</div>
+            <div class="content-preview">${val}</div>
+            <div class="label" style="font-size:9px; opacity:0.4;">JUST NOW</div>
+        `;
+        const lastPinned = grid.querySelector('.pinnato:last-of-type');
+        if (lastPinned) {
+            lastPinned.after(tempCard);
+        } else {
+            grid.prepend(tempCard);
+        }
+    }
+
+    input.value = "";
+    input.placeholder = "> SYNC_STARTING...";
+    
+    let service = "note";
+    if (val.toLowerCase().startsWith('t ')) service = "agenda_add";
+    else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) service = "extra_hours";
+
+    try {
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ service: service, text: val })
+        });
+
+        input.placeholder = "> COMMAND_SENT.";
+        
+        setTimeout(async () => {
+            await loadStats();
+            if (document.getElementById('note-detail').style.display === 'flex' && service === "extra_hours") {
+                openExtraDetail();
+            }
+        }, 3000);
+
+    } catch (e) {
+        input.placeholder = "!! SYNC_ERROR !!";
+    }
+    
+    setTimeout(() => {
+        input.placeholder = "> DIGITA...";
+        input.focus();
+    }, 1500);
 }
 
-// --- 5. UI MODALS & ACTIONS ---
+// FIX: Funzione finance rinominata e semplificata
+function recordFinanceCommand(rawText) {
+    console.log("Inviando dato finanziario:", rawText);
+    
+    const widget = document.querySelector('.finance-widget');
+    if(widget) {
+        widget.style.borderColor = "#fff";
+        widget.style.boxShadow = "0 0 15px #00d4ff";
+        setTimeout(() => {
+            widget.style.borderColor = "#00d4ff";
+            widget.style.boxShadow = "none";
+        }, 500);
+    }
 
-// 1. RIPRISTINO PIN NELLE NOTE NORMALI
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ service: "finance_add", text: rawText })
+    });
+}
+
+// ============================================
+// 5. UI MODALS & ACTIONS
+// ============================================
+
 function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
@@ -367,11 +363,10 @@ function openNoteByIndex(index) {
     const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
     const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
 
-    // MOSTRA di nuovo i tasti (nel caso fossimo passati prima da un Extra)
+    // FIX: Controlli null aggiunti
     if(colorBtn) colorBtn.style.display = "block";
     if(pinTool) pinTool.style.display = "flex";
     
-    // Reset UI classica
     document.getElementById('detail-type').innerText = note[5] || "NOTA";
     document.getElementById('detail-text').value = note[1];
     document.getElementById('detail-text').style.display = "block";
@@ -384,7 +379,6 @@ function openNoteByIndex(index) {
     document.getElementById('modal-backdrop').style.display = 'block';
 }
 
-// 2. NASCONDI PIN SOLO NEGLI EXTRA
 function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
@@ -392,7 +386,6 @@ function openExtraDetail() {
     
     if (!modal || !list) return;
 
-    // Nascondi strumenti non necessari per il recap ore
     const colorTool = document.querySelector('.color-selector-container');
     const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
     if(colorTool) colorTool.style.display = "none";
@@ -416,7 +409,7 @@ function openExtraDetail() {
     list.style.display = "block";
 
     try {
-        const filteredExtra = (window.extraItemsGlobal || []).filter(item => {
+        const filteredExtra = (extraItemsGlobal || []).filter(item => {
             const d = new Date(item.data);
             return !isNaN(d.getTime()) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
         }).sort((a, b) => new Date(b.data) - new Date(a.data));
@@ -451,45 +444,38 @@ function openExtraDetail() {
     document.getElementById('nextMonth').onclick = (e) => { e.stopPropagation(); changeDetailMonth(1); };
 }
 
-// 2. FUNZIONE DI CAMBIO MESE (Assicurati che esista!)
 function changeDetailMonth(delta) {
     const newOffset = detailMonthOffset + delta;
-    
-    // Limite futuro
     if (newOffset > 0) return;
     
-    // Limite passato: non andare oltre gennaio 2025 (o il mese che preferisci)
-    // Se vuoi bloccarlo quando non ci sono più dati:
-    const hasData = (window.extraItemsGlobal || []).some(item => {
-        const d = new Date(item.data);
-        const targetDate = new Date();
-        targetDate.setMonth(targetDate.getMonth() + newOffset);
-        return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
-    });
-
-    // Se vai indietro e non c'è nulla, e stavi già andando indietro, potresti volerlo bloccare
-    // Ma per ora lasciamolo navigare, sistemiamo la visualizzazione:
     detailMonthOffset = newOffset;
     openExtraDetail();
 }
 
-// Chiusura istantanea per eliminare il lag
-function saveAndClose() {
+// FIX: Funzione unificata per chiusura modal
+function closeNoteDetail(forceSave = true) {
     const modal = document.getElementById('note-detail');
+    const textArea = document.getElementById('detail-text');
+    const backdrop = document.getElementById('modal-backdrop');
+    
     if (!modal || modal.style.display === 'none') return;
 
-    // Salvataggio automatico solo per NOTE reali
-    if (currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
-        const newText = document.getElementById('detail-text').value.trim();
+    // Salvataggio solo per note normali se forceSave = true
+    if (forceSave && currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
+        const newText = textArea.value.trim();
         const oldNote = loadedNotesData[currentNoteData.index];
-        
-        if (oldNote && (newText !== oldNote[1] || currentNoteData.color !== oldNote[3])) {
-            // Update locale immediato
-            loadedNotesData[currentNoteData.index][1] = newText;
-            loadedNotesData[currentNoteData.index][3] = currentNoteData.color;
-            renderGrid(loadedNotesData);
+        const oldText = oldNote ? oldNote[1] : "";
+        const oldColor = oldNote ? oldNote[3] : "default";
 
-            // Sync Server
+        if (newText !== oldText || currentNoteData.color !== oldColor) {
+            // Aggiorna locale
+            if (currentNoteData.index !== undefined) {
+                loadedNotesData[currentNoteData.index][1] = newText;
+                loadedNotesData[currentNoteData.index][3] = currentNoteData.color;
+                if (lastStatsData) renderGrid(lastStatsData);
+            }
+
+            // Invia al server
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -503,36 +489,25 @@ function saveAndClose() {
         }
     }
 
-    // Reset e Chiusura (Punto 5: reset offset qui)
+    // Chiusura fisica
     modal.style.display = 'none';
-    document.getElementById('modal-backdrop').style.display = 'none';
-    document.body.classList.remove('modal-open');
-    document.getElementById('color-picker-bubble').style.display = 'none';
+    if (backdrop) backdrop.style.display = 'none';
     
-    currentNoteData = null;
-    detailMonthOffset = 0; 
-}
-
-
-function closeModal() {
-    document.getElementById('note-detail').style.display = 'none';
-    document.getElementById('modal-backdrop').style.display = 'none';
-    document.body.classList.remove('modal-open');
-    // Nella funzione dove chiudi il modal (es. closeNoteDetail)
-    
-    // RESET INTERFACCIA: Chiude bubble colori e modal cancellazione se aperti
+    // Reset UI
     document.getElementById('color-picker-bubble').style.display = 'none';
     document.getElementById('delete-modal').style.display = 'none';
+    
+    currentNoteData = null;
+    detailMonthOffset = 0;
 }
 
-async function deleteItem(id, type) {
-    if (!confirm("Confermi eliminazione?")) return;
-    
-    await fetch(SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ service: "delete_item", id: id, type: type })
-    });
-    saveAndClose();
+// Alias per compatibilità con HTML esistente
+function saveAndClose() {
+    closeNoteDetail(true);
+}
+
+function closeModal() {
+    closeNoteDetail(false);
 }
 
 function toggleColorPicker() {
@@ -540,22 +515,132 @@ function toggleColorPicker() {
     picker.style.display = (picker.style.display === 'flex') ? 'none' : 'flex';
 }
 
-// MODIFICA: Aggiornamento immediato del colore (Optimistic UI)
 function changeNoteColor(color) {
     if (!currentNoteData) return;
     
     currentNoteData.color = color;
+    
     const modal = document.getElementById('note-detail');
     modal.className = `note-overlay bg-${color}`;
-
-    // Punto 8: Uso l'ID della card, molto più solido
+    
+    // FIX: Usa ID invece di querySelector fragile
     const card = document.getElementById(`card-${currentNoteData.id}`);
     if (card) {
-        card.className = card.className.replace(/\bbg-\S+/g, '');
-        card.classList.add(`bg-${color}`);
+        card.className = `keep-card bg-${color}${currentNoteData.type === 'PINNED' ? ' pinnato' : ''}`;
     }
 }
-// --- 6. HABIT TRACKER (PIXELS) ---
+
+async function togglePin() {
+    if (!currentNoteData || currentNoteData.type === "EXTRA") return;
+
+    const nuovoStato = (currentNoteData.type === "PINNED") ? "NOTE" : "PINNED";
+    currentNoteData.type = nuovoStato;
+    
+    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+    if (pinIcon) pinIcon.style.color = (nuovoStato === "PINNED") ? "var(--accent)" : "var(--dim)";
+
+    await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ service: "update_note_type", id: currentNoteData.id, type: nuovoStato })
+    });
+    loadStats();
+}
+
+let deleteTarget = null;
+
+function confirmDelete(id, type) {
+    deleteTarget = { id, type };
+    document.getElementById('delete-modal').style.display = 'flex';
+}
+
+function cancelDelete() {
+    deleteTarget = null;
+    document.getElementById('delete-modal').style.display = 'none';
+}
+
+async function executeDelete() {
+    if (!deleteTarget) return;
+    
+    document.getElementById('delete-modal').style.display = 'none';
+    
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({
+            service: "delete_item",
+            id: deleteTarget.id,
+            type: deleteTarget.type
+        })
+    });
+    
+    closeNoteDetail(false);
+    await loadStats();
+}
+
+// ============================================
+// 6. SIDEBAR & FILTERS
+// ============================================
+
+function toggleSidebar() {
+    const menu = document.getElementById('side-menu');
+    const backdrop = document.getElementById('menu-backdrop');
+    if (!menu || !backdrop) return;
+
+    const isOpen = menu.classList.contains('open');
+
+    if (isOpen) {
+        menu.classList.remove('open');
+        backdrop.style.display = 'none';
+    } else {
+        menu.classList.add('open');
+        backdrop.style.display = 'block';
+    }
+}
+
+function setFilter(type, el) {
+    currentFilter = type;
+    
+    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+    if (el) el.classList.add('active');
+    
+    toggleSidebar();
+    
+    if (lastStatsData) {
+        renderGrid(lastStatsData);
+    }
+}
+
+function handleSearch() {
+    const input = document.getElementById('search-input');
+    searchQuery = (input.value || "").toLowerCase();
+    if (lastStatsData) renderGrid(lastStatsData);
+}
+
+function toggleSearch(show) {
+    const wrapper = document.getElementById('search-wrapper');
+    const input = document.getElementById('search-input');
+    const title = document.getElementById('dump-title');
+    const trigger = document.getElementById('search-trigger');
+
+    if (show) {
+        wrapper.classList.add('active');
+        trigger.classList.add('hidden');
+        title.style.opacity = "0";
+        setTimeout(() => input.focus(), 400);
+    } else {
+        if (input.value === "") {
+            wrapper.classList.remove('active');
+            trigger.classList.remove('hidden');
+            setTimeout(() => { title.style.opacity = "1"; }, 300);
+            searchQuery = "";
+            if (lastStatsData) renderGrid(lastStatsData);
+        }
+    }
+}
+
+// ============================================
+// 7. HABIT TRACKER (PIXELS)
+// ============================================
 
 function drawPixels(history = []) {
     const container = document.getElementById('pixels');
@@ -583,122 +668,10 @@ function cycleView() {
     drawPixels(historyData);
 }
 
+// ============================================
+// 8. AGENDA
+// ============================================
 
-let deleteTarget = null;
-
-function confirmDelete(id, type) {
-    deleteTarget = { id, type };
-    document.getElementById('delete-modal').style.display = 'flex';
-}
-
-function cancelDelete() {
-    deleteTarget = null;
-    document.getElementById('delete-modal').style.display = 'none';
-}
-
-async function executeDelete() {
-    if (!deleteTarget) return;
-    
-    // 1. Chiudi subito il popup di conferma
-    document.getElementById('delete-modal').style.display = 'none';
-    
-    // 2. Manda il comando al server
-    await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ 
-            service: "delete_item", 
-            id: deleteTarget.id, 
-            type: deleteTarget.type 
-        })
-    });
-    
-    // 3. ORA ricarica i dati e chiudi il modal della nota
-    closeModal();
-    await loadStats(); // Questo pulirà la lista degli extra e le note
-}
-
-// NUOVA: Funzione per switchare il PIN
-async function togglePin() {
-    if (!currentNoteData || currentNoteData.type === "EXTRA") return;
-
-    // Toggle Stato
-    const nuovoStato = (currentNoteData.type === "PINNED") ? "NOTE" : "PINNED";
-    currentNoteData.type = nuovoStato;
-    
-    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
-    pinIcon.style.color = (nuovoStato === "PINNED") ? "var(--accent)" : "var(--dim)";
-
-    await fetch(SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ service: "update_note_type", id: currentNoteData.id, type: nuovoStato })
-    });
-    loadStats(); // Ricarica per spostare la card in cima
-}
-
-function toggleSidebar() {
-    const menu = document.getElementById('side-menu');
-    const backdrop = document.getElementById('menu-backdrop');
-    if (!menu || !backdrop) return; // Sicurezza
-
-    const isOpen = menu.classList.contains('open');
-
-    if (isOpen) {
-        menu.classList.remove('open');
-        backdrop.style.display = 'none';
-    } else {
-        menu.classList.add('open');
-        backdrop.style.display = 'block';
-    }
-}
-
-function setFilter(type, el) {
-    currentFilter = type;
-    
-    // Rimuovi classe active da tutti e aggiungi al corrente
-    document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-    if (el) el.classList.add('active');
-    
-    toggleSidebar(); // Chiude il menu
-    
-    // Ricarica la griglia con i dati che abbiamo già in memoria
-    if (lastStatsData) {
-        renderGrid(lastStatsData);
-    }
-}
-
-function handleSearch() {
-    const input = document.getElementById('search-input');
-    searchQuery = (input.value || "").toLowerCase();
-    // Forza il rendering della griglia con il filtro
-    if (lastStatsData) renderGrid(lastStatsData);
-}
-
-function toggleSearch(show) {
-    const wrapper = document.getElementById('search-wrapper');
-    const input = document.getElementById('search-input');
-    const title = document.getElementById('dump-title');
-    const trigger = document.getElementById('search-trigger');
-
-    if (show) {
-        wrapper.classList.add('active');
-        trigger.classList.add('hidden'); // Nasconde la lente
-        title.style.opacity = "0";
-        setTimeout(() => input.focus(), 400);
-    } else {
-        if (input.value === "") {
-            wrapper.classList.remove('active');
-            trigger.classList.remove('hidden'); // Rifa apparire la lente
-            setTimeout(() => { title.style.opacity = "1"; }, 300);
-            searchQuery = "";
-            if (typeof renderGrid === "function") renderGrid(lastStatsData);
-        }
-    }
-}
-
-//AGENDA
-
-// Aggiungiamo un flag isInternal per capire da dove arriva il comando
 function handleAgendaCommand(input, isInternal = false) {
     if (!input.trim()) return;
     
@@ -712,40 +685,35 @@ function handleAgendaCommand(input, isInternal = false) {
         const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
         return fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Usiamo no-cors per velocità, ma sappiamo che il server elabora
+            mode: 'no-cors',
             body: JSON.stringify({ service: "agenda_add", text: cleanCmd })
         });
     });
 
-    // Aspettiamo un secondo per dare tempo a Google di scrivere sul calendario
-    // poi forziamo il ricaricamento dei dati
     Promise.all(promises).then(() => {
         setTimeout(async () => {
-            await loadStats(); // Riscarica tutto il JSON (inclusa la nuova agenda)
-            loadAgenda();      // Ridisegna la timeline
+            await loadStats();
+            loadAgenda();
             inputField.placeholder = isInternal ? "> AGGIUNGI EVENTO..." : "> DIGITA...";
-        }, 1500); 
+        }, 1500);
     });
 }
 
 function loadAgenda() {
     const container = document.getElementById('events-container');
     
-    // Se window.agendaData non esiste ancora (fetch in corso)
     if (typeof window.agendaData === 'undefined') {
         container.innerHTML = "<div style='color:var(--accent); padding:20px;' class='blink'>[ SYNCING_CHRONO... ]</div>";
         
-        // Controlla ogni mezzo secondo se i dati sono arrivati
         const checkData = setInterval(() => {
             if (typeof window.agendaData !== 'undefined') {
                 clearInterval(checkData);
-                loadAgenda(); // Richiama se stessa ora che i dati ci sono
+                loadAgenda();
             }
         }, 500);
         return;
     }
 
-    // Ora che siamo sicuri che i dati ci sono (o sono un array vuoto)
     if (window.agendaData.length === 0) {
         container.innerHTML = "<div style='color:var(--dim); padding:20px;'>NESSUN EVENTO RILEVATO (7D_SCAN).</div>";
     } else {
@@ -773,25 +741,6 @@ function renderAgenda(days) {
     `).join('');
 }
 
-function testAgenda() {
-    const mockData = [
-        {
-            dateLabel: "MER 21 GEN",
-            events: [
-                { time: "15:30", title: "Configurazione System_OS" },
-                { time: "20:00", title: "Test Timeline" }
-            ]
-        },
-        {
-            dateLabel: "GIO 22 GEN",
-            events: [
-                { time: "09:00", title: "Recupero Dati" }
-            ]
-        }
-    ];
-    renderAgenda(mockData);
-}
-
 async function synthesizeDaily() {
     const prompt = document.getElementById('neural-prompt').value;
     if (!prompt) return;
@@ -800,11 +749,10 @@ async function synthesizeDaily() {
     btn.innerText = "SYNTHESIZING_NEURAL_PATH...";
 
     try {
-        // Prepariamo i dati da mandare al POST
         const payload = {
             service: "smartPlan",
             text: prompt,
-            fixed: window.agendaData || [] // Gli eventi caricati da CHRONO_SCAN
+            fixed: window.agendaData || []
         };
 
         const response = await fetch(SCRIPT_URL, {
@@ -831,7 +779,6 @@ function renderNeuralTimeline(plan) {
 
     container.innerHTML = plan.map((task, i) => {
         const accentColor = task.isFixed ? '#00f3ff' : '#fcee0a';
-        // Se il task è completato, applichiamo subito le classi CSS
         const isDone = task.completed;
         
         return `
@@ -860,7 +807,6 @@ function renderNeuralTimeline(plan) {
     }).join('');
 }
 
-// Funzione per il check visivo immediato
 function toggleTaskVisual(index) {
     const node = document.querySelector(`#task-${index} > div`);
     const text = node.querySelector('.task-text');
@@ -875,97 +821,21 @@ function toggleTaskVisual(index) {
         node.style.filter = "none";
         text.style.textDecoration = "none";
     }
-} 
-
-
-async function recordFinance(rawText) {
-    const feedbackArea = document.getElementById('ai-advice-text'); // Crea un div con questo ID
-    feedbackArea.innerText = "> NEURAL_ANALYSIS_IN_PROGRESS...";
-
-    try {
-        // Chiamata al server che ora usa Gemini
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ service: "finance_neural", text: rawText })
-        });
-        const data = await response.json();
-
-        // Se il server ci rimanda anche il commento cinico
-        feedbackArea.innerText = `"${data.advice}"`; 
-        
-        // Aggiorna i widget della UI
-        loadStats(); 
-    } catch (e) {
-        feedbackArea.innerText = "Analisi fallita. Spendi e taci.";
-    }
 }
 
-function closeNoteDetail() {
-    const modal = document.getElementById('note-detail');
-    const textArea = document.getElementById('detail-text');
-    const backdrop = document.getElementById('modal-backdrop');
-    
-    // Se non c'è il modal aperto, non fare nulla
-    if (!modal || modal.style.display === 'none') return;
+// ============================================
+// 9. EVENT LISTENERS (DOM READY)
+// ============================================
 
-    // --- LOGICA SALVATAGGIO NOTE (NON EXTRA) ---
-    if (currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
-        const newText = textArea.value.trim();
-        // Recuperiamo i vecchi dati per il confronto
-        const oldNote = loadedNotesData[currentNoteData.index];
-        const oldText = oldNote ? oldNote[1] : "";
-        const oldColor = oldNote ? oldNote[3] : "default";
-
-        // SALVA SOLO SE CAMBIATO QUALCOSA
-        if (newText !== oldText || currentNoteData.color !== oldColor) {
-            console.log("Modifiche rilevate. Sync in corso...");
-            
-            // Aggiorna subito la griglia per feedback visivo
-            if (currentNoteData.index !== undefined) {
-                loadedNotesData[currentNoteData.index][1] = newText;
-                loadedNotesData[currentNoteData.index][3] = currentNoteData.color;
-                renderGrid(loadedNotesData); 
-            }
-
-            // Chiama il server (Google Script)
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({
-                    service: "update_note",
-                    id: currentNoteData.id,
-                    text: newText,
-                    color: currentNoteData.color
-                })
-            });
-        }
-    }
-
-    // --- CHIUSURA FISICA DEL MODAL ---
-    modal.style.display = 'none';
-    if (backdrop) backdrop.style.display = 'none';
-    
-    // Reset dello stato
-    currentNoteData = null;
-    detailMonthOffset = 0; // Resetta il calendario extra per la prossima apertura
-}
-
-// --- LOGICA DI AGGANCIO EVENTI (SISTEMA DI CHIUSURA) ---
 document.addEventListener('DOMContentLoaded', () => {
     const backdrop = document.getElementById('modal-backdrop');
-    const closeBtn = document.querySelector('.close-btn'); // Il tasto 'X' o 'Chiudi'
+    const closeBtn = document.querySelector('.close-btn');
 
     if (backdrop) {
-        backdrop.onclick = () => {
-            console.log("Chiusura da backdrop...");
-            closeNoteDetail();
-        };
+        backdrop.onclick = () => closeNoteDetail(true);
     }
 
     if (closeBtn) {
-        closeBtn.onclick = () => {
-            console.log("Chiusura da tasto...");
-            closeNoteDetail();
-        };
+        closeBtn.onclick = () => closeNoteDetail(true);
     }
 });
