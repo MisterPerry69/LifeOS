@@ -889,15 +889,29 @@ function toggleAnalyst() {
 }
 
 function toggleFinanceInput(show) {
-    const zone = document.getElementById('finance-input-zone');
-    const fab = document.getElementById('fab-finance');
-    
+const wrapper = document.getElementById('finance-input-wrapper');
     if (show) {
-        zone.classList.add('active');
-        fab.style.opacity = "0";
-        setTimeout(() => document.getElementById('finance-input').focus(), 300);
+        wrapper.classList.add('active');
+        document.getElementById('finance-input').focus();
     } else {
-        zone.classList.remove('active');
-        fab.style.opacity = "1";
+        wrapper.classList.remove('active');
     }
+}
+
+// Chiudi se clicchi fuori
+document.getElementById('finance-input').addEventListener('blur', () => {
+    setTimeout(() => toggleFinanceInput(false), 200);
+});
+
+function updateFinanceUI(stats) {
+    // Supponendo che stats.finance contenga i dati dal foglio
+    // Se non li hai ancora, dobbiamo mapparli nel getStatsData() del Codice.gs
+    document.getElementById('total-balance').innerText = stats.total + " €";
+    document.getElementById('bank-val').innerText = stats.bank + " €";
+    document.getElementById('cash-val').innerText = stats.cash + " €";
+    
+    // Calcolo Burn Rate (Esempio su 1000€ di budget)
+    let burn = (stats.total_spent / 1000) * 100;
+    document.getElementById('efficiency-fill').style.width = burn + "%";
+    document.getElementById('burn-percentage').innerText = Math.round(burn) + "%";
 }
