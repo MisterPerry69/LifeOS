@@ -231,19 +231,17 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
 <div id="finance" class="page">
-<div class="header">
-    <div class="status-indicator">
-        <span class="blink-dot" style="background-color: var(--accent);"></span>
-        <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent);">FINANCIAL_CORE</span>
-    </div>
-    <div class="page-title-container" style="text-align: right;">
-        <div style="font-size: 10px; opacity: 0.5;">FINANCE_MODULE</div>
-        <div style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
-            <span style="font-weight: bold; letter-spacing: 2px;">ECON_SYNC</span>
-            <i data-lucide="wallet" style="width: 16px; color: var(--accent);"></i>
+    <div class="header finance-header">
+        <div class="status-indicator">
+            <span class="blink-dot" style="background-color: #00d4ff;"></span>
+            <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff;">FINANCIAL_CORE // v2.0</span>
         </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="finance" class="brain-icon"></i>
+          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">CREDITS</h1>
+        </div>
+        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
     </div>
-</div>
 
     <main class="finance-main">
     <div class="finance-card-main">
@@ -279,25 +277,23 @@
     </div>
 </main>
 
-<div class="finance-controls">
-    <div id="analyst-btn" class="square-btn btn-left" onclick="toggleAnalyst()">
-        <i data-lucide="cpu"></i>
-    </div>
-    
-    <div id="analyst-bubble" class="side-bubble">
-        <p id="analyst-text">SISTEMA_PRONTO...</p>
-    </div>
+    <div class="finance-controls">
+        <div id="analyst-btn" class="square-btn btn-left" onclick="toggleAnalyst()">
+            <i data-lucide="cpu"></i>
+        </div>
+        
+        <div id="fab-finance" class="square-btn btn-right" onclick="toggleFinanceInput()">
+            <i data-lucide="plus"></i>
+        </div>
 
-    <div id="fab-finance" class="square-btn btn-right" onclick="toggleFinanceInput(true)">
-        <i data-lucide="plus"></i>
+        <div id="finance-input-zone" class="side-input-wrapper">
+            <input type="text" id="finance-input" placeholder="> DIGITA..." onkeypress="handleFinanceSubmit(event)">
+        </div>
+        
+        <div id="analyst-bubble" class="side-bubble">
+            <p id="analyst-text">SISTEMA_PRONTO...</p>
+        </div>
     </div>
-
-    <div id="finance-input-zone" class="side-input-wrapper">
-        <input type="text" id="finance-input" placeholder="> DIGITA TRANSAZIONE..." 
-               onkeypress="handleFinanceSubmit(event)" 
-               onblur="setTimeout(() => toggleFinanceInput(false), 200)">
-    </div>
-</div>
 </div>
 
   <!-- ============================================ -->

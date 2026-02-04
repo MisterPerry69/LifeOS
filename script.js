@@ -832,29 +832,33 @@ async function handleFinanceSubmit(event) {
     const rawText = input.value.trim();
     if (!rawText) return;
 
-    // Chiudi e pulisci subito
-    toggleFinanceInput();
+    toggleFinanceInput(false);
     input.value = '';
+    
+    // Mostra bolla con caricamento
+    const bubble = document.getElementById('analyst-bubble');
+    const text = document.getElementById('analyst-text');
+    text.innerText = "ANALISI_FLUSSI...";
+    bubble.classList.add('active');
 
     const entries = rawText.split(',');
-    showAnalystQuote("Analisi transazioni in corso...");
-
     for (let entry of entries) {
         const isCash = entry.includes('*c');
         const cleanText = entry.replace('*c', '').trim();
 
-        // Mandiamo al server con un nuovo service dedicato
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                service: "finance_smart_entry", // Cambiato nome per evitare conflitti
-                text: cleanText,
-                wallet: isCash ? "PHYSICAL_ASSETS" : "DIGITAL_CREDITS"
-            })
-        });
+        // Passiamo i dati puliti
+        const response = await fetch(SCRIPT_URL + "?action=finance_smart_entry&text=" + encodeURIComponent(cleanText) + "&wallet=" + (isCash ? "CASH" : "BANK"));
+        const result = await response.json();
+        
+        // MOSTRA IL CONSIGLIO VERO NELLA BOLLA
+        text.innerText = result.advice;
     }
-    setTimeout(loadStats, 2000);
+    
+    // Aggiorna i numeri della dashboard
+    loadStats();
+    
+    // Chiudi bolla dopo 8 secondi
+    setTimeout(() => bubble.classList.remove('active'), 8000);
 }
 
 // Funzione per il fumetto dell'analista (L'occhio verde in alto)
@@ -882,8 +886,16 @@ function toggleAnalyst() {
     document.getElementById('analyst-bubble').classList.toggle('active');
 }
 
-function toggleFinanceInput() {
+function toggleFinanceInput(show) {
     const zone = document.getElementById('finance-input-zone');
-    zone.classList.toggle('active');
-    if(zone.classList.contains('active')) document.getElementById('finance-input').focus();
+    const fab = document.getElementById('fab-finance');
+    
+    if (show) {
+        zone.classList.add('active');
+        fab.style.opacity = "0";
+        setTimeout(() => document.getElementById('finance-input').focus(), 300);
+    } else {
+        zone.classList.remove('active');
+        fab.style.opacity = "1";
+    }
 }
