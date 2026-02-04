@@ -42,6 +42,12 @@ window.onload = async () => {
     if (this.value === "") {
         toggleSearch(false);
     }
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+    searchInput.addEventListener('blur', () => {
+        setTimeout(() => { toggleSearch(false); }, 200);
+    });
+}
 });
 };
 
@@ -347,30 +353,6 @@ async function sendCmd(event) {
     }
 }
 
-// Funzione per gestire l'input finanziario
-function recordFinance(rawText) {
-    console.log("Inviando dato finanziario:", rawText);
-    
-    // Feedback visivo immediato
-    const widget = document.querySelector('.finance-widget');
-    if(widget) {
-        widget.style.borderColor = "#fff";
-        widget.style.boxShadow = "0 0 15px #00d4ff";
-        setTimeout(() => {
-            widget.style.borderColor = "#00d4ff";
-            widget.style.boxShadow = "none";
-        }, 500);
-    }
-
-    // Per ora lo mandiamo al server come "finance_raw"
-    // Dovremo poi gestire questo service nel tuo file .gs su Google
-    fetch(SCRIPT_URL, { 
-        method: 'POST', 
-        mode: 'no-cors', 
-        body: JSON.stringify({ service: "finance_add", text: rawText })
-    });
-}
-
 // --- 5. UI MODALS & ACTIONS ---
 
 // 1. RIPRISTINO PIN NELLE NOTE NORMALI
@@ -493,32 +475,44 @@ function changeDetailMonth(delta) {
 
 // Chiusura istantanea per eliminare il lag
 function saveAndClose() {
-    const text = document.getElementById('detail-text').value;
     const modal = document.getElementById('note-detail');
-    
-    if (currentNoteData && currentNoteData.id) {
-        // AGGIORNAMENTO ISTANTANEO LATO CLIENT (Optimistic)
-        const card = document.getElementById(`card-${currentNoteData.id}`);
-        if (card) {
-            card.querySelector('.content-preview').innerText = text;
-            // Se hai cambiato colore, aggiorna anche la classe della card
-            card.className = `keep-card bg-${currentNoteData.color}`;
-        }
+    if (!modal || modal.style.display === 'none') return;
 
-        // Poi invia al server in background
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ 
-                service: "update_note", 
-                id: currentNoteData.id, 
-                text: text, 
-                color: currentNoteData.color 
-            })
-        });
+    // Salvataggio automatico solo per NOTE reali
+    if (currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
+        const newText = document.getElementById('detail-text').value.trim();
+        const oldNote = loadedNotesData[currentNoteData.index];
+        
+        if (oldNote && (newText !== oldNote[1] || currentNoteData.color !== oldNote[3])) {
+            // Update locale immediato
+            loadedNotesData[currentNoteData.index][1] = newText;
+            loadedNotesData[currentNoteData.index][3] = currentNoteData.color;
+            renderGrid(loadedNotesData);
+
+            // Sync Server
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    service: "update_note",
+                    id: currentNoteData.id,
+                    text: newText,
+                    color: currentNoteData.color
+                })
+            });
+        }
     }
-    closeModal();
+
+    // Reset e Chiusura (Punto 5: reset offset qui)
+    modal.style.display = 'none';
+    document.getElementById('modal-backdrop').style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.getElementById('color-picker-bubble').style.display = 'none';
+    
+    currentNoteData = null;
+    detailMonthOffset = 0; 
 }
+
 
 function closeModal() {
     document.getElementById('note-detail').style.display = 'none';
@@ -550,20 +544,17 @@ function toggleColorPicker() {
 function changeNoteColor(color) {
     if (!currentNoteData) return;
     
-    // Aggiorna dato temporaneo
     currentNoteData.color = color;
-    
-    // Aggiorna visivamente il modal SUBITO
     const modal = document.getElementById('note-detail');
     modal.className = `note-overlay bg-${color}`;
-    
-    // Se vuoi feedback anche sulla card nella griglia mentre il modal è aperto:
-    const card = document.querySelector(`.keep-card[onclick*="openNoteByIndex(${currentNoteData.index})"]`);
+
+    // Punto 8: Uso l'ID della card, molto più solido
+    const card = document.getElementById(`card-${currentNoteData.id}`);
     if (card) {
-        card.className = `keep-card bg-${color}${currentNoteData.type === 'PINNED' ? ' pinnato' : ''}`;
+        card.className = card.className.replace(/\bbg-\S+/g, '');
+        card.classList.add(`bg-${color}`);
     }
 }
-
 // --- 6. HABIT TRACKER (PIXELS) ---
 
 function drawPixels(history = []) {
