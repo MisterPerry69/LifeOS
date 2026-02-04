@@ -99,16 +99,44 @@ async function loadStats() {
         const data = await response.json();
         
         if (data.status === "ONLINE") {
+            // --- MANTENIAMO LA TUA ROBA VECCHIA ---
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
             window.agendaData = data.agenda || [];
             loadedNotesData = data.notes || [];
-            lastStatsData = data; // FIX: Salvataggio corretto
+            lastStatsData = data;
             
             renderGrid(data);
             
             if (document.getElementById('agenda').classList.contains('active')) {
                 renderAgenda(window.agendaData);
+            }
+
+            // --- NUOVO BLOCCO FINANCE (Se non c'è questo, vedi sempre 0) ---
+            if (data.finance) {
+                // Aggiorna pagina Finance
+                if (document.getElementById('total-balance')) 
+                    document.getElementById('total-balance').innerText = data.finance.total + " €";
+                
+                if (document.getElementById('bank-val')) 
+                    document.getElementById('bank-val').innerText = data.finance.bank + " €";
+                
+                if (document.getElementById('cash-val')) 
+                    document.getElementById('cash-val').innerText = data.finance.cash + " €";
+
+                // Aggiorna Widget in Home
+                if (document.getElementById('widget-spent'))
+                    document.getElementById('widget-spent').innerText = data.finance.spent;
+
+                // Calcolo Barra HP (Budget fittizio 1500€ per la barra)
+                const budget = 1500; 
+                const burnPct = Math.min((parseFloat(data.finance.spent) / budget) * 100, 100);
+                
+                if (document.getElementById('efficiency-fill'))
+                    document.getElementById('efficiency-fill').style.width = burnPct + "%";
+                
+                if (document.getElementById('burn-percentage'))
+                    document.getElementById('burn-percentage').innerText = Math.round(burnPct) + "%";
             }
         }
     } catch (err) {

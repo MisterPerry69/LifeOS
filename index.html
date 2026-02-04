@@ -231,35 +231,29 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
 <div id="finance" class="page">
-    <div class="header" style="flex-direction: column; align-items: stretch; height: auto; min-height: 80px; gap: 10px;">
-        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
-            <span class="blink-dot" style="background-color: #00d4ff;"></span>
-            <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700;">ECON_SYNC // ACTIVE</span>
+    <div class="header">
+        <div class="header-left">
+            <div class="status-indicator">
+                <span class="blink-dot" style="background-color: #00d4ff;"></span>
+                <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700;">ECON_SYNC // ACTIVE</span>
+            </div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
-            <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-                <i data-lucide="wallet" class="brain-icon"></i>
-                <div class="title-zone" style="position: relative; flex: 1; display: flex; align-items: center;">
-                    <h1 id="finance-title" style="margin: 0;">CREDITS</h1>
-                    <div id="finance-search-wrapper" class="search-wrapper">
-                        <input type="text" id="finance-input" placeholder="> -20 pizza, -5 caffe *c" onkeypress="handleFinanceSubmit(event)">
-                    </div>
-                </div>
+        <div class="header-right">
+            <div style="display: flex; align-items: center; gap: 12px; justify-content: flex-end;">
+                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff;">CREDITS</h1>
+                <i data-lucide="wallet" style="color: var(--accent); width: 28px; height: 28px;"></i>
             </div>
-            <div class="header-right" style="margin-top: 0;">
-                <i data-lucide="plus" id="finance-plus-trigger" class="search-icon" onclick="toggleFinanceSearch(true)"></i>
-                <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-            </div>
+            <div class="esc-btn" onclick="nav('home')" style="margin-top: 5px;">[esc X]</div>
         </div>
     </div>
 
-    <main style="padding: 0 20px;">
+    <main class="finance-main" style="padding: 0 20px;">
         <div class="finance-card-main" style="background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 20px; border-radius: 4px; margin-top: 20px;">
             <div class="label" style="color: var(--accent); font-size: 10px;">TOTAL_LIQUID_ASSETS</div>
             <div id="total-balance" class="big-money" style="font-size: 2.5rem; font-family: 'Rajdhani'; font-weight: 700;">0.00 €</div>
             <div class="sub-assets" style="display: flex; justify-content: space-between; border-top: 1px solid #222; margin-top:15px; padding-top: 15px;">
-                <div class="sub-item"><span class="label">DIGITAL</span><br><span id="bank-val">0.00 €</span></div>
-                <div class="sub-item" style="text-align:right;"><span class="label">PHYSICAL</span><br><span id="cash-val">0.00 €</span></div>
+                <div class="sub-item"><span class="label">DIGITAL_CREDITS</span><br><span id="bank-val">0.00 €</span></div>
+                <div class="sub-item" style="text-align:right;"><span class="label">PHYSICAL_ASSETS</span><br><span id="cash-val">0.00 €</span></div>
             </div>
         </div>
 
@@ -267,18 +261,31 @@
             <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;">
                 <span>NEURAL_BURN_RATE</span><span id="burn-percentage">0%</span>
             </div>
-            <div style="width: 100%; height: 8px; background: #111; border: 1px solid #333;">
-                <div id="efficiency-fill" style="height: 100%; background: var(--accent); width: 0%; transition: width 1s;"></div>
+            <div class="hp-bar-outer" style="width: 100%; height: 12px; background: #111; border: 1px solid #333;">
+                <div id="efficiency-fill" class="hp-bar-fill" style="height: 100%; background: var(--accent); width: 0%; transition: width 1s;"></div>
             </div>
         </div>
+        
+        <div id="finance-log" class="terminal-log" style="margin-top: 30px; font-size: 10px; opacity: 0.5; height: 150px; overflow-y: auto;"></div>
     </main>
 
-    <div class="finance-controls" style="position: fixed; bottom: 30px; left: 20px;">
-        <div class="square-btn" onclick="toggleAnalyst()" style="width: 50px; height: 50px; background: #000; border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+    <div class="finance-controls">
+        <div id="analyst-btn" class="square-btn btn-left" onclick="toggleAnalyst()">
             <i data-lucide="cpu"></i>
         </div>
-        <div id="analyst-bubble" class="side-bubble" style="display:none; position: absolute; bottom: 60px; left: 0; width: 250px; background: #000; border: 1px solid var(--accent); padding: 15px; font-size: 11px;">
-            <p id="analyst-text" style="margin:0;">In attesa...</p>
+        
+        <div id="analyst-bubble" class="side-bubble">
+            <p id="analyst-text">AWAITING_DATA...</p>
+        </div>
+
+        <div id="fab-finance" class="square-btn btn-right" onclick="toggleFinanceInput(true)">
+            <i data-lucide="plus"></i>
+        </div>
+
+        <div id="finance-input-zone" class="side-input-wrapper">
+            <input type="text" id="finance-input" placeholder="> -20 pizza, -5 caffe *c" 
+                   onkeypress="handleFinanceSubmit(event)"
+                   onblur="setTimeout(() => toggleFinanceInput(false), 200)">
         </div>
     </div>
 </div>
