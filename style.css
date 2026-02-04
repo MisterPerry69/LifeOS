@@ -938,3 +938,73 @@ input:focus {
     box-shadow: 0 0 10px var(--accent);
     transition: width 1s ease-in-out;
 }
+
+/* Layout Pagina Finance */
+.finance-main {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+}
+
+/* Saldo Centrale */
+.balance-display {
+    text-align: center;
+    width: 100%;
+    margin-top: 20px;
+}
+.big-money {
+    font-size: 3rem;
+    font-family: 'Rajdhani';
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+/* Grid Asset (Bank & Cash) */
+.asset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+}
+.asset-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid #222;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+}
+.asset-val {
+    font-size: 1.2rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono';
+}
+
+/* Header & Analista */
+.finance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #222;
+}
+
+/* Fix per l'input Stealth */
+.stealth-input-wrapper {
+    position: fixed;
+    bottom: 110px; /* Sopra il tasto + */
+    left: 20px;
+    right: 20px;
+    background: #000;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    transform: translateY(200%); /* Nascondi */
+    transition: 0.3s ease;
+    z-index: 1000;
+}
+.stealth-input-wrapper.active {
+    transform: translateY(0);
+}

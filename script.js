@@ -872,3 +872,14 @@ function toggleFinanceInput() {
         document.getElementById('finance-input').focus();
     }
 }
+
+// Funzione per il fumetto dell'analista (L'occhio verde in alto)
+function triggerAnalyst() {
+    const bubble = document.getElementById('analyst-bubble');
+    if (bubble.style.display === 'block') {
+        bubble.style.display = 'none';
+    } else {
+        bubble.style.display = 'block';
+        // Qui potremmo chiamare Gemini per una frase random
+    }
+}
