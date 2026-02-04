@@ -825,28 +825,26 @@ document.addEventListener('DOMContentLoaded', () => {
 // 10. FINANCE
 // ============================================
 
+// Modifica al submit per usare la nuova funzione di feedback
 async function handleFinanceSubmit(event) {
     if (event.key !== 'Enter') return;
-    
     const input = document.getElementById('finance-input');
     const rawText = input.value.trim();
     if (!rawText) return;
 
-    // 1. Splittiamo per virgola per gestire input multipli
+    // Chiudi barra e reset input
+    toggleFinanceInput();
+    input.value = '';
+
+    // Esegui split e invio (come avevamo pianificato)
     const entries = rawText.split(',');
-    
-    input.value = ''; // Puliamo subito per feedback rapido
-    toggleFinanceInput(); // Chiudiamo la barra
+    showAnalystQuote("Analisi flussi in corso...");
 
     for (let entry of entries) {
-        entry = entry.trim();
-        if (!entry) continue;
-
-        // Capiamo se è CASH o BANK (default bank)
         const isCash = entry.includes('*c');
         const cleanEntry = entry.replace('*c', '').trim();
 
-        // Invio al server (Codice.gs dovrà gestire questo nuovo formato)
+        // Chiamata al server
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -856,20 +854,6 @@ async function handleFinanceSubmit(event) {
                 wallet: isCash ? "CASH" : "BANK"
             })
         });
-    }
-
-    // Feedback dell'analista (Punto 2)
-    showAnalystQuote("Transazioni inviate al core. Sto ricalcolando il tuo destino...");
-    
-    // Refresh dati dopo un breve delay
-    setTimeout(loadStats, 1500);
-}
-
-function toggleFinanceInput() {
-    const wrapper = document.getElementById('finance-input-zone');
-    wrapper.classList.toggle('active');
-    if (wrapper.classList.contains('active')) {
-        document.getElementById('finance-input').focus();
     }
 }
 
@@ -882,4 +866,24 @@ function triggerAnalyst() {
         bubble.style.display = 'block';
         // Qui potremmo chiamare Gemini per una frase random
     }
+}
+
+function showAnalystQuote(text) {
+    const bubble = document.getElementById('analyst-bubble');
+    const textField = document.getElementById('analyst-text');
+    if (textField) textField.innerText = text;
+    
+    bubble.classList.add('active');
+    // Si chiude da sola dopo 5 secondi
+    setTimeout(() => { bubble.classList.remove('active'); }, 5000);
+}
+
+function toggleAnalyst() {
+    document.getElementById('analyst-bubble').classList.toggle('active');
+}
+
+function toggleFinanceInput() {
+    const zone = document.getElementById('finance-input-zone');
+    zone.classList.toggle('active');
+    if(zone.classList.contains('active')) document.getElementById('finance-input').focus();
 }

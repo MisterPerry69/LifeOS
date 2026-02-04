@@ -244,40 +244,56 @@
     </div>
 
     <main class="finance-main">
-        <div class="balance-display">
-            <div class="label">TOTAL_LIQUID_CAPITAL</div>
-            <div id="total-balance" class="big-money">0.00 €</div>
-            <div class="efficiency-bar-container">
-                <div id="efficiency-fill" class="efficiency-fill" style="width: 0%"></div>
-            </div>
-            <div class="efficiency-label">BURN_RATE: <span id="burn-percentage">0%</span></div>
-        </div>
-
-        <div class="asset-grid">
-            <div class="asset-card">
+    <div class="finance-card-main">
+        <div class="label" style="color: var(--accent);">TOTAL_LIQUID_ASSETS</div>
+        <div id="total-balance" class="big-money">0.00 €</div>
+        
+        <div class="sub-assets">
+            <div class="sub-item">
                 <span class="label">DIGITAL_CREDITS</span>
-                <span id="bank-val" class="asset-val">-- €</span>
+                <span id="bank-val">0.00 €</span>
             </div>
-            <div class="asset-card">
+            <div class="sub-item" style="text-align: right;">
                 <span class="label">PHYSICAL_ASSETS</span>
-                <span id="cash-val" class="asset-val">-- €</span>
+                <span id="cash-val">0.00 €</span>
             </div>
         </div>
-
-        <div id="finance-analytics" class="analytics-row">
-            </div>
-
-        <div class="transaction-history">
-            <div class="label" style="margin-bottom:10px; opacity:0.5">RECENT_TRANSACTIONS</div>
-            <div id="finance-log" class="terminal-log"></div>
-        </div>
-    </main>
-
-    <div id="finance-input-zone" class="stealth-input-wrapper">
-        <input type="text" id="finance-input" placeholder="> -20 pizza, -5 caffe *c, +50 bonus" onkeypress="handleFinanceSubmit(event)">
     </div>
-    <div class="fab-btn" onclick="toggleFinanceInput()">
-        <i data-lucide="plus"></i>
+
+    <div class="burn-rate-container">
+        <div class="burn-header">
+            <span class="label">NEURAL_BURN_RATE</span>
+            <span id="burn-percentage" class="value">0%</span>
+        </div>
+        <div class="hp-bar-outer">
+            <div id="efficiency-fill" class="hp-bar-fill"></div>
+            <div class="hp-bar-glitch"></div>
+        </div>
+    </div>
+
+    <div class="transaction-history">
+        <div class="label" style="margin-bottom:10px; opacity:0.3; font-size: 9px;">TERMINAL_LOG</div>
+        <div id="finance-log" class="terminal-log"></div>
+    </div>
+</main>
+
+    <div class="finance-controls">
+        <div class="chip-btn" onclick="toggleAnalyst()">
+            <i data-lucide="cpu"></i>
+        </div>
+        
+        <div id="analyst-bubble" class="side-bubble analyst-left">
+            <div class="label" style="font-size: 8px; color: var(--accent);">NEURAL_ANALYST_v2</div>
+            <p id="analyst-text">In attesa di dati...</p>
+        </div>
+
+        <div id="finance-input-zone" class="side-input-wrapper">
+            <input type="text" id="finance-input" placeholder="> DIGITA TRANSAZIONE..." onkeypress="handleFinanceSubmit(event)">
+        </div>
+
+        <div class="fab-btn" onclick="toggleFinanceInput()">
+            <i data-lucide="plus"></i>
+        </div>
     </div>
 </div>
 

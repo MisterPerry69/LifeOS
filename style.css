@@ -1008,3 +1008,69 @@ input:focus {
 .stealth-input-wrapper.active {
     transform: translateY(0);
 }
+
+/* Container Principale */
+.finance-card-main {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #222;
+    padding: 20px;
+    width: 100%;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.sub-assets {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #222;
+}
+
+.sub-item .label { font-size: 8px; opacity: 0.5; }
+.sub-item span:not(.label) { font-family: 'JetBrains Mono'; font-size: 13px; color: var(--accent); }
+
+/* HP BAR - Stile Videogame */
+.burn-rate-container { width: 100%; margin-top: 10px; }
+.hp-bar-outer {
+    width: 100%;
+    height: 12px;
+    background: #111;
+    border: 1px solid #333;
+    position: relative;
+    overflow: hidden;
+    margin-top: 5px;
+}
+.hp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, #0088aa 100%);
+    width: 0%;
+    transition: width 1s ease;
+}
+
+/* CONTROLLI LATERALI */
+.finance-controls { position: fixed; bottom: 30px; left: 0; right: 0; padding: 0 20px; pointer-events: none; }
+.chip-btn, .fab-btn { pointer-events: auto; }
+
+.chip-btn {
+    position: absolute; bottom: 0; left: 20px;
+    width: 50px; height: 50px; background: #111; border: 1px solid var(--accent);
+    border-radius: 4px; display: flex; justify-content: center; align-items: center; color: var(--accent);
+}
+
+/* Animazione Bolla Analista (da sinistra) */
+.side-bubble {
+    position: absolute; bottom: 70px; left: -110%; /* Nascosta */
+    width: 70%; background: #000; border: 1px solid var(--accent);
+    padding: 15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+}
+.side-bubble.active { left: 20px; }
+
+/* Animazione Input (da destra) */
+.side-input-wrapper {
+    position: absolute; bottom: 0; right: -110%; /* Nascosta */
+    width: calc(100% - 100px); background: #000; border: 1px solid var(--accent);
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto;
+}
+.side-input-wrapper.active { right: 85px; }
