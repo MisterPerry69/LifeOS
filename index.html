@@ -287,8 +287,15 @@
         <p id="analyst-text">AWAITING_DATA...</p>
     </div>
 
-    <div id="finance-input-zone" class="side-input-wrapper" style="bottom: 85px; left: 0; width: 100%; border-radius: 0;">
-        <input type="text" id="finance-input" placeholder="> -20 PIZZA, +1500 STIPENDIO" onkeypress="handleFinanceSubmit(event)">
+    <div id="finance-input-zone" class="side-input-wrapper" style="display: none; transform: translateY(100%);">
+        <input type="text" 
+            id="finance-input" 
+            placeholder="> -20 PIZZA, +1500 STIPENDIO" 
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="sentences" 
+            spellcheck="false"
+            onkeypress="handleFinanceSubmit(event)">
     </div>
 </div>
 

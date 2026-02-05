@@ -1084,6 +1084,17 @@ input:focus {
     transform: translateY(0) !important;
 }
 
+.side-bubble, .side-input-wrapper {
+    display: none !important; /* Totalmente invisibili */
+    pointer-events: none;
+}
+
+.side-bubble.active, .side-input-wrapper.active {
+    display: block !important; /* Appaiono solo quando serve */
+    pointer-events: auto;
+    transform: translateY(0) !important;
+}
+
 .side-input-wrapper input {
     width: 100%;
     background: transparent;
@@ -1093,8 +1104,6 @@ input:focus {
     outline: none;
 }
 
-/* Nascondi il + quando la barra è attiva */
-.side-input-wrapper.active ~ .btn-right { opacity: 0; transform: scale(0.5); pointer-events: none; }
 
 .square-btn {
     width: 50px;

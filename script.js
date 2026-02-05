@@ -925,6 +925,7 @@ async function handleFinanceSubmit(event) {
     if (!rawText) return;
 
     // 1. Chiudi input e apri analista in stato "LOADING"
+    input.blur();
     toggleFinanceInput(false);
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
@@ -976,16 +977,18 @@ function toggleAnalyst() {
 
 function toggleFinanceInput(show) {
     const inputZone = document.getElementById('finance-input-zone');
-    const bubble = document.getElementById('analyst-bubble');
     const input = document.getElementById('finance-input');
     
     if (show) {
-        // Chiudi analista se aperto
-        bubble.classList.remove('active');
-        inputZone.classList.add('active');
-        setTimeout(() => input.focus(), 100); // Focus automatico per mobile
+        inputZone.style.display = 'block'; // Prima lo rendi disponibile
+        setTimeout(() => {
+            inputZone.classList.add('active');
+            input.focus();
+        }, 10);
     } else {
+        input.blur(); // CHIUDE LA TASTIERA
         inputZone.classList.remove('active');
+        setTimeout(() => inputZone.style.display = 'none', 300);
     }
 }
 
@@ -1021,7 +1024,10 @@ function renderFinanceLog(transactions) {
             
             <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
-                ${hasNote ? `<i data-lucide="info" title="${t.note}" style="width: 12px; color: var(--accent); cursor: help;"></i>` : ''}
+                ${hasNote ? `<i data-lucide="info" 
+       onclick="showTransactionNote('${t.note.replace(/'/g, "\\'")}')" 
+       style="width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; cursor: pointer; margin-left: 5px;">
+    </i>` : ''}
             </div>
             
             <span style="color: ${color}; font-family: 'Rajdhani'; font-weight: 700; font-size: 13px;">
@@ -1031,6 +1037,18 @@ function renderFinanceLog(transactions) {
     }).join('');
     
     if (window.lucide) lucide.createIcons();
+}
+
+function showTransactionNote(noteText) {
+    const bubble = document.getElementById('analyst-bubble');
+    const text = document.getElementById('analyst-text');
+    
+    // Usiamo il box dell'analista per mostrare la nota della transazione
+    text.innerHTML = `<span style="color:var(--accent)">NOTE_DETAIL:</span><br>${noteText.toUpperCase()}`;
+    bubble.classList.add('active');
+    
+    // Chiudi dopo 4 secondi
+    setTimeout(() => bubble.classList.remove('active'), 4000);
 }
 
 // ============================================
