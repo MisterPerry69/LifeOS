@@ -999,28 +999,36 @@ const financeIcons = {
 
 function renderFinanceLog(transactions) {
     const log = document.getElementById('finance-log');
-    if (!log || !transactions) return;
+    if (!log) return;
     
+    const financeIcons = {
+        "CIBO": "utensils", "SPESA": "shopping-cart", "SVAGO": "gamepad-2",
+        "CASA": "home", "SALUTE": "heart", "TRASPORTI": "car", "LAVORO": "briefcase"
+    };
+
     log.innerHTML = transactions.map(t => {
         const iconName = financeIcons[t.cat] || "arrow-right-left";
         const hasNote = t.note && t.note !== "";
+        const color = t.amt < 0 ? "#fff" : "#00ff88"; // Testi bianchi per uscite, verdi per entrate
+
         return `
-        <div class="trans-row" style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #111; font-size: 11px;">
-            <i data-lucide="${iconName}" style="width: 14px; opacity: 0.7;"></i>
-            <span style="color: var(--dim);">${t.date}</span>
-            <span style="flex: 1; font-weight: bold;">
-                ${t.desc} ${hasNote ? `<i data-lucide="info" title="${t.note}" style="width: 10px; opacity: 0.4; cursor: help;"></i>` : ''}
-            </span>
-            <span style="color: ${t.amt < 0 ? '#ff4d4d' : '#00ff88'}; font-family: 'Rajdhani'; font-weight: 700;">
+        <div class="trans-row" style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #1a1a1a;">
+            <span style="font-size: 10px; color: var(--dim); min-width: 35px;">${t.date}</span>
+            
+            <i data-lucide="${iconName}" style="width: 16px; color: #fff; opacity: 0.8;"></i>
+            
+            <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
+                ${hasNote ? `<i data-lucide="info" title="${t.note}" style="width: 12px; color: var(--accent); cursor: help;"></i>` : ''}
+            </div>
+            
+            <span style="color: ${color}; font-family: 'Rajdhani'; font-weight: 700; font-size: 13px;">
                 ${t.amt > 0 ? '+' : ''}${parseFloat(t.amt).toFixed(2)}€
             </span>
         </div>`;
     }).join('');
     
-    // Reinit Lucide icons
-    if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-    }
+    if (window.lucide) lucide.createIcons();
 }
 
 // ============================================

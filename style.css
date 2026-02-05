@@ -1121,3 +1121,27 @@ input:focus {
 
 .btn-left { left: 0; }
 .btn-right { right: 0; }
+
+/* Colori testi log */
+.trans-row span {
+    letter-spacing: 0.5px;
+}
+
+/* Effetto pressione tasti menu */
+.nav-item:active {
+    transform: scale(0.9);
+    filter: brightness(1.5);
+}
+
+/* Overlay input più pulito */
+#finance-input-zone {
+    background: #080808 !important;
+    border-top: 1px solid var(--accent) !important;
+    padding: 15px !important;
+}
+
+#finance-input {
+    background: #111 !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+}

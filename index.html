@@ -231,65 +231,64 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
 <div id="finance" class="page">
-    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 20px 20px 10px 20px; box-sizing: border-box;">
-        <div class="header-left" style="display: flex; flex-direction: column; gap: 8px;">
-            <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
-                <span class="blink-dot" style="background-color: #00d4ff;"></span>
-                <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700; text-transform: uppercase;">ECON_SYNC // ACTIVE</span>
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i data-lucide="wallet" style="color: var(--accent); width: 22px;"></i>
+            <h1 style="margin: 0; font-size: 1.2rem; letter-spacing: 2px;">CREDITS</h1>
+        </div>
+        <div class="esc-btn" onclick="nav('home')">[X]</div>
+    </div>
+
+    <main style="padding: 0 15px; max-width: 100%;">
+        <div class="finance-card-main" style="background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 20px; border-radius: 8px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div class="label" style="font-size: 9px; color: var(--dim);">TOTAL_LIQUID_ASSETS</div>
+                <div id="total-balance" style="font-size: 2.8rem; font-family: 'Rajdhani'; font-weight: 700; color: #fff;">0.00 €</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <i data-lucide="wallet" style="color: var(--accent); width: 28px; height: 28px;"></i>
-                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff; text-transform: uppercase; line-height: 1;">CREDITS</h1>
+
+            <div class="survival-box" style="border-top: 1px solid #222; pt: 15px; margin-top: 10px;">
+                <div id="burn-info-text" style="font-size: 10px; color: #fff; text-align: center; margin-bottom: 8px; font-weight: bold;">
+                    ANALISI_FLUSSI...
+                </div>
+                <div class="hp-bar-outer" style="width: 100%; height: 6px; background: #111; border-radius: 3px; overflow: hidden;">
+                    <div id="efficiency-fill" style="height: 100%; width: 0%; transition: width 1s; background: var(--accent);"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 20px; font-size: 11px;">
+                <div style="color: #fff;"><span class="label" style="color: var(--dim);">DIGITAL:</span> <span id="bank-val">0.00 €</span></div>
+                <div style="color: #fff;"><span class="label" style="color: var(--dim);">PHYSICAL:</span> <span id="cash-val">0.00 €</span></div>
             </div>
         </div>
-        <div class="header-right">
-            <div class="esc-btn" onclick="nav('home')" style="cursor: pointer; opacity: 0.7;">[esc X]</div>
+
+        <div id="finance-log" style="margin-top: 20px; padding-bottom: 100px;">
+            </div>
+    </main>
+
+    <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #080808; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; z-index: 1000;">
+        <div class="nav-item" onclick="toggleAnalyst()" style="text-align: center; color: var(--dim);">
+            <i data-lucide="cpu" style="width: 24px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
+        </div>
+        <div class="nav-item" onclick="toggleFilters()" style="text-align: center; color: var(--dim);">
+            <i data-lucide="filter" style="width: 24px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">LOG</div>
+        </div>
+        <div class="nav-item" style="text-align: center; color: #222;"> <i data-lucide="bar-chart-3" style="width: 24px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">STATS</div>
+        </div>
+        <div class="nav-item" onclick="toggleFinanceInput(true)" style="text-align: center; color: var(--accent);">
+            <i data-lucide="plus-square" style="width: 30px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
         </div>
     </div>
 
-    <main class="finance-main" style="padding: 0 20px;">
-        <div class="finance-card-main" style="background: rgba(255,255,255,0.03); border: 1px solid #222; padding: 20px; border-radius: 4px; margin-top: 20px;">
-            <div class="label" style="color: var(--accent); font-size: 10px;">TOTAL_LIQUID_ASSETS</div>
-            <div id="total-balance" class="big-money" style="font-size: 2.5rem; font-family: 'Rajdhani'; font-weight: 700;">0.00 €</div>
-            <div class="sub-assets" style="display: flex; justify-content: space-between; border-top: 1px solid #222; margin-top:15px; padding-top: 15px;">
-                <div class="sub-item"><span class="label">DIGITAL_CREDITS</span><br><span id="bank-val">0.00 €</span></div>
-                <div class="sub-item" style="text-align:right;"><span class="label">PHYSICAL_ASSETS</span><br><span id="cash-val">0.00 €</span></div>
-            </div>
-        </div>
+    <div id="analyst-bubble" class="side-bubble" style="bottom: 85px; right: 20px; width: calc(100% - 40px); left: 20px;">
+        <p id="analyst-text">AWAITING_DATA...</p>
+    </div>
 
-        <div class="burn-rate-container" style="margin-top: 25px;">
-            <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;">
-                <span>NEURAL_SURVIVAL_RATE</span>
-                </div>
-            <div class="hp-bar-outer" style="width: 100%; height: 10px; background: #111; border: 1px solid #333; position: relative;">
-                <div id="efficiency-fill" class="hp-bar-fill" style="height: 100%; width: 0%; transition: width 1s; background: var(--accent);"></div>
-            </div>
-            <div id="burn-info-text" style="font-size: 9px; color: var(--dim); margin-top: 8px; letter-spacing: 1px; text-transform: uppercase;">
-                CALCOLO_IN_CORSO...
-            </div>
-        </div>        
-
-        <div id="finance-log" class="terminal-log" style="margin-top: 30px; font-size: 10px; opacity: 0.5; height: 150px; overflow-y: auto;"></div>
-    </main>
-
-    <div class="finance-controls">
-        <div id="analyst-btn" class="square-btn btn-left" onclick="toggleAnalyst()">
-            <i data-lucide="cpu"></i>
-        </div>
-        
-        <div id="analyst-bubble" class="side-bubble">
-            <p id="analyst-text">AWAITING_DATA...</p>
-        </div>
-
-        <div id="fab-finance" class="square-btn btn-right" onclick="toggleFinanceInput(true)">
-            <i data-lucide="plus"></i>
-        </div>
-
-        <div id="finance-input-zone" class="side-input-wrapper">
-            <input type="text" id="finance-input" placeholder="> -20 pizza, -5 caffe *c" 
-                   onkeypress="handleFinanceSubmit(event)"
-                   onblur="setTimeout(() => toggleFinanceInput(false), 200)">
-        </div>
+    <div id="finance-input-zone" class="side-input-wrapper" style="bottom: 85px; left: 0; width: 100%; border-radius: 0;">
+        <input type="text" id="finance-input" placeholder="> -20 PIZZA, +1500 STIPENDIO" onkeypress="handleFinanceSubmit(event)">
     </div>
 </div>
 
