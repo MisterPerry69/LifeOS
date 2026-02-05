@@ -1,6 +1,6 @@
 /**
- * SYSTEM_OS - CORE JAVASCRIPT (CLEANED)
- * Versione pulita e ottimizzata
+ * SYSTEM_OS - CORE JAVASCRIPT (FIXED)
+ * Fix problemi loadStats e window.onload
  */
 
 // ============================================
@@ -13,7 +13,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQPQYYG6qBHwPcZRUFn
 let historyData = [];
 let extraItemsGlobal = [];
 let loadedNotesData = [];
-let lastStatsData = null; // FIX: Dichiarata esplicitamente
+let lastStatsData = null;
 let currentNoteData = null;
 let currentView = 30;
 let currentFilter = 'ALL';
@@ -31,22 +31,40 @@ window.onload = async () => {
     setInterval(updateClock, 1000);
     
     await runBootSequence();
-    await loadStats();
     
+    // FIX: Carica i dati PRIMA di nascondere boot screen
+    try {
+        await loadStats();
+    } catch (err) {
+        console.error("ERRORE_BOOT_STATS:", err);
+    }
+    
+    // Nascondi boot screen solo DOPO che i dati sono caricati
     setTimeout(() => {
         const boot = document.getElementById('boot-screen');
         if(boot) boot.style.display = 'none';
     }, 500);
     
-    // FIX: Event listener con controllo null
-    const searchInput = document.getElementById('search-input');
-    if (searchInput) {
-        searchInput.addEventListener('blur', function() {
-            if (this.value === "") {
-                toggleSearch(false);
-            }
-        });
-    }
+    // FIX: Event listener con controllo null - DOPO che il DOM è pronto
+    setTimeout(() => {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('blur', function() {
+                if (this.value === "") {
+                    toggleSearch(false);
+                }
+            });
+        }
+        
+        // FIX: Event listener Finance Input
+        const financeInput = document.getElementById('finance-input');
+        if (financeInput) {
+            financeInput.addEventListener('keypress', handleFinanceSubmit);
+            financeInput.addEventListener('blur', () => {
+                setTimeout(() => toggleFinanceInput(false), 200);
+            });
+        }
+    }, 100);
 };
 
 async function bootLog(text, delay = 150) {
@@ -90,70 +108,90 @@ function toggleMenu() {
 }
 
 // ============================================
-// 3. DATA ENGINE (GET)
+// 3. DATA ENGINE (GET) - FIX COMPLETO
 // ============================================
 
 async function loadStats() {
     try {
         const response = await fetch(`${SCRIPT_URL}?action=getStats&t=${Date.now()}`);
+        
+        // FIX: Controllo risposta prima di parsare
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        if (data.status === "ONLINE") {
-            // Aggiorna variabili globali (tua roba vecchia)
-            historyData = data.history || [];
-            extraItemsGlobal = data.extraDetails || [];
-            window.agendaData = data.agenda || [];
-            loadedNotesData = data.notes || [];
-            lastStatsData = data;
+        // FIX: Controllo status PRIMA di usare i dati
+        if (data.status !== "ONLINE") {
+            console.warn("Server non online:", data);
+            return;
+        }
+        
+        // Aggiorna variabili globali
+        historyData = data.history || [];
+        extraItemsGlobal = data.extraDetails || [];
+        window.agendaData = data.agenda || [];
+        loadedNotesData = data.notes || [];
+        lastStatsData = data;
+        
+        // Render griglia note
+        renderGrid(data);
+        
+        // Render agenda se attiva
+        if (document.getElementById('agenda')?.classList.contains('active')) {
+            renderAgenda(window.agendaData);
+        }
+
+        // --- BLOCCO FINANCE CON CONTROLLI NULL ---
+        if (data.finance) {
+            // 1. Widget home
+            const widgetSpent = document.getElementById('widget-spent');
+            const widgetCash = document.getElementById('widget-cash');
+            if (widgetSpent) widgetSpent.innerText = data.finance.spent || "0.00";
+            if (widgetCash) widgetCash.innerText = data.finance.cash || "--";
+
+            // 2. Pagina Finance - Saldi
+            const totalEl = document.getElementById('total-balance');
+            const bankEl = document.getElementById('bank-val');
+            const cashEl = document.getElementById('cash-val');
             
-            renderGrid(data);
-            
-            if (document.getElementById('agenda').classList.contains('active')) {
-                renderAgenda(window.agendaData);
-            }
+            if (totalEl) totalEl.innerText = (data.finance.total || "0") + " €";
+            if (bankEl) bankEl.innerText = (data.finance.bank || "0") + " €";
+            if (cashEl) cashEl.innerText = (data.finance.cash || "0") + " €";
 
-            // --- NUOVO BLOCCO FINANCE ---
-            if (data.finance) {
-                // 1. Numeri Saldo
-                const totalEl = document.getElementById('total-balance');
-                const bankEl = document.getElementById('bank-val');
-                const cashEl = document.getElementById('cash-val');
-                
-                if (totalEl) totalEl.innerText = data.finance.total + " €";
-                if (bankEl) bankEl.innerText = data.finance.bank + " €";
-                if (cashEl) cashEl.innerText = data.finance.cash + " €";
+            // 3. Burn Rate Bar
+            const inc = parseFloat(data.finance.income) || 0;
+            const out = parseFloat(data.finance.spent) || 0;
+            const fill = document.getElementById('efficiency-fill');
+            const infoText = document.getElementById('burn-info-text');
 
-                // 2. Widget Home (se presente)
-                if (document.getElementById('widget-spent')) {
-                    document.getElementById('widget-spent').innerText = data.finance.spent;
-                }
-
-                // 3. SURVIVAL BAR LOGIC
-                const inc = parseFloat(data.finance.income) || 0;
-                const out = parseFloat(data.finance.spent) || 0;
-                const fill = document.getElementById('efficiency-fill');
-                const infoText = document.getElementById('burn-info-text');
-
+            if (fill && infoText) {
                 if (inc > 0) {
                     const lifePct = Math.max(0, ((inc - out) / inc) * 100);
                     const spentPct = ((out / inc) * 100).toFixed(1);
                     
-                    if (fill) {
-                        fill.style.width = lifePct + "%";
-                        fill.style.background = lifePct < 20 ? "#ff4d4d" : "var(--accent)";
-                    }
-                    if (infoText) infoText.innerText = `STAI_SPENDENDO_IL_${spentPct}%_DELLE_TUE_ENTRATE`;
+                    fill.style.width = lifePct + "%";
+                    fill.style.background = lifePct < 20 ? "#ff4d4d" : "var(--accent)";
+                    infoText.innerText = `STAI_SPENDENDO_IL_${spentPct}%_DELLE_TUE_ENTRATE`;
                 } else {
-                    if (fill) { fill.style.width = "0%"; fill.style.background = "#ff4d4d"; }
-                    if (infoText) infoText.innerText = "NESSUNA_ENTRATA_RILEVATA";
+                    fill.style.width = "0%";
+                    fill.style.background = "#ff4d4d";
+                    infoText.innerText = "NESSUNA_ENTRATA_RILEVATA";
                 }
+            }
 
-                // 4. Log Transazioni
+            // 4. Log Transazioni
+            if (data.finance.transactions) {
                 renderFinanceLog(data.finance.transactions);
             }
         }
+        
     } catch (err) {
         console.error("ERRORE_CRITICO_SYNC:", err);
+        // FIX: Mostra errore all'utente invece di crashare silenziosamente
+        const widgetNotes = document.getElementById('widget-notes');
+        if (widgetNotes) widgetNotes.innerText = "ERR";
     }
 }
 
@@ -164,8 +202,12 @@ function renderGrid(data) {
     lastStatsData = data;
     loadedNotesData = data.notes || [];
 
-    document.getElementById('widget-notes').innerText = (loadedNotesData.length + 1);
-    document.getElementById('widget-weight').innerText = data.weight || "94.5";
+    // FIX: Controlli null prima di aggiornare
+    const widgetNotes = document.getElementById('widget-notes');
+    const widgetWeight = document.getElementById('widget-weight');
+    
+    if (widgetNotes) widgetNotes.innerText = (loadedNotesData.length + 1);
+    if (widgetWeight) widgetWeight.innerText = data.weight || "94.5";
 
     const fragment = document.createDocumentFragment();
     const isSearching = searchQuery.length > 0;
@@ -177,8 +219,8 @@ function renderGrid(data) {
         extraCard.innerHTML = `
             <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
             <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
-            <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal}h</div>
-            <div class="label" style="opacity:0.5">${data.monthLabel}</div>
+            <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal || 0}h</div>
+            <div class="label" style="opacity:0.5">${data.monthLabel || ''}</div>
         `;
         extraCard.onclick = () => openExtraDetail();
         fragment.appendChild(extraCard);
@@ -237,7 +279,7 @@ function renderGrid(data) {
         // Eventi Drag & Drop
         card.ondragstart = (e) => {
             if (!isDraggable) {
-                e.preventDefault(); // FIX: Blocca drag se non permesso
+                e.preventDefault();
                 return;
             }
             draggedItem = card;
@@ -312,7 +354,7 @@ async function sendCmd(event) {
 
     // Finance command
     if (val.startsWith('-') || val.startsWith('spesa ')) {
-        recordFinanceCommand(val);
+        handleFinanceCommand(val);
         input.value = "";
         return;
     }
@@ -320,18 +362,20 @@ async function sendCmd(event) {
     // Optimistic UI per note normali
     if (!val.toLowerCase().startsWith('t ') && !val.includes('+')) {
         const grid = document.getElementById('keep-grid');
-        const tempCard = document.createElement('div');
-        tempCard.className = "keep-card bg-default blink temp-note";
-        tempCard.innerHTML = `
-            <div class="title-row">SYNCING...</div>
-            <div class="content-preview">${val}</div>
-            <div class="label" style="font-size:9px; opacity:0.4;">JUST NOW</div>
-        `;
-        const lastPinned = grid.querySelector('.pinnato:last-of-type');
-        if (lastPinned) {
-            lastPinned.after(tempCard);
-        } else {
-            grid.prepend(tempCard);
+        if (grid) {
+            const tempCard = document.createElement('div');
+            tempCard.className = "keep-card bg-default blink temp-note";
+            tempCard.innerHTML = `
+                <div class="title-row">SYNCING...</div>
+                <div class="content-preview">${val}</div>
+                <div class="label" style="font-size:9px; opacity:0.4;">JUST NOW</div>
+            `;
+            const lastPinned = grid.querySelector('.pinnato:last-of-type');
+            if (lastPinned) {
+                lastPinned.after(tempCard);
+            } else {
+                grid.prepend(tempCard);
+            }
         }
     }
 
@@ -353,7 +397,8 @@ async function sendCmd(event) {
         
         setTimeout(async () => {
             await loadStats();
-            if (document.getElementById('note-detail').style.display === 'flex' && service === "extra_hours") {
+            const noteDetail = document.getElementById('note-detail');
+            if (noteDetail && noteDetail.style.display === 'flex' && service === "extra_hours") {
                 openExtraDetail();
             }
         }, 3000);
@@ -368,6 +413,16 @@ async function sendCmd(event) {
     }, 1500);
 }
 
+// FIX: Rinominata per evitare conflitti
+function handleFinanceCommand(rawText) {
+    console.log("Finance command:", rawText);
+    // Implementazione base - da espandere
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ service: "finance_add", text: rawText })
+    });
+}
 
 // ============================================
 // 5. UI MODALS & ACTIONS
@@ -383,21 +438,26 @@ function openNoteByIndex(index) {
     const colorBtn = document.querySelector('.color-selector-container');
     const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
     const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+    const detailType = document.getElementById('detail-type');
+    const detailText = document.getElementById('detail-text');
+    const detailExtraList = document.getElementById('detail-extra-list');
+    const backdrop = document.getElementById('modal-backdrop');
 
-    // FIX: Controlli null aggiunti
+    if (!modal || !detailType || !detailText || !detailExtraList) return;
+
     if(colorBtn) colorBtn.style.display = "block";
     if(pinTool) pinTool.style.display = "flex";
     
-    document.getElementById('detail-type').innerText = note[5] || "NOTA";
-    document.getElementById('detail-text').value = note[1];
-    document.getElementById('detail-text').style.display = "block";
-    document.getElementById('detail-extra-list').style.display = "none";
+    detailType.innerText = note[5] || "NOTA";
+    detailText.value = note[1];
+    detailText.style.display = "block";
+    detailExtraList.style.display = "none";
     
     if(pinIcon) pinIcon.style.color = (note[2] === "PINNED") ? "var(--accent)" : "var(--dim)";
 
     modal.className = `note-overlay bg-${note[3]}`;
     modal.style.display = 'flex';
-    document.getElementById('modal-backdrop').style.display = 'block';
+    if (backdrop) backdrop.style.display = 'block';
 }
 
 function openExtraDetail() {
@@ -461,8 +521,11 @@ function openExtraDetail() {
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
 
-    document.getElementById('prevMonth').onclick = (e) => { e.stopPropagation(); changeDetailMonth(-1); };
-    document.getElementById('nextMonth').onclick = (e) => { e.stopPropagation(); changeDetailMonth(1); };
+    // FIX: Aggiungi event listener solo se elementi esistono
+    const prevMonth = document.getElementById('prevMonth');
+    const nextMonth = document.getElementById('nextMonth');
+    if (prevMonth) prevMonth.onclick = (e) => { e.stopPropagation(); changeDetailMonth(-1); };
+    if (nextMonth) nextMonth.onclick = (e) => { e.stopPropagation(); changeDetailMonth(1); };
 }
 
 function changeDetailMonth(delta) {
@@ -473,7 +536,6 @@ function changeDetailMonth(delta) {
     openExtraDetail();
 }
 
-// FIX: Funzione unificata per chiusura modal
 function closeNoteDetail(forceSave = true) {
     const modal = document.getElementById('note-detail');
     const textArea = document.getElementById('detail-text');
@@ -481,7 +543,6 @@ function closeNoteDetail(forceSave = true) {
     
     if (!modal || modal.style.display === 'none') return;
 
-    // Salvataggio solo per note normali se forceSave = true
     if (forceSave && currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
         const newText = textArea.value.trim();
         const oldNote = loadedNotesData[currentNoteData.index];
@@ -489,14 +550,12 @@ function closeNoteDetail(forceSave = true) {
         const oldColor = oldNote ? oldNote[3] : "default";
 
         if (newText !== oldText || currentNoteData.color !== oldColor) {
-            // Aggiorna locale
             if (currentNoteData.index !== undefined) {
                 loadedNotesData[currentNoteData.index][1] = newText;
                 loadedNotesData[currentNoteData.index][3] = currentNoteData.color;
                 if (lastStatsData) renderGrid(lastStatsData);
             }
 
-            // Invia al server
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -510,19 +569,18 @@ function closeNoteDetail(forceSave = true) {
         }
     }
 
-    // Chiusura fisica
     modal.style.display = 'none';
     if (backdrop) backdrop.style.display = 'none';
     
-    // Reset UI
-    document.getElementById('color-picker-bubble').style.display = 'none';
-    document.getElementById('delete-modal').style.display = 'none';
+    const colorPicker = document.getElementById('color-picker-bubble');
+    const deleteModal = document.getElementById('delete-modal');
+    if (colorPicker) colorPicker.style.display = 'none';
+    if (deleteModal) deleteModal.style.display = 'none';
     
     currentNoteData = null;
     detailMonthOffset = 0;
 }
 
-// Alias per compatibilità con HTML esistente
 function saveAndClose() {
     closeNoteDetail(true);
 }
@@ -533,7 +591,7 @@ function closeModal() {
 
 function toggleColorPicker() {
     const picker = document.getElementById('color-picker-bubble');
-    picker.style.display = (picker.style.display === 'flex') ? 'none' : 'flex';
+    if (picker) picker.style.display = (picker.style.display === 'flex') ? 'none' : 'flex';
 }
 
 function changeNoteColor(color) {
@@ -542,9 +600,8 @@ function changeNoteColor(color) {
     currentNoteData.color = color;
     
     const modal = document.getElementById('note-detail');
-    modal.className = `note-overlay bg-${color}`;
+    if (modal) modal.className = `note-overlay bg-${color}`;
     
-    // FIX: Usa ID invece di querySelector fragile
     const card = document.getElementById(`card-${currentNoteData.id}`);
     if (card) {
         card.className = `keep-card bg-${color}${currentNoteData.type === 'PINNED' ? ' pinnato' : ''}`;
@@ -571,18 +628,21 @@ let deleteTarget = null;
 
 function confirmDelete(id, type) {
     deleteTarget = { id, type };
-    document.getElementById('delete-modal').style.display = 'flex';
+    const deleteModal = document.getElementById('delete-modal');
+    if (deleteModal) deleteModal.style.display = 'flex';
 }
 
 function cancelDelete() {
     deleteTarget = null;
-    document.getElementById('delete-modal').style.display = 'none';
+    const deleteModal = document.getElementById('delete-modal');
+    if (deleteModal) deleteModal.style.display = 'none';
 }
 
 async function executeDelete() {
     if (!deleteTarget) return;
     
-    document.getElementById('delete-modal').style.display = 'none';
+    const deleteModal = document.getElementById('delete-modal');
+    if (deleteModal) deleteModal.style.display = 'none';
     
     await fetch(SCRIPT_URL, {
         method: 'POST',
@@ -643,6 +703,8 @@ function toggleSearch(show) {
     const title = document.getElementById('dump-title');
     const trigger = document.getElementById('search-trigger');
 
+    if (!wrapper || !input || !title || !trigger) return;
+
     if (show) {
         wrapper.classList.add('active');
         trigger.classList.add('hidden');
@@ -671,7 +733,8 @@ function drawPixels(history = []) {
     container.className = 'grid-' + currentView;
 
     const labels = { 7: "SETTIMANA", 30: "MESE", 365: "ANNO" };
-    document.getElementById('viewLabel').innerText = labels[currentView];
+    const viewLabel = document.getElementById('viewLabel');
+    if (viewLabel) viewLabel.innerText = labels[currentView];
 
     for(let i = 0; i < currentView; i++) {
         const p = document.createElement('div');
@@ -699,6 +762,8 @@ function handleAgendaCommand(input, isInternal = false) {
     const commands = input.split('/').map(s => s.trim());
     const inputField = isInternal ? document.getElementById('agenda-cmd') : document.getElementById('cmd');
     
+    if (!inputField) return;
+    
     inputField.placeholder = "> UPLOADING...";
     if(isInternal) inputField.value = "";
 
@@ -722,6 +787,7 @@ function handleAgendaCommand(input, isInternal = false) {
 
 function loadAgenda() {
     const container = document.getElementById('events-container');
+    if (!container) return;
     
     if (typeof window.agendaData === 'undefined') {
         container.innerHTML = "<div style='color:var(--accent); padding:20px;' class='blink'>[ SYNCING_CHRONO... ]</div>";
@@ -744,8 +810,8 @@ function loadAgenda() {
 
 function renderAgenda(days) {
     const container = document.getElementById('events-container');
-    if (!days || days.length === 0) {
-        container.innerHTML = "<div class='day-label' style='border-right-color:var(--dim)'>CHRONO_EMPTY</div>";
+    if (!container || !days || days.length === 0) {
+        if (container) container.innerHTML = "<div class='day-label' style='border-right-color:var(--dim)'>CHRONO_EMPTY</div>";
         return;
     }
 
@@ -763,16 +829,16 @@ function renderAgenda(days) {
 }
 
 async function synthesizeDaily() {
-    const prompt = document.getElementById('neural-prompt').value;
-    if (!prompt) return;
+    const prompt = document.getElementById('neural-prompt');
+    if (!prompt || !prompt.value) return;
 
     const btn = document.querySelector('#neural-input-zone button');
-    btn.innerText = "SYNTHESIZING_NEURAL_PATH...";
+    if (btn) btn.innerText = "SYNTHESIZING_NEURAL_PATH...";
 
     try {
         const payload = {
             service: "smartPlan",
-            text: prompt,
+            text: prompt.value,
             fixed: window.agendaData || []
         };
 
@@ -785,18 +851,20 @@ async function synthesizeDaily() {
 
         if (data.status === "SUCCESS") {
             renderNeuralTimeline(data.plan);
-            document.getElementById('neural-input-zone').style.display = 'none';
-            document.getElementById('active-flow-zone').style.display = 'block';
+            const neuralZone = document.getElementById('neural-input-zone');
+            const flowZone = document.getElementById('active-flow-zone');
+            if (neuralZone) neuralZone.style.display = 'none';
+            if (flowZone) flowZone.style.display = 'block';
         }
     } catch (e) {
         console.error("Critical Neural Error", e);
-        btn.innerText = "LINK_FAILED - RETRY";
+        if (btn) btn.innerText = "LINK_FAILED - RETRY";
     }
 }
 
 function renderNeuralTimeline(plan) {
     const container = document.getElementById('daily-timeline-content');
-    if (!plan || !Array.isArray(plan)) return;
+    if (!container || !plan || !Array.isArray(plan)) return;
 
     container.innerHTML = plan.map((task, i) => {
         const accentColor = task.isFixed ? '#00f3ff' : '#fcee0a';
@@ -830,36 +898,35 @@ function renderNeuralTimeline(plan) {
 
 function toggleTaskVisual(index) {
     const node = document.querySelector(`#task-${index} > div`);
+    if (!node) return;
+    
     const text = node.querySelector('.task-text');
     const checkbox = node.querySelector('input');
 
-    if (checkbox.checked) {
+    if (checkbox && checkbox.checked) {
         node.style.opacity = "0.3";
         node.style.filter = "grayscale(1)";
-        text.style.textDecoration = "line-through";
+        if (text) text.style.textDecoration = "line-through";
     } else {
         node.style.opacity = "1";
         node.style.filter = "none";
-        text.style.textDecoration = "none";
+        if (text) text.style.textDecoration = "none";
     }
 }
 
-
-
-
 // ============================================
-// 10. FINANCE
+// 9. FINANCE
 // ============================================
 
-// Modifica al submit per usare la nuova funzione di feedback
-// --- LOGICA INPUT (NON CASTRATA) ---
 async function handleFinanceSubmit(event) {
     if (event.key !== 'Enter') return;
+    
     const input = document.getElementById('finance-input');
+    if (!input) return;
+    
     const rawText = input.value.trim();
     if (!rawText) return;
 
-    // Chiudiamo subito l'input per dare feedback visivo
     toggleFinanceInput(false);
     input.value = '';
 
@@ -867,10 +934,9 @@ async function handleFinanceSubmit(event) {
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
-    text.innerText = "ANALISI_FLUSSI...";
-    bubble.classList.add('active');
+    if (text) text.innerText = "ANALISI_FLUSSI...";
+    if (bubble) bubble.classList.add('active');
 
-    // Processiamo ogni entrata separata da virgola
     for (let entry of entries) {
         const isCash = entry.includes('*c');
         const cleanText = entry.replace('*c', '').trim();
@@ -879,119 +945,61 @@ async function handleFinanceSubmit(event) {
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
-                    action: "finance_smart_entry", // Allineato col backend
+                    action: "finance_smart_entry",
                     text: cleanText,
                     wallet: isCash ? "CASH" : "BANK"
                 })
             });
             
             const result = await response.json();
-            text.innerText = result.advice; // Il consiglio cinico appare qui
+            if (text && result.advice) text.innerText = result.advice;
             
-            // "Falso tempo reale": carichiamo le stats dopo ogni singola entry
-            await loadStats(); 
+            await loadStats();
         } catch (e) {
-            text.innerText = "ERRORE_DI_SINCRO_NEURALE";
+            if (text) text.innerText = "ERRORE_DI_SINCRO_NEURALE";
         }
     }
 
-    // Teniamo la bolla aperta un po' per leggere l'ultimo consiglio
-    setTimeout(() => bubble.classList.remove('active'), 7000);
-}
-
-// --- LOGICA BARRA VITA (NEURAL BURN RATE) ---
-function updateBurnRate(income, spent) {
-    const fill = document.getElementById('efficiency-fill');
-    const label = document.getElementById('burn-info-text'); // Serve questo ID nel HTML
-    
-    const inc = parseFloat(income) || 0;
-    const out = parseFloat(spent) || 0;
-
-    if (inc <= 0) {
-        fill.style.width = "0%";
-        fill.style.background = "#ff4d4d"; // Rossa se non hai entrate
-        label.innerText = "NESSUNA_ENTRATA_RILEVATA";
-        return;
+    if (bubble) {
+        setTimeout(() => bubble.classList.remove('active'), 7000);
     }
-
-    // Calcolo percentuale di "vita" rimanente
-    const remaining = Math.max(0, inc - out);
-    const lifePercentage = (remaining / inc) * 100;
-    
-    // Calcolo percentuale di quanto stai spendendo rispetto alle entrate
-    const spentPercentage = ((out / inc) * 100).toFixed(1);
-
-    fill.style.width = lifePercentage + "%";
-    fill.style.background = lifePercentage > 20 ? "var(--accent)" : "#ff4d4d";
-    
-    label.innerText = `STAI_SPENDENDO_IL_${spentPercentage}%_DELLE_TUE_ENTRATE`;
-}
-
-// Funzione per il fumetto dell'analista (L'occhio verde in alto)
-function triggerAnalyst() {
-    const bubble = document.getElementById('analyst-bubble');
-    if (bubble.style.display === 'block') {
-        bubble.style.display = 'none';
-    } else {
-        bubble.style.display = 'block';
-        // Qui potremmo chiamare Gemini per una frase random
-    }
-}
-
-function showAnalystQuote(text) {
-    const bubble = document.getElementById('analyst-bubble');
-    const textField = document.getElementById('analyst-text');
-    if (textField) textField.innerText = text;
-    
-    bubble.classList.add('active');
-    // Si chiude da sola dopo 5 secondi
-    setTimeout(() => { bubble.classList.remove('active'); }, 5000);
 }
 
 function toggleAnalyst() {
-    document.getElementById('analyst-bubble').classList.toggle('active');
+    const bubble = document.getElementById('analyst-bubble');
+    if (bubble) bubble.classList.toggle('active');
 }
 
 function toggleFinanceInput(show) {
     const zone = document.getElementById('finance-input-zone');
     const fab = document.getElementById('fab-finance');
     
+    if (!zone || !fab) return;
+    
     if (show) {
         zone.classList.add('active');
-        fab.style.opacity = "0"; // Nasconde il + mentre scrivi
-        document.getElementById('finance-input').focus();
+        fab.style.opacity = "0";
+        const input = document.getElementById('finance-input');
+        if (input) input.focus();
     } else {
         zone.classList.remove('active');
         fab.style.opacity = "1";
     }
 }
-// Chiudi se clicchi fuori
-document.getElementById('finance-input').addEventListener('blur', () => {
-    setTimeout(() => toggleFinanceInput(false), 200);
-});
-
-function updateFinanceUI(stats) {
-    // Supponendo che stats.finance contenga i dati dal foglio
-    // Se non li hai ancora, dobbiamo mapparli nel getStatsData() del Codice.gs
-    document.getElementById('total-balance').innerText = stats.total + " €";
-    document.getElementById('bank-val').innerText = stats.bank + " €";
-    document.getElementById('cash-val').innerText = stats.cash + " €";
-    
-    // Calcolo Burn Rate (Esempio su 1000€ di budget)
-    let burn = (stats.total_spent / 1000) * 100;
-    document.getElementById('efficiency-fill').style.width = burn + "%";
-    document.getElementById('burn-percentage').innerText = Math.round(burn) + "%";
-}
 
 const financeIcons = {
-    "CIBO": "utensils", "SPESA": "shopping-cart", "SVAGO": "gamepad-2",
-    "CASA": "home", "SALUTE": "heart", "TRASPORTI": "car", "LAVORO": "briefcase"
+    "CIBO": "utensils", 
+    "SPESA": "shopping-cart", 
+    "SVAGO": "gamepad-2",
+    "CASA": "home", 
+    "SALUTE": "heart", 
+    "TRASPORTI": "car", 
+    "LAVORO": "briefcase"
 };
 
-// 2. Render Log con Icone e Note
 function renderFinanceLog(transactions) {
     const log = document.getElementById('finance-log');
-    if (!log) return;
+    if (!log || !transactions) return;
     
     log.innerHTML = transactions.map(t => {
         const iconName = financeIcons[t.cat] || "arrow-right-left";
@@ -1008,12 +1016,15 @@ function renderFinanceLog(transactions) {
             </span>
         </div>`;
     }).join('');
-    lucide.createIcons();
+    
+    // Reinit Lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+    }
 }
 
-
 // ============================================
-// 9. EVENT LISTENERS (DOM READY)
+// 10. EVENT LISTENERS (DOM READY)
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1029,28 +1040,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// FIX: Event listeners globali con controlli null
 document.addEventListener('click', (e) => {
     const analystBubble = document.getElementById('analyst-bubble');
     const analystBtn = document.getElementById('analyst-btn');
     const financeInputZone = document.getElementById('finance-input-zone');
     const fab = document.getElementById('fab-finance');
 
-    // Chiudi analista se clicchi fuori
-    if (analystBubble && !analystBubble.contains(e.target) && !analystBtn.contains(e.target)) {
+    if (analystBubble && analystBtn && !analystBubble.contains(e.target) && !analystBtn.contains(e.target)) {
         analystBubble.classList.remove('active');
     }
 
-    // Chiudi input finance se clicchi fuori
-    if (financeInputZone && !financeInputZone.contains(e.target) && !fab.contains(e.target)) {
+    if (financeInputZone && fab && !financeInputZone.contains(e.target) && !fab.contains(e.target)) {
         toggleFinanceInput(false);
     }
 });
-
-document.addEventListener('mousedown', (e) => {
-    const bubble = document.getElementById('analyst-bubble');
-    const btn = document.getElementById('analyst-btn');
-    if (bubble && !bubble.contains(e.target) && !btn.contains(e.target)) {
-        bubble.classList.remove('active');
-    }
-});
-
