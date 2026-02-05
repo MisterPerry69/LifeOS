@@ -920,70 +920,72 @@ function toggleTaskVisual(index) {
 
 async function handleFinanceSubmit(event) {
     if (event.key !== 'Enter') return;
-    
     const input = document.getElementById('finance-input');
-    if (!input) return;
-    
     const rawText = input.value.trim();
     if (!rawText) return;
 
+    // 1. Chiudi input e apri analista in stato "LOADING"
     toggleFinanceInput(false);
-    input.value = '';
-
-    const entries = rawText.split(',');
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
+    text.innerText = "NEURAL_PROCESSING_IN_PROGRESS...";
+    bubble.classList.add('active');
     
-    if (text) text.innerText = "ANALISI_FLUSSI...";
-    if (bubble) bubble.classList.add('active');
+    input.value = '';
 
-    for (let entry of entries) {
-        const isCash = entry.includes('*c');
-        const cleanText = entry.replace('*c', '').trim();
+    try {
+        const isAgenda = rawText.toLowerCase().startsWith('t ');
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                service: isAgenda ? "agenda_add" : "finance_smart_entry",
+                text: isAgenda ? rawText.substring(2) : rawText,
+                wallet: rawText.includes('*c') ? "CASH" : "BANK"
+            })
+        });
 
-        try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: "finance_smart_entry",
-                    text: cleanText,
-                    wallet: isCash ? "CASH" : "BANK"
-                })
-            });
-            
+        if (!isAgenda) {
             const result = await response.json();
-            if (text && result.advice) text.innerText = result.advice;
-            
-            await loadStats();
-        } catch (e) {
-            if (text) text.innerText = "ERRORE_DI_SINCRO_NEURALE";
+            text.innerText = result.advice; // Risposta cinica di Gemini
+        } else {
+            text.innerText = "EVENTO_MEMORIZZATO_NELLA_TIMELINE";
         }
-    }
 
-    if (bubble) {
-        setTimeout(() => bubble.classList.remove('active'), 7000);
+        // 2. Ricarica i dati (Saldo e Log)
+        await loadStats();
+        
+    } catch (err) {
+        text.innerText = "CRITICAL_ERROR: SYNC_FAILED";
+        console.error(err);
     }
+    
+    // 3. Chiudi l'analista dopo 6 secondi
+    setTimeout(() => bubble.classList.remove('active'), 6000);
 }
 
 function toggleAnalyst() {
     const bubble = document.getElementById('analyst-bubble');
-    if (bubble) bubble.classList.toggle('active');
+    const inputZone = document.getElementById('finance-input-zone');
+    
+    // Chiudi l'input se è aperto
+    inputZone.classList.remove('active');
+    
+    // Toggle Analista
+    bubble.classList.toggle('active');
 }
 
 function toggleFinanceInput(show) {
-    const zone = document.getElementById('finance-input-zone');
-    const fab = document.getElementById('fab-finance');
-    
-    if (!zone || !fab) return;
+    const inputZone = document.getElementById('finance-input-zone');
+    const bubble = document.getElementById('analyst-bubble');
+    const input = document.getElementById('finance-input');
     
     if (show) {
-        zone.classList.add('active');
-        fab.style.opacity = "0";
-        const input = document.getElementById('finance-input');
-        if (input) input.focus();
+        // Chiudi analista se aperto
+        bubble.classList.remove('active');
+        inputZone.classList.add('active');
+        setTimeout(() => input.focus(), 100); // Focus automatico per mobile
     } else {
-        zone.classList.remove('active');
-        fab.style.opacity = "1";
+        inputZone.classList.remove('active');
     }
 }
 
