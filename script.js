@@ -99,7 +99,6 @@ async function loadStats() {
         const data = await response.json();
         
         if (data.status === "ONLINE") {
-            // --- MANTENIAMO LA TUA ROBA VECCHIA ---
             historyData = data.history || [];
             extraItemsGlobal = data.extraDetails || [];
             window.agendaData = data.agenda || [];
@@ -112,31 +111,34 @@ async function loadStats() {
                 renderAgenda(window.agendaData);
             }
 
-            // --- NUOVO BLOCCO FINANCE (Se non c'è questo, vedi sempre 0) ---
             if (data.finance) {
-                // Aggiorna pagina Finance
-                if (document.getElementById('total-balance')) 
-                    document.getElementById('total-balance').innerText = data.finance.total + " €";
-                
-                if (document.getElementById('bank-val')) 
-                    document.getElementById('bank-val').innerText = data.finance.bank + " €";
-                
-                if (document.getElementById('cash-val')) 
-                    document.getElementById('cash-val').innerText = data.finance.cash + " €";
+                // Update Numeri
+                if (document.getElementById('total-balance')) document.getElementById('total-balance').innerText = data.finance.total + " €";
+                if (document.getElementById('bank-val')) document.getElementById('bank-val').innerText = data.finance.bank + " €";
+                if (document.getElementById('cash-val')) document.getElementById('cash-val').innerText = data.finance.cash + " €";
+                if (document.getElementById('widget-spent')) document.getElementById('widget-spent').innerText = data.finance.spent;
 
-                // Aggiorna Widget in Home
-                if (document.getElementById('widget-spent'))
-                    document.getElementById('widget-spent').innerText = data.finance.spent;
+                // --- LOGICA SURVIVAL BAR ---
+                const inc = parseFloat(data.finance.income) || 0;
+                const out = parseFloat(data.finance.spent) || 0;
+                const fill = document.getElementById('efficiency-fill');
+                const infoText = document.getElementById('burn-info-text');
 
-                // Calcolo Barra HP (Budget fittizio 1500€ per la barra)
-                const budget = 1500; 
-                const burnPct = Math.min((parseFloat(data.finance.spent) / budget) * 100, 100);
-                
-                if (document.getElementById('efficiency-fill'))
-                    document.getElementById('efficiency-fill').style.width = burnPct + "%";
-                
-                if (document.getElementById('burn-percentage'))
-                    document.getElementById('burn-percentage').innerText = Math.round(burnPct) + "%";
+                if (inc > 0) {
+                    // La barra è la percentuale di soldi rimasti rispetto alle entrate
+                    const lifePct = Math.max(0, ((inc - out) / inc) * 100);
+                    // La dicitura è la percentuale di quanto hai speso rispetto alle entrate
+                    const spentPct = ((out / inc) * 100).toFixed(1);
+
+                    if (fill) {
+                        fill.style.width = lifePct + "%";
+                        fill.style.background = lifePct < 20 ? "#ff4d4d" : "#00ff88"; // Diventa rossa sotto il 20%
+                    }
+                    if (infoText) infoText.innerText = `STAI_SPENDENDO_IL_${spentPct}%_DELLE_TUE_ENTRATE`;
+                } else {
+                    if (fill) { fill.style.width = "0%"; fill.style.background = "#ff4d4d"; }
+                    if (infoText) infoText.innerText = "NESSUNA_ENTRATA_RILEVATA";
+                }
 
                 renderFinanceLog(data.finance.transactions);
             }

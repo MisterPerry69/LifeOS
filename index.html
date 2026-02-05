@@ -231,19 +231,19 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
 <div id="finance" class="page">
-    <div class="header">
-        <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
-            <div class="status-indicator">
+    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 20px 20px 10px 20px; box-sizing: border-box;">
+        <div class="header-left" style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
                 <span class="blink-dot" style="background-color: #00d4ff;"></span>
-                <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700;">ECON_SYNC // ACTIVE</span>
+                <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700; text-transform: uppercase;">ECON_SYNC // ACTIVE</span>
             </div>
-            <div>
-                <i data-lucide="wallet" class="brain-icon" style="color: var(--accent);"></i>
-                <h1 id="finance-title" style="margin: 0; text-transform: uppercase; letter-spacing: 2px;">CREDITS</h1>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="wallet" style="color: var(--accent); width: 28px; height: 28px;"></i>
+                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff; text-transform: uppercase; line-height: 1;">CREDITS</h1>
             </div>
         </div>
         <div class="header-right">
-            <div class="esc-btn" onclick="nav('home')" style="margin-top: 5px;">[esc X]</div>
+            <div class="esc-btn" onclick="nav('home')" style="cursor: pointer; opacity: 0.7;">[esc X]</div>
         </div>
     </div>
 
@@ -268,7 +268,7 @@
                 CALCOLO_IN_CORSO...
             </div>
         </div>        
-        
+
         <div id="finance-log" class="terminal-log" style="margin-top: 30px; font-size: 10px; opacity: 0.5; height: 150px; overflow-y: auto;"></div>
     </main>
 
