@@ -267,10 +267,9 @@
                 <div style="color: #fff;"><span class="label" style="color: var(--dim);">DIGITAL:</span> <span id="bank-val">0.00 €</span></div>
                 <div style="color: #fff;"><span class="label" style="color: var(--dim);">PHYSICAL:</span> <span id="cash-val">0.00 €</span></div>
             </div>
+            <div id="finance-log" style="margin-top: 20px; padding-bottom: 100px;">
             </div>
         </div>
-
-        <div id="finance-log" style="margin-top: 20px; padding-bottom: 100px;">
         </div>
 
         <div id="log-page" style="display:none; padding-bottom: 100px;">
@@ -288,29 +287,31 @@
     </div>
     </main>
 
-<div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #080808; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; z-index: 1000;">
-    <div class="nav-item" onclick="nav('home')" style="text-align: center; color: var(--dim);">
-        <i data-lucide="home" style="width: 24px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">HOME</div>
-    </div>
-
-    <div class="nav-item" onclick="toggleAnalyst()" style="text-align: center; color: var(--dim);">
-        <i data-lucide="cpu" style="width: 24px;"></i>
+<div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 9000; backdrop-filter: blur(10px);">
+    
+    <div class="nav-item" id="nav-analyst" onclick="toggleAnalyst()" style="flex:1; text-align: center; color: var(--dim);">
+        <i data-lucide="cpu" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
     </div>
-
-    <div class="nav-item" onclick="switchFinanceTab('log')" style="text-align: center; color: var(--dim);">
-        <i data-lucide="filter" style="width: 24px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">LOG</div>
+    
+    <div class="nav-item" id="nav-log" onclick="switchFinanceTab('log')" style="flex:1; text-align: center; color: var(--dim);">
+        <i data-lucide="filter" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
     </div>
 
-    <div class="nav-item" style="text-align: center; color: #222;"> 
-        <i data-lucide="bar-chart-3" style="width: 24px;"></i>
+    <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
+        <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
+            <i data-lucide="home" style="width: 28px; color: #000;"></i>
+        </div>
+    </div>
+
+    <div class="nav-item" id="nav-stats" style="flex:1; text-align: center; color: #222;"> 
+        <i data-lucide="bar-chart-3" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">STATS</div>
     </div>
 
-    <div class="nav-item" onclick="toggleFinanceInput(true)" style="text-align: center; color: var(--accent);">
-        <i data-lucide="plus-square" style="width: 30px;"></i>
+    <div class="nav-item" id="nav-entry" onclick="toggleFinanceInput(true)" style="flex:1; text-align: center; color: var(--dim);">
+        <i data-lucide="plus-square" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
     </div>
 </div>

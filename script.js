@@ -1225,16 +1225,39 @@ document.addEventListener('click', (e) => {
     }
 });
 
-function switchFinanceTab(tab) {
-    const home = document.getElementById('finance-home');
-    const log = document.getElementById('log-page');
-    
-    if (tab === 'log') {
-        if (home) home.style.display = 'none';
-        if (log) log.style.display = 'block';
-        setTimeout(() => input.focus(), 100); // Focus automatico per cercare subito
+function switchFinanceTab(target) {
+    const dashboard = document.getElementById('finance-home-view');
+    const searchView = document.getElementById('finance-search-view');
+    const navLog = document.getElementById('nav-log');
+
+    // Reset colori nav
+    document.querySelectorAll('.nav-item').forEach(el => el.style.color = 'var(--dim)');
+
+    if (target === 'log') {
+        dashboard.style.display = 'none';
+        searchView.style.display = 'block';
+        navLog.style.display = 'block';
+        navLog.style.color = 'var(--accent)'; // Accendi l'icona Log
+        setTimeout(() => document.getElementById('log-search').focus(), 150);
     } else {
-        if (home) home.style.display = 'block';
-        if (log) log.style.display = 'none';
+        dashboard.style.display = 'block';
+        searchView.style.display = 'none';
+        // Quando sei in dashboard non c'è una "tab" attiva specifica tra quelle
+    }
+    
+    if (window.lucide) lucide.createIcons();
+}
+
+function nav(page) {
+    // Nascondi tutte le pagine principali (.page)
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    
+    // Mostra la pagina target (es. 'home' per le note o 'finance' per i soldi)
+    const targetPage = document.getElementById(page);
+    if (targetPage) targetPage.classList.add('active');
+
+    // Se stiamo andando alla HOME principale, resettiamo le tab di finance per la prossima volta
+    if (page === 'home') {
+        switchFinanceTab('dashboard');
     }
 }
