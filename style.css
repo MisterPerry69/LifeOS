@@ -1082,28 +1082,44 @@ input:focus {
 }
 
 .side-bubble {
-    border: 2px solid var(--accent) !important;
-    background: rgba(5, 15, 20, 0.95) !important;
-    clip-path: polygon(0 0, 95% 0, 100% 20%, 100% 100%, 5% 100%, 0 80%);
-    padding: 25px 20px 15px 20px !important;
+    position: fixed !important;
+    bottom: 85px !important; /* Sopra la nav bar */
+    left: 15px !important;
+    right: 15px !important;
+    width: auto !important; /* Si adatta alla larghezza */
+    
+    background: #050a0f !important; /* Sfondo scuro quasi nero */
+    border: 1px solid var(--accent) !important;
+    border-left: 4px solid var(--accent) !important; /* Design asimmetrico laterale */
+    
+    padding: 20px 15px !important;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.8) !important;
+    z-index: 9999 !important; /* SOPRA A TUTTO */
+    
+    display: none; /* Nascosto di base */
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+}
+
+.side-bubble.active {
+    display: block !important;
+    transform: translateY(0);
+    opacity: 1;
 }
 
 /* Etichetta Nome NPC */
 .side-bubble::before {
-    content: "AUDIT_CORE_v3.2";
+    content: "ANALISTA v1.04";
     position: absolute;
-    top: -12px;
-    left: 20px;
+    top: -10px;
+    right: 10px; /* Lo mettiamo a destra che è più figo */
     background: var(--accent);
     color: #000;
-    font-size: 10px;
-    font-weight: 900;
-    padding: 2px 8px;
-    letter-spacing: 1px;
-}
-
-.side-bubble.active, .side-input-wrapper.active {
-    transform: translateY(0) !important;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    text-transform: uppercase;
 }
 
 .side-bubble, .side-input-wrapper {
@@ -1111,7 +1127,7 @@ input:focus {
     pointer-events: none;
 }
 
-.side-bubble.active, .side-input-wrapper.active {
+.side-input-wrapper.active {
     display: block !important; /* Appaiono solo quando serve */
     pointer-events: auto;
     transform: translateY(0) !important;

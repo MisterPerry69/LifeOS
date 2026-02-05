@@ -1062,29 +1062,116 @@ async function showTransactionNote(noteText) {
 
 let allTransactions = []; // Da riempire durante il loadStats
 
+// Apre l'overlay e resetta
 function toggleFilters(show) {
     const overlay = document.getElementById('filter-overlay');
-    overlay.style.display = show ? 'block' : 'none';
+    const input = document.getElementById('log-search');
+    const container = document.getElementById('filtered-results');
+    
     if(show) {
-        allTransactions = lastStatsData.finance.full_history || []; // Serve che il server mandi tutto
-        applyFilters();
+        overlay.style.display = 'block';
+        input.value = ''; // Pulisci input
+        input.focus();
+        // Messaggio di benvenuto o lista vuota
+        container.innerHTML = `<div style="text-align:center; color:#444; margin-top:30px; font-size:12px;">DIGITA E PREMI INVIO PER CERCARE NEL DATABASE COMPLETO</div>`;
+    } else {
+        overlay.style.display = 'none';
+        // Togli focus per chiudere tastiera
+        input.blur();
     }
 }
 
+// Filtra in tempo reale
 function applyFilters() {
     const query = document.getElementById('log-search').value.toLowerCase();
-    const container = document.getElementById('filtered-results');
+    const allData = lastStatsData.finance.full_history || []; // Usa la lista LUNGA
     
-    const filtered = lastStatsData.finance.transactions.filter(t => 
+    const filtered = allData.filter(t => 
         t.desc.toLowerCase().includes(query) || 
         t.cat.toLowerCase().includes(query) ||
         (t.note && t.note.toLowerCase().includes(query))
     );
 
-    // Riutilizziamo la logica di renderFinanceLog ma su questo contenitore
-    container.innerHTML = renderItems(filtered); 
+    renderFilteredItems(filtered);
 }
 
+function renderFilteredItems(items) {
+    const container = document.getElementById('filtered-results');
+    const financeIcons = {
+        "CIBO": "utensils", "SPESA": "shopping-cart", "SVAGO": "gamepad-2",
+        "CASA": "home", "SALUTE": "heart", "TRASPORTI": "car", "LAVORO": "briefcase"
+    };
+
+    if (items.length === 0) {
+        container.innerHTML = "<div style='color:#555; text-align:center; margin-top:20px;'>NO_DATA_FOUND</div>";
+        return;
+    }
+
+    container.innerHTML = items.map(t => {
+        const iconName = financeIcons[t.cat] || "arrow-right-left";
+        const hasNote = t.note && t.note !== "";
+        const color = t.amt < 0 ? "#fff" : "#00ff88";
+
+        return `
+        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #1a1a1a;">
+            <span style="font-size: 10px; color: var(--dim); min-width: 35px;">${t.date}</span>
+            <i data-lucide="${iconName}" style="width: 16px; color: #fff; opacity: 0.8;"></i>
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
+                ${hasNote ? `<span style="font-size:9px; color:var(--accent);">${t.note}</span>` : ''}
+            </div>
+            <span style="color: ${color}; font-family: 'Rajdhani'; font-weight: 700; font-size: 13px;">
+                ${t.amt > 0 ? '+' : ''}${parseFloat(t.amt).toFixed(2)}€
+            </span>
+        </div>`;
+    }).join('');
+
+    if (window.lucide) lucide.createIcons();
+}
+
+async function handleLogSearch(event) {
+    if (event.key !== 'Enter') return;
+    
+    const input = document.getElementById('log-search');
+    const query = input.value.trim();
+    
+    // Passiamo la palla alla funzione che esegue la chiamata
+    executeLogSearch(query);
+}
+
+// Funzione unica che esegue la chiamata (usata da tastiera e dai bottoni)
+async function executeLogSearch(query) {
+    if (!query) return;
+
+    const container = document.getElementById('filtered-results');
+    const input = document.getElementById('log-search');
+
+    // UX: Chiudi tastiera e mostra Loading
+    input.value = query; // Se ho cliccato un bottone, scrivo il testo nell'input
+    input.blur(); 
+    container.innerHTML = `<div style="text-align:center; color:var(--accent); margin-top:40px; font-family:'Rajdhani'; animation: pulse 1.5s infinite;">
+                            <i data-lucide="database" style="margin-bottom:10px;"></i><br>
+                            QUERYING_DATABASE: "${query.toUpperCase()}"...
+                           </div>`;
+    if(window.lucide) lucide.createIcons();
+
+    try {
+        // Chiamata al server (Apps Script)
+        const response = await fetch(`${SCRIPT_URL}?action=search_finance&q=${encodeURIComponent(query)}`);
+        const results = await response.json();
+        
+        // Render dei risultati
+        if (results.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#555; margin-top:40px;">NO_MATCHES_FOUND</div>`;
+        } else {
+            renderFilteredItems(results);
+        }
+        
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = `<div style="color:red; text-align:center; margin-top:20px;">CRITICAL_ERROR: CONNECTION_LOST</div>`;
+    }
+}
 
 // ============================================
 // 10. EVENT LISTENERS (DOM READY)

@@ -231,12 +231,18 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
 <div id="finance" class="page">
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+    <div class="header">
+      <div class="header-left">
+        <div class="status-indicator">
+          <span class="blink-dot"></span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">FINANCIAL_CORE // ACTIVE</span>
+        </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <i data-lucide="wallet" style="color: var(--accent); width: 22px;"></i>
             <h1 style="margin: 0; font-size: 1.2rem; letter-spacing: 2px;">CREDITS</h1>
         </div>
-        <div class="esc-btn" onclick="nav('home')">[X]</div>
+        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+        </div>
     </div>
 
     <main style="padding: 0 15px; max-width: 100%;">
@@ -297,26 +303,18 @@
             spellcheck="false"
             onkeypress="handleFinanceSubmit(event)">
     </div>
-    <div id="filter-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#050505; z-index:3000; padding:20px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2 style="font-size:1.2rem; color:var(--accent);">DATABASE_QUERY</h2>
-        <div onclick="toggleFilters(false)" style="cursor:pointer; color:var(--dim);">[CLOSE]</div>
-    </div>
-
-    <input type="text" id="log-search" placeholder="SEARCH_KEYWORD (es. BENZA)..." 
-           style="width:100%; background:#111; border:1px solid #333; color:#fff; padding:12px; font-family:'Rajdhani';"
-           oninput="applyFilters()">
-
-    <div style="display:flex; gap:8px; margin-top:15px; overflow-x:auto; padding-bottom:10px;">
-        <div class="filter-chip" onclick="setFilter('CIBO')">CIBO</div>
-        <div class="filter-chip" onclick="setFilter('SPESA')">SPESA</div>
-        <div class="filter-chip" onclick="setFilter('CASA')">CASA</div>
-        <div class="filter-chip" onclick="setFilter('ALL')">TUTTO</div>
-    </div>
-
-    <div id="filtered-results" style="margin-top:20px; height:calc(100% - 180px); overflow-y:auto;">
+    <div id="filter-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:5000; padding:20px; overflow:hidden;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom:10px;">
+            <h2 style="font-size:1.2rem; color:var(--accent); margin:0;">DATABASE_QUERY</h2>
+            <div onclick="toggleFilters(false)" style="cursor:pointer; font-size:1.5rem; color:#fff;">&times;</div>
         </div>
-</div>
+
+        <input type="text" id="log-search" placeholder="SEARCH (es. CIBO)..." 
+            style="width:100%; background:#111; border:1px solid #333; color:#fff; padding:15px; font-family:'Rajdhani'; font-size:1rem; margin-bottom:15px;"
+            onkeypress="handleSearch(event)"> <div id="filtered-results" style="height: calc(100vh - 150px); overflow-y: auto; padding-bottom: 50px;">
+            </div>
+    </div>
 
 </div>
 
