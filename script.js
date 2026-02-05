@@ -1025,7 +1025,7 @@ function renderFinanceLog(transactions) {
             <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
                 ${hasNote ? `<i data-lucide="info" 
-       onclick="showTransactionNote('${t.note.replace(/'/g, "\\'")}')" 
+       onclick="showTransactionNote('${t.note.replace(/'/g, "\\'")}'), '${t.desc.replace(/'/g, "\\")}')" 
        style="width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; cursor: pointer; margin-left: 5px;">
     </i>` : ''}
             </div>
@@ -1046,17 +1046,20 @@ async function showTransactionNote(noteText) {
     // 1. Mostra subito i dati locali
     bubble.classList.add('active');
     text.innerHTML = `
-        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT:</div>
+        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT </div>
+        <div style="color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 4px;">
+            ABOUT_${description.toUpperCase()}
+        </div>
         <div style="color: #fff; font-style: italic; margin-bottom: 12px; border-left: 2px solid #444; padding-left: 8px;">
             "${noteText.toUpperCase()}"
         </div>
         <div id="ai-typing" style="font-size: 0.8rem; color: var(--accent);">
-            AUDIT_CORE sta elaborando<span class="dot-ani">...</span>
+            ANALISTA sta elaborando<span class="dot-ani">...</span>
         </div>
     `;
 
     // 2. Chiamata all'AI
-    const prompt = `Fa un breve e cinico(ma non troppo) commento su questa transizione (max 10 parole): "${noteText}"`;
+    const prompt = `Fa un breve, cinico(ma non troppo) e divertente commento su questa transizione : "${noteText}"`;
     
     try {
         const response = await fetch(`${SCRIPT_URL}?action=ai_interpret&text=${encodeURIComponent(prompt)}`);
@@ -1150,11 +1153,21 @@ function renderFilteredItems(items) {
 async function handleLogSearch(event) {
     if (event.key !== 'Enter') return;
     
-    const input = document.getElementById('log-search');
-    const query = input.value.trim();
+    const query = event.target.value.trim();
+    if (!query) return;
+
+    const container = document.getElementById('filtered-results');
+    event.target.blur(); // Chiude la tastiera
     
-    // Passiamo la palla alla funzione che esegue la chiamata
-    executeLogSearch(query);
+    container.innerHTML = `<div style="text-align:center; color:var(--accent); margin-top:40px;">QUERYING_DATABASE...</div>`;
+
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=search_finance&q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        renderFilteredItems(data); // Usa la funzione di render che abbiamo fatto prima
+    } catch (e) {
+        container.innerHTML = "ERRORE_RICERCA";
+    }
 }
 
 // Funzione unica che esegue la chiamata (usata da tastiera e dai bottoni)

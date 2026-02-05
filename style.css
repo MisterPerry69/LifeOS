@@ -103,6 +103,7 @@ body {
     display: none; 
     min-height: 100vh; 
     box-sizing: border-box; 
+    padding: 20px;
 }
 
 .page.active { 
@@ -1254,4 +1255,10 @@ CSS
 #analyst-text {
     line-height: 1.4;
     word-wrap: break-word;
+}
+
+#finance.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
 }
