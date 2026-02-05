@@ -21,6 +21,7 @@ let searchQuery = "";
 let currentMonthOffset = 0;
 let detailMonthOffset = 0;
 let draggedItem = null;
+let charts = {};
 
 // ============================================
 // 2. CORE & NAVIGATION
@@ -1259,18 +1260,20 @@ document.addEventListener('click', (e) => {
 function switchFinanceTab(target) {
     const dashboard = document.getElementById('finance-home-view');
     const searchView = document.getElementById('finance-search-view');
-    
+    const statsView = document.getElementById('finance-stats-view');
+
+    // Nascondi tutto
+    [dashboard, searchView, statsView].forEach(v => { if(v) v.style.display = 'none' });
+
     if (target === 'log') {
-        if(dashboard) dashboard.style.display = 'none';
-        if(searchView) searchView.style.display = 'block';
-        // Opzionale: Focus sull'input
-        setTimeout(() => document.getElementById('log-search')?.focus(), 150);
+        searchView.style.display = 'block';
+    } else if (target === 'stats') {
+        statsView.style.display = 'block';
+        initStats(); // <--- GENERA I GRAFICI
     } else {
-        if(dashboard) dashboard.style.display = 'block';
-        if(searchView) searchView.style.display = 'none';
+        dashboard.style.display = 'block';
     }
     
-    // Aggiorna icone
     if (window.lucide) lucide.createIcons();
 }
 
@@ -1286,4 +1289,55 @@ function nav(page) {
     if (page === 'home') {
         switchFinanceTab('dashboard');
     }
+}
+
+function initStats() {
+    if (!lastStatsData || !lastStatsData.finance.transactions) return;
+
+    const txs = lastStatsData.finance.transactions; // Usiamo le transazioni caricate (o full_history se disponibile)
+    
+    // --- ELABORAZIONE DATI CATEGORIE ---
+    const categories = {};
+    txs.forEach(t => {
+        if (t.amt < 0) { // Consideriamo solo le uscite
+            const cat = t.cat.toUpperCase();
+            categories[cat] = (categories[cat] || 0) + Math.abs(t.amt);
+        }
+    });
+
+    // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
+    renderCategoryChart(categories);
+    
+    // --- RENDER GRAFICO TREND (Line) ---
+    // (Qui potremmo aggregare per data, per ora facciamo le categorie che è il più utile)
+}
+
+function renderCategoryChart(data) {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    
+    if (charts.cat) charts.cat.destroy(); // Pulisci se esiste già
+
+    charts.cat = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                data: Object.values(data),
+                backgroundColor: ['#00f3ff', '#ff0055', '#9d00ff', '#00ff88', '#ffb300'],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#888', font: { family: 'Rajdhani', size: 10 }, usePointStyle: true }
+                }
+            },
+            cutout: '70%' // Lo rende un anello sottile
+        }
+    });
 }
