@@ -833,22 +833,7 @@ function toggleTaskVisual(index) {
     }
 }
 
-// ============================================
-// 9. EVENT LISTENERS (DOM READY)
-// ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    const backdrop = document.getElementById('modal-backdrop');
-    const closeBtn = document.querySelector('.close-btn');
-
-    if (backdrop) {
-        backdrop.onclick = () => closeNoteDetail(true);
-    }
-
-    if (closeBtn) {
-        closeBtn.onclick = () => closeNoteDetail(true);
-    }
-});
 
 
 // ============================================
@@ -856,12 +841,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 
 // Modifica al submit per usare la nuova funzione di feedback
+// --- LOGICA INPUT (NON CASTRATA) ---
 async function handleFinanceSubmit(event) {
     if (event.key !== 'Enter') return;
     const input = document.getElementById('finance-input');
     const rawText = input.value.trim();
     if (!rawText) return;
 
+    // Chiudiamo subito l'input per dare feedback visivo
     toggleFinanceInput(false);
     input.value = '';
 
@@ -872,25 +859,61 @@ async function handleFinanceSubmit(event) {
     text.innerText = "ANALISI_FLUSSI...";
     bubble.classList.add('active');
 
+    // Processiamo ogni entrata separata da virgola
     for (let entry of entries) {
         const isCash = entry.includes('*c');
         const cleanText = entry.replace('*c', '').trim();
 
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                service: "finance_smart_entry",
-                text: cleanText,
-                wallet: isCash ? "CASH" : "BANK"
-            })
-        });
-        
-        const result = await response.json();
-        text.innerText = result.advice; // Qui appare il consiglio cinico!
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "finance_smart_entry", // Allineato col backend
+                    text: cleanText,
+                    wallet: isCash ? "CASH" : "BANK"
+                })
+            });
+            
+            const result = await response.json();
+            text.innerText = result.advice; // Il consiglio cinico appare qui
+            
+            // "Falso tempo reale": carichiamo le stats dopo ogni singola entry
+            await loadStats(); 
+        } catch (e) {
+            text.innerText = "ERRORE_DI_SINCRO_NEURALE";
+        }
     }
 
-    setTimeout(loadStats, 1500); // Aggiorna i numeri (Saldo/HP Bar)
+    // Teniamo la bolla aperta un po' per leggere l'ultimo consiglio
     setTimeout(() => bubble.classList.remove('active'), 7000);
+}
+
+// --- LOGICA BARRA VITA (NEURAL BURN RATE) ---
+function updateBurnRate(income, spent) {
+    const fill = document.getElementById('efficiency-fill');
+    const label = document.getElementById('burn-info-text'); // Serve questo ID nel HTML
+    
+    const inc = parseFloat(income) || 0;
+    const out = parseFloat(spent) || 0;
+
+    if (inc <= 0) {
+        fill.style.width = "0%";
+        fill.style.background = "#ff4d4d"; // Rossa se non hai entrate
+        label.innerText = "NESSUNA_ENTRATA_RILEVATA";
+        return;
+    }
+
+    // Calcolo percentuale di "vita" rimanente
+    const remaining = Math.max(0, inc - out);
+    const lifePercentage = (remaining / inc) * 100;
+    
+    // Calcolo percentuale di quanto stai spendendo rispetto alle entrate
+    const spentPercentage = ((out / inc) * 100).toFixed(1);
+
+    fill.style.width = lifePercentage + "%";
+    fill.style.background = lifePercentage > 20 ? "var(--accent)" : "#ff4d4d";
+    
+    label.innerText = `STAI_SPENDENDO_IL_${spentPercentage}%_DELLE_TUE_ENTRATE`;
 }
 
 // Funzione per il fumetto dell'analista (L'occhio verde in alto)
@@ -949,22 +972,74 @@ function updateFinanceUI(stats) {
     document.getElementById('burn-percentage').innerText = Math.round(burn) + "%";
 }
 
+const financeIcons = {
+    "CIBO": "utensils", "SPESA": "shopping-cart", "SVAGO": "gamepad-2",
+    "CASA": "home", "SALUTE": "heart", "TRASPORTI": "car", "LAVORO": "briefcase"
+};
+
+// 2. Render Log con Icone e Note
 function renderFinanceLog(transactions) {
     const log = document.getElementById('finance-log');
     if (!log) return;
     
-    if (!transactions || transactions.length === 0) {
-        log.innerHTML = "<div>NO_DATA_FOUND</div>";
-        return;
-    }
-
-    log.innerHTML = transactions.map(t => `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px solid #111; padding-bottom: 2px;">
+    log.innerHTML = transactions.map(t => {
+        const iconName = financeIcons[t.cat] || "arrow-right-left";
+        const hasNote = t.note && t.note !== "";
+        return `
+        <div class="trans-row" style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #111; font-size: 11px;">
+            <i data-lucide="${iconName}" style="width: 14px; opacity: 0.7;"></i>
             <span style="color: var(--dim);">${t.date}</span>
-            <span style="flex: 1; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.desc}</span>
-            <span style="color: ${t.amt < 0 ? '#ff4d4d' : '#00ff88'}; font-weight: bold; margin-left: 10px;">
+            <span style="flex: 1; font-weight: bold;">
+                ${t.desc} ${hasNote ? `<i data-lucide="info" title="${t.note}" style="width: 10px; opacity: 0.4; cursor: help;"></i>` : ''}
+            </span>
+            <span style="color: ${t.amt < 0 ? '#ff4d4d' : '#00ff88'}; font-family: 'Rajdhani'; font-weight: 700;">
                 ${t.amt > 0 ? '+' : ''}${parseFloat(t.amt).toFixed(2)}€
             </span>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
+    lucide.createIcons();
 }
+
+
+// ============================================
+// 9. EVENT LISTENERS (DOM READY)
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    const backdrop = document.getElementById('modal-backdrop');
+    const closeBtn = document.querySelector('.close-btn');
+
+    if (backdrop) {
+        backdrop.onclick = () => closeNoteDetail(true);
+    }
+
+    if (closeBtn) {
+        closeBtn.onclick = () => closeNoteDetail(true);
+    }
+});
+
+document.addEventListener('click', (e) => {
+    const analystBubble = document.getElementById('analyst-bubble');
+    const analystBtn = document.getElementById('analyst-btn');
+    const financeInputZone = document.getElementById('finance-input-zone');
+    const fab = document.getElementById('fab-finance');
+
+    // Chiudi analista se clicchi fuori
+    if (analystBubble && !analystBubble.contains(e.target) && !analystBtn.contains(e.target)) {
+        analystBubble.classList.remove('active');
+    }
+
+    // Chiudi input finance se clicchi fuori
+    if (financeInputZone && !financeInputZone.contains(e.target) && !fab.contains(e.target)) {
+        toggleFinanceInput(false);
+    }
+});
+
+document.addEventListener('mousedown', (e) => {
+    const bubble = document.getElementById('analyst-bubble');
+    const btn = document.getElementById('analyst-btn');
+    if (bubble && !bubble.contains(e.target) && !btn.contains(e.target)) {
+        bubble.classList.remove('active');
+    }
+});
+

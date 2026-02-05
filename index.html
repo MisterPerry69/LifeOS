@@ -232,14 +232,14 @@
   <!-- ============================================ -->
 <div id="finance" class="page">
     <div class="header">
-        <div class="header-left">
+        <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
             <div class="status-indicator">
                 <span class="blink-dot" style="background-color: #00d4ff;"></span>
                 <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700;">ECON_SYNC // ACTIVE</span>
             </div>
-            <div style="align-items: center; gap: 12px; justify-content: flex-end;">
-                <i data-lucide="wallet" style="color: var(--accent); width: 28px; height: 28px;"></i>
-                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff;">CREDITS</h1>
+            <div>
+                <i data-lucide="wallet" class="brain-icon" style="color: var(--accent);"></i>
+                <h1 id="finance-title" style="margin: 0; text-transform: uppercase; letter-spacing: 2px;">CREDITS</h1>
             </div>
         </div>
         <div class="header-right">
@@ -259,12 +259,15 @@
 
         <div class="burn-rate-container" style="margin-top: 25px;">
             <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;">
-                <span>NEURAL_BURN_RATE</span><span id="burn-percentage">0%</span>
+                <span>NEURAL_SURVIVAL_RATE</span>
+                </div>
+            <div class="hp-bar-outer" style="width: 100%; height: 10px; background: #111; border: 1px solid #333; position: relative;">
+                <div id="efficiency-fill" class="hp-bar-fill" style="height: 100%; width: 0%; transition: width 1s; background: var(--accent);"></div>
             </div>
-            <div class="hp-bar-outer" style="width: 100%; height: 12px; background: #111; border: 1px solid #333;">
-                <div id="efficiency-fill" class="hp-bar-fill" style="height: 100%; background: var(--accent); width: 0%; transition: width 1s;"></div>
+            <div id="burn-info-text" style="font-size: 9px; color: var(--dim); margin-top: 8px; letter-spacing: 1px; text-transform: uppercase;">
+                CALCOLO_IN_CORSO...
             </div>
-        </div>
+        </div>        
         
         <div id="finance-log" class="terminal-log" style="margin-top: 30px; font-size: 10px; opacity: 0.5; height: 150px; overflow-y: auto;"></div>
     </main>
