@@ -1017,7 +1017,7 @@ function renderFinanceLog(transactions) {
         const color = t.amt < 0 ? "#fff" : "#00ff88"; // Testi bianchi per uscite, verdi per entrate
 
         return `
-        <div class="trans-row" style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #1a1a1a;">
+        <div class="trans-row" style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #525252;">
             <span style="font-size: 10px; color: var(--dim); min-width: 35px;">${t.date}</span>
             
             <i data-lucide="${iconName}" style="width: 16px; color: #fff; opacity: 0.8;"></i>
@@ -1043,21 +1043,39 @@ async function showTransactionNote(noteText) {
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
+    // 1. Mostra subito i dati locali
     bubble.classList.add('active');
-    text.innerText = "DECRYPTING_NOTE...";
+    text.innerHTML = `
+        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT:</div>
+        <div style="color: #fff; font-style: italic; margin-bottom: 12px; border-left: 2px solid #444; padding-left: 8px;">
+            "${noteText.toUpperCase()}"
+        </div>
+        <div id="ai-typing" style="font-size: 0.8rem; color: var(--accent);">
+            AUDIT_CORE sta elaborando<span class="dot-ani">...</span>
+        </div>
+    `;
 
-    // Chiamata veloce a Gemini per parafrasare la nota in stile Cyberpunk
-    const prompt = `Riscrivi questa nota spesa in modo brevissimo, cinico e colloquiale (max 10 parole): "${noteText}"`;
+    // 2. Chiamata all'AI
+    const prompt = `Fa un breve e cinico(ma non troppo) commento su questa transizione (max 10 parole): "${noteText}"`;
     
     try {
         const response = await fetch(`${SCRIPT_URL}?action=ai_interpret&text=${encodeURIComponent(prompt)}`);
-        const result = await response.text();
-        text.innerHTML = `<span style="opacity:0.6; font-size:9px">TRANSLATION_SUCCESS:</span><br>"${result.toUpperCase()}"`;
+        const aiResponse = await response.text();
+        
+        // 3. Sostituisci il "typing" con la risposta
+        const typingElem = document.getElementById('ai-typing');
+        if(typingElem) {
+            typingElem.innerHTML = `
+                <span style="font-size: 0.7rem; color: var(--dim);">ANALYSIS:</span><br>
+                <span style="color: var(--accent); font-weight: bold;">"${aiResponse.toUpperCase()}"</span>
+            `;
+        }
     } catch (e) {
-        text.innerText = noteText.toUpperCase(); // Fallback se l'AI fallisce
+        document.getElementById('ai-typing').innerText = "ERROR: NEURAL_LINK_DOWN";
     }
     
-    setTimeout(() => bubble.classList.remove('active'), 7000);
+    // Chiudi dopo un po'
+    setTimeout(() => bubble.classList.remove('active'), 8000);
 }
 
 let allTransactions = []; // Da riempire durante il loadStats
@@ -1228,23 +1246,18 @@ document.addEventListener('click', (e) => {
 function switchFinanceTab(target) {
     const dashboard = document.getElementById('finance-home-view');
     const searchView = document.getElementById('finance-search-view');
-    const navLog = document.getElementById('nav-log');
-
-    // Reset colori nav
-    document.querySelectorAll('.nav-item').forEach(el => el.style.color = 'var(--dim)');
-
+    
     if (target === 'log') {
-        dashboard.style.display = 'none';
-        searchView.style.display = 'block';
-        navLog.style.display = 'block';
-        navLog.style.color = 'var(--accent)'; // Accendi l'icona Log
-        setTimeout(() => document.getElementById('log-search').focus(), 150);
+        if(dashboard) dashboard.style.display = 'none';
+        if(searchView) searchView.style.display = 'block';
+        // Opzionale: Focus sull'input
+        setTimeout(() => document.getElementById('log-search')?.focus(), 150);
     } else {
-        dashboard.style.display = 'block';
-        searchView.style.display = 'none';
-        // Quando sei in dashboard non c'è una "tab" attiva specifica tra quelle
+        if(dashboard) dashboard.style.display = 'block';
+        if(searchView) searchView.style.display = 'none';
     }
     
+    // Aggiorna icone
     if (window.lucide) lucide.createIcons();
 }
 
