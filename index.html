@@ -297,6 +297,27 @@
             spellcheck="false"
             onkeypress="handleFinanceSubmit(event)">
     </div>
+    <div id="filter-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#050505; z-index:3000; padding:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 style="font-size:1.2rem; color:var(--accent);">DATABASE_QUERY</h2>
+        <div onclick="toggleFilters(false)" style="cursor:pointer; color:var(--dim);">[CLOSE]</div>
+    </div>
+
+    <input type="text" id="log-search" placeholder="SEARCH_KEYWORD (es. BENZA)..." 
+           style="width:100%; background:#111; border:1px solid #333; color:#fff; padding:12px; font-family:'Rajdhani';"
+           oninput="applyFilters()">
+
+    <div style="display:flex; gap:8px; margin-top:15px; overflow-x:auto; padding-bottom:10px;">
+        <div class="filter-chip" onclick="setFilter('CIBO')">CIBO</div>
+        <div class="filter-chip" onclick="setFilter('SPESA')">SPESA</div>
+        <div class="filter-chip" onclick="setFilter('CASA')">CASA</div>
+        <div class="filter-chip" onclick="setFilter('ALL')">TUTTO</div>
+    </div>
+
+    <div id="filtered-results" style="margin-top:20px; height:calc(100% - 180px); overflow-y:auto;">
+        </div>
+</div>
+
 </div>
 
   <!-- ============================================ -->

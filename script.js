@@ -1039,17 +1039,52 @@ function renderFinanceLog(transactions) {
     if (window.lucide) lucide.createIcons();
 }
 
-function showTransactionNote(noteText) {
+async function showTransactionNote(noteText) {
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
-    // Usiamo il box dell'analista per mostrare la nota della transazione
-    text.innerHTML = `<span style="color:var(--accent)">NOTE_DETAIL:</span><br>${noteText.toUpperCase()}`;
     bubble.classList.add('active');
+    text.innerText = "DECRYPTING_NOTE...";
+
+    // Chiamata veloce a Gemini per parafrasare la nota in stile Cyberpunk
+    const prompt = `Riscrivi questa nota spesa in modo brevissimo, cinico e colloquiale (max 10 parole): "${noteText}"`;
     
-    // Chiudi dopo 4 secondi
-    setTimeout(() => bubble.classList.remove('active'), 4000);
+    try {
+        const response = await fetch(`${SCRIPT_URL}?action=ai_interpret&text=${encodeURIComponent(prompt)}`);
+        const result = await response.text();
+        text.innerHTML = `<span style="opacity:0.6; font-size:9px">TRANSLATION_SUCCESS:</span><br>"${result.toUpperCase()}"`;
+    } catch (e) {
+        text.innerText = noteText.toUpperCase(); // Fallback se l'AI fallisce
+    }
+    
+    setTimeout(() => bubble.classList.remove('active'), 7000);
 }
+
+let allTransactions = []; // Da riempire durante il loadStats
+
+function toggleFilters(show) {
+    const overlay = document.getElementById('filter-overlay');
+    overlay.style.display = show ? 'block' : 'none';
+    if(show) {
+        allTransactions = lastStatsData.finance.full_history || []; // Serve che il server mandi tutto
+        applyFilters();
+    }
+}
+
+function applyFilters() {
+    const query = document.getElementById('log-search').value.toLowerCase();
+    const container = document.getElementById('filtered-results');
+    
+    const filtered = lastStatsData.finance.transactions.filter(t => 
+        t.desc.toLowerCase().includes(query) || 
+        t.cat.toLowerCase().includes(query) ||
+        (t.note && t.note.toLowerCase().includes(query))
+    );
+
+    // Riutilizziamo la logica di renderFinanceLog ma su questo contenitore
+    container.innerHTML = renderItems(filtered); 
+}
+
 
 // ============================================
 // 10. EVENT LISTENERS (DOM READY)
