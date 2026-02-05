@@ -1173,6 +1173,25 @@ async function executeLogSearch(query) {
     }
 }
 
+function switchPage(pageId) {
+    // 1. Nascondi tutte le pagine
+    document.querySelectorAll('.app-page').forEach(p => p.style.display = 'none');
+    
+    // 2. Mostra quella selezionata
+    const target = document.getElementById(pageId + '-page');
+    if (target) {
+        target.style.display = 'block';
+    }
+
+    // 3. Logica specifica
+    if (pageId === 'log') {
+        // Se entriamo nel log e non c'è ricerca, possiamo mostrare gli ultimi 20 di default
+        if (lastStatsData) renderFilteredItems(lastStatsData.finance.transactions);
+    }
+    
+    // 4. Aggiorna icone (se necessario)
+    if (window.lucide) lucide.createIcons();
+}
 // ============================================
 // 10. EVENT LISTENERS (DOM READY)
 // ============================================
@@ -1205,3 +1224,17 @@ document.addEventListener('click', (e) => {
         toggleFinanceInput(false);
     }
 });
+
+function switchFinanceTab(tab) {
+    const home = document.getElementById('finance-home');
+    const log = document.getElementById('log-page');
+    
+    if (tab === 'log') {
+        if (home) home.style.display = 'none';
+        if (log) log.style.display = 'block';
+        setTimeout(() => input.focus(), 100); // Focus automatico per cercare subito
+    } else {
+        if (home) home.style.display = 'block';
+        if (log) log.style.display = 'none';
+    }
+}

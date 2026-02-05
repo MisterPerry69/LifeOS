@@ -231,22 +231,24 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
 <div id="finance" class="page">
-    <div class="header">
-      <div class="header-left">
-        <div class="status-indicator">
-          <span class="blink-dot"></span>
-          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">FINANCIAL_CORE // ACTIVE</span>
+<div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 20px 20px 10px 20px; box-sizing: border-box;">
+    <div class="header-left" style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
+            <span class="blink-dot" style="background-color: #00d4ff;"></span>
+            <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700; text-transform: uppercase;">ECON_SYNC // ACTIVE</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <i data-lucide="wallet" style="color: var(--accent); width: 22px;"></i>
-            <h1 style="margin: 0; font-size: 1.2rem; letter-spacing: 2px;">CREDITS</h1>
-        </div>
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <i data-lucide="wallet" style="color: var(--accent); width: 28px; height: 28px;"></i>
+            <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff; text-transform: uppercase; line-height: 1;">CREDITS</h1>
         </div>
     </div>
-
+    <div class="header-right">
+        <div class="esc-btn" onclick="nav('home')" style="cursor: pointer; opacity: 0.7;">[esc X]</div>
+    </div>
+</div>
     <main style="padding: 0 15px; max-width: 100%;">
-        <div class="finance-card-main" style="background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 20px; border-radius: 8px;">
+        <div id="finance-home">
+            <div class="finance-card-main" style="background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 20px; border-radius: 8px;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <div class="label" style="font-size: 9px; color: var(--dim);">TOTAL_LIQUID_ASSETS</div>
                 <div id="total-balance" style="font-size: 2.8rem; font-family: 'Rajdhani'; font-weight: 700; color: #fff;">0.00 €</div>
@@ -265,29 +267,53 @@
                 <div style="color: #fff;"><span class="label" style="color: var(--dim);">DIGITAL:</span> <span id="bank-val">0.00 €</span></div>
                 <div style="color: #fff;"><span class="label" style="color: var(--dim);">PHYSICAL:</span> <span id="cash-val">0.00 €</span></div>
             </div>
+            </div>
         </div>
 
         <div id="finance-log" style="margin-top: 20px; padding-bottom: 100px;">
+        </div>
+
+        <div id="log-page" style="display:none; padding-bottom: 100px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom:10px;">
+            <h2 style="font-size:1.2rem; color:var(--accent); margin:0;">DATABASE_QUERY</h2>
+            <div onclick="switchFinanceTab('home')" style="cursor:pointer; font-size:1rem; color:var(--dim);">[BACK]</div>
+        </div>
+
+        <input type="text" id="log-search" placeholder="SEARCH (es. CIBO)..." 
+            style="width:100%; background:#111; border:1px solid #333; color:#fff; padding:15px; font-family:'Rajdhani'; font-size:1rem; margin-bottom:15px;"
+            onkeypress="handleLogSearch(event)"> 
+            
+        <div id="filtered-results">
             </div>
+    </div>
     </main>
 
-    <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #080808; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; z-index: 1000;">
-        <div class="nav-item" onclick="toggleAnalyst()" style="text-align: center; color: var(--dim);">
-            <i data-lucide="cpu" style="width: 24px;"></i>
-            <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
-        </div>
-        <div class="nav-item" onclick="toggleFilters()" style="text-align: center; color: var(--dim);">
-            <i data-lucide="filter" style="width: 24px;"></i>
-            <div style="font-size: 8px; margin-top: 4px;">LOG</div>
-        </div>
-        <div class="nav-item" style="text-align: center; color: #222;"> <i data-lucide="bar-chart-3" style="width: 24px;"></i>
-            <div style="font-size: 8px; margin-top: 4px;">STATS</div>
-        </div>
-        <div class="nav-item" onclick="toggleFinanceInput(true)" style="text-align: center; color: var(--accent);">
-            <i data-lucide="plus-square" style="width: 30px;"></i>
-            <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
-        </div>
+<div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #080808; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; z-index: 1000;">
+    <div class="nav-item" onclick="nav('home')" style="text-align: center; color: var(--dim);">
+        <i data-lucide="home" style="width: 24px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">HOME</div>
     </div>
+
+    <div class="nav-item" onclick="toggleAnalyst()" style="text-align: center; color: var(--dim);">
+        <i data-lucide="cpu" style="width: 24px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
+    </div>
+
+    <div class="nav-item" onclick="switchFinanceTab('log')" style="text-align: center; color: var(--dim);">
+        <i data-lucide="filter" style="width: 24px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">LOG</div>
+    </div>
+
+    <div class="nav-item" style="text-align: center; color: #222;"> 
+        <i data-lucide="bar-chart-3" style="width: 24px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">STATS</div>
+    </div>
+
+    <div class="nav-item" onclick="toggleFinanceInput(true)" style="text-align: center; color: var(--accent);">
+        <i data-lucide="plus-square" style="width: 30px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
+    </div>
+</div>
 
     <div id="analyst-bubble" class="side-bubble" style="bottom: 85px; right: 20px; width: calc(100% - 40px); left: 20px;">
         <p id="analyst-text">AWAITING_DATA...</p>
@@ -303,19 +329,6 @@
             spellcheck="false"
             onkeypress="handleFinanceSubmit(event)">
     </div>
-    <div id="filter-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:5000; padding:20px; overflow:hidden;">
-        
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom:10px;">
-            <h2 style="font-size:1.2rem; color:var(--accent); margin:0;">DATABASE_QUERY</h2>
-            <div onclick="toggleFilters(false)" style="cursor:pointer; font-size:1.5rem; color:#fff;">&times;</div>
-        </div>
-
-        <input type="text" id="log-search" placeholder="SEARCH (es. CIBO)..." 
-            style="width:100%; background:#111; border:1px solid #333; color:#fff; padding:15px; font-family:'Rajdhani'; font-size:1rem; margin-bottom:15px;"
-            onkeypress="handleSearch(event)"> <div id="filtered-results" style="height: calc(100vh - 150px); overflow-y: auto; padding-bottom: 50px;">
-            </div>
-    </div>
-
 </div>
 
   <!-- ============================================ -->
