@@ -1026,7 +1026,7 @@ function renderFinanceLog(transactions) {
             <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
                 ${hasNote ? `<i data-lucide="info" 
-       onclick="showTransactionNote('${t.note.replace(/'/g, "\\'")}'), '${t.desc.replace(/'/g, "\\")}')" 
+       onclick="showTransactionNote('${t.note}', '${t.desc}')" 
        style="width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; cursor: pointer; margin-left: 5px;">
     </i>` : ''}
             </div>

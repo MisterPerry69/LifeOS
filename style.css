@@ -1268,4 +1268,8 @@ CSS
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch; /* Fluidità su iPhone */
     padding-bottom: 20px;
+    padding-right: 30px;
+    margin: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) #050505;
 }
