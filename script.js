@@ -1015,7 +1015,7 @@ function renderFinanceLog(transactions) {
     log.innerHTML = transactions.map(t => {
         const iconName = financeIcons[t.cat] || "arrow-right-left";
         const hasNote = t.note && t.note !== "";
-        const color = t.amt < 0 ? "#fff" : "#00ff88"; // Testi bianchi per uscite, verdi per entrate
+        const color = t.amt < 0 ? "#ff0055" : "#00ff88"; // Testi rossi per uscite, verdi per entrate
 
         return `
         <div class="trans-row" style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #525252;">
@@ -1053,9 +1053,9 @@ async function showTransactionNote(noteText, description) { // <--- Aggiunto des
 
     // 1. Mostra subito i dati locali
     text.innerHTML = `
-        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT </div>
+        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT_about </div>
         <div style="color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 4px;">
-            ABOUT_${(description || 'TRANSACTION').toUpperCase()}
+            ${(description || 'TRANSACTION').toUpperCase()}
         </div>
         <div style="color: #fff; font-style: italic; margin-bottom: 12px; border-left: 2px solid #444; padding-left: 8px; font-size: 0.85rem;">
             "${(noteText || 'NESSUNA NOTA').toUpperCase()}"
@@ -1066,7 +1066,7 @@ async function showTransactionNote(noteText, description) { // <--- Aggiunto des
     `;
 
     // 2. Chiamata all'AI
-    const prompt = `Fai un breve, cinico (ma non troppo) e divertente commento su questa transazione: "${noteText}"`;
+    const prompt = `Fai un breve, cinico (ma non troppo) e divertente commento sulla descrizione di questa transazione: "${description, noteText}"`;
     
     try {
         const response = await fetch(`${SCRIPT_URL}?action=ai_interpret&text=${encodeURIComponent(prompt)}`);
