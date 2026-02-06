@@ -925,39 +925,49 @@ async function handleFinanceSubmit(event) {
     const rawText = input.value.trim();
     if (!rawText) return;
 
-    // 1. Chiudi input e apri analista in stato "LOADING"
+    // 1. UI: Chiudi input e mostra l'analista che "lavora"
     input.blur();
     toggleFinanceInput(false);
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
+    
     text.innerText = "NEURAL_PROCESSING_IN_PROGRESS...";
     bubble.classList.add('active');
-    
     input.value = '';
 
     try {
-        const isAgenda = rawText.toLowerCase().startsWith('t ');
+        // Riconoscimento wallet semplice: se scrivi *c nel testo usa CASH, altrimenti BANK
+        const targetWallet = rawText.toLowerCase().includes('*c') ? "CASH" : "BANK";
+        
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({
-                service: isAgenda ? "agenda_add" : "finance_smart_entry",
-                text: isAgenda ? rawText.substring(2) : rawText,
-                wallet: rawText.includes('*c') ? "CASH" : "BANK"
+                service: "finance_smart_entry",
+                text: rawText,
+                wallet: targetWallet
             })
         });
 
-        if (!isAgenda) {
-            const result = await response.json();
-            text.innerText = result.advice; // Risposta cinica di Gemini
-        } else {
-            text.innerText = "EVENTO_MEMORIZZATO_NELLA_TIMELINE";
+        // Leggiamo la risposta come testo prima per evitare il crash del "Unexpected Token E"
+        const responseData = await response.text();
+        
+        try {
+            const result = JSON.parse(responseData);
+            if (result.status === "SUCCESS") {
+                text.innerText = result.advice.toUpperCase(); // Il commento cinico
+                // 2. Ricarica i dati per aggiornare saldo e HP bar
+                if (typeof loadStats === "function") await loadStats();
+            } else {
+                text.innerText = "DANGER: " + (result.message || "SYNC_ERROR");
+            }
+        } catch (e) {
+            // Se arriviamo qui, il server ha mandato un errore testuale (quello che inizia con "E")
+            console.error("Server Error Raw:", responseData);
+            text.innerText = "CRITICAL_ERROR: APPS_SCRIPT_CRASHED";
         }
 
-        // 2. Ricarica i dati (Saldo e Log)
-        await loadStats();
-        
     } catch (err) {
-        text.innerText = "CRITICAL_ERROR: SYNC_FAILED";
+        text.innerText = "CONNECTION_LOST: SYNC_FAILED";
         console.error(err);
     }
     
