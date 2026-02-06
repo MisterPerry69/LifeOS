@@ -1040,19 +1040,25 @@ function renderFinanceLog(transactions) {
     if (window.lucide) lucide.createIcons();
 }
 
-async function showTransactionNote(noteText) {
+async function showTransactionNote(noteText, description) { // <--- Aggiunto description qui
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
-    // 1. Mostra subito i dati locali
+    if (!bubble || !text) return;
+
+    // Forza la riattivazione se era già aperto
+    bubble.classList.remove('active');
+    void bubble.offsetWidth; 
     bubble.classList.add('active');
+
+    // 1. Mostra subito i dati locali
     text.innerHTML = `
         <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT </div>
         <div style="color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 4px;">
-            ABOUT_${description.toUpperCase()}
+            ABOUT_${(description || 'TRANSACTION').toUpperCase()}
         </div>
-        <div style="color: #fff; font-style: italic; margin-bottom: 12px; border-left: 2px solid #444; padding-left: 8px;">
-            "${noteText.toUpperCase()}"
+        <div style="color: #fff; font-style: italic; margin-bottom: 12px; border-left: 2px solid #444; padding-left: 8px; font-size: 0.85rem;">
+            "${(noteText || 'NESSUNA NOTA').toUpperCase()}"
         </div>
         <div id="ai-typing" style="font-size: 0.8rem; color: var(--accent);">
             ANALISTA sta elaborando<span class="dot-ani">...</span>
@@ -1060,13 +1066,12 @@ async function showTransactionNote(noteText) {
     `;
 
     // 2. Chiamata all'AI
-    const prompt = `Fa un breve, cinico(ma non troppo) e divertente commento su questa transizione : "${noteText}"`;
+    const prompt = `Fai un breve, cinico (ma non troppo) e divertente commento su questa transazione: "${noteText}"`;
     
     try {
         const response = await fetch(`${SCRIPT_URL}?action=ai_interpret&text=${encodeURIComponent(prompt)}`);
         const aiResponse = await response.text();
         
-        // 3. Sostituisci il "typing" con la risposta
         const typingElem = document.getElementById('ai-typing');
         if(typingElem) {
             typingElem.innerHTML = `
@@ -1075,7 +1080,8 @@ async function showTransactionNote(noteText) {
             `;
         }
     } catch (e) {
-        document.getElementById('ai-typing').innerText = "ERROR: NEURAL_LINK_DOWN";
+        const typingElem = document.getElementById('ai-typing');
+        if(typingElem) typingElem.innerText = "ERROR: NEURAL_LINK_DOWN";
     }
     
     // Chiudi dopo un po'

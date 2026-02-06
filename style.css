@@ -1262,3 +1262,10 @@ CSS
     padding: 0;
     overflow: hidden;
 }
+
+#finance-log {
+    max-height: 400px; /* O l'altezza che preferisci */
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch; /* Fluidità su iPhone */
+    padding-bottom: 20px;
+}
