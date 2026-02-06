@@ -1307,6 +1307,21 @@ function initStats() {
 
     // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
     renderCategoryChart(categories);
+
+    const catKeys = Object.keys(categories);
+    const topCat = catKeys.reduce((a, b) => categories[a] > categories[b] ? a : b);
+    const totalSpent = Object.values(categories).reduce((a, b) => a + b, 0);
+    
+    const evalElem = document.getElementById('stats-eval');
+    
+    // Messaggi personalizzati in base alla spesa maggiore
+    if (topCat === "CIBO" && categories[topCat] > (totalSpent * 0.4)) {
+        evalElem.innerText = "RILEVATO_ECCESSO_ALIMENTARE. Il tuo sostentamento sta drenando il 40% delle risorse. Ottimizzare dieta o budget.";
+    } else if (totalSpent > 1000) {
+        evalElem.innerText = "BURN_RATE_CRITICO. Le uscite superano i parametri di sicurezza. Suggerisco modalità risparmio energetico.";
+    } else {
+        evalElem.innerText = "FLUSSI_STABILI. Nessuna anomalia critica rilevata nel settore " + topCat + ".";
+    }
     
     // --- RENDER GRAFICO TREND (Line) ---
     // (Qui potremmo aggregare per data, per ora facciamo le categorie che è il più utile)
@@ -1314,8 +1329,7 @@ function initStats() {
 
 function renderCategoryChart(data) {
     const ctx = document.getElementById('categoryChart').getContext('2d');
-    
-    if (charts.cat) charts.cat.destroy(); // Pulisci se esiste già
+    if (charts.cat) charts.cat.destroy();
 
     charts.cat = new Chart(ctx, {
         type: 'doughnut',
@@ -1323,9 +1337,17 @@ function renderCategoryChart(data) {
             labels: Object.keys(data),
             datasets: [{
                 data: Object.values(data),
-                backgroundColor: ['#00f3ff', '#ff0055', '#9d00ff', '#00ff88', '#ffb300'],
-                borderWidth: 0,
-                hoverOffset: 10
+                backgroundColor: [
+                    '#00f3ff', // Cyan
+                    '#ff0055', // Magenta
+                    '#9d00ff', // Purple
+                    '#00ff88', // Green
+                    '#ffb300'  // Amber
+                ],
+                hoverBackgroundColor: '#fff',
+                borderColor: '#080808', // Sfondo scuro tra le fette
+                borderWidth: 3,
+                hoverOffset: 15
             }]
         },
         options: {
@@ -1334,10 +1356,24 @@ function renderCategoryChart(data) {
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: { color: '#888', font: { family: 'Rajdhani', size: 10 }, usePointStyle: true }
+                    labels: {
+                        color: '#aaa',
+                        font: { family: 'Rajdhani', size: 11, weight: 'bold' },
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'rectRot' // Icone a diamante
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#000',
+                    titleFont: { family: 'Rajdhani' },
+                    bodyFont: { family: 'Rajdhani' },
+                    borderColor: 'var(--accent)',
+                    borderWidth: 1,
+                    displayColors: false
                 }
             },
-            cutout: '70%' // Lo rende un anello sottile
+            cutout: '75%' // Cerchio molto sottile, stile interfaccia futuristica
         }
     });
 }

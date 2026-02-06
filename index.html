@@ -4,7 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   
@@ -282,6 +282,9 @@
                 <div class="label" style="font-size: 10px; color: var(--dim); margin-bottom: 15px;">EXPENSE_BY_CATEGORY</div>
                 <div style="height: 250px;">
                     <canvas id="categoryChart"></canvas>
+                    <div id="analyst-stats-comment" style="margin-top: 20px; padding: 15px; border-left: 2px solid var(--accent); background: rgba(0,243,255,0.02); font-size: 0.9rem; font-style: italic; color: #eee;">
+                    <span style="color:var(--accent); font-weight:bold;">AUDIT_CORE:</span> <span id="stats-eval">ANALIZZANDO_FLUSSI...</span>
+                    </div>
                 </div>
             </div>
 
