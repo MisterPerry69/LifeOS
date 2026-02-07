@@ -1176,59 +1176,63 @@ function renderFilteredItems(items) {
     if (window.lucide) lucide.createIcons();
 }
 
+let aiSearchActive = false;
+
 async function handleLogSearch(event) {
-    if (event.key !== 'Enter') return;
+    if (event.key !== 'Enter') {
+        document.getElementById('search-clear').style.display = event.target.value ? 'block' : 'none';
+        return;
+    }
     
     const query = event.target.value.trim();
     if (!query) return;
 
     const container = document.getElementById('filtered-results');
-    event.target.blur(); // Chiude la tastiera
-    
-    container.innerHTML = `<div style="text-align:center; color:var(--accent); margin-top:40px;">QUERYING_DATABASE...</div>`;
+    event.target.blur();
+    container.innerHTML = `<div class="loading-ani">QUERYING_${aiSearchActive ? 'NEURAL_' : ''}DATABASE...</div>`;
 
     try {
-        const res = await fetch(`${SCRIPT_URL}?action=search_finance&q=${encodeURIComponent(query)}`);
+        // Se l'AI è attiva, usiamo una action diversa, altrimenti quella normale
+        const action = aiSearchActive ? "search_finance_ai" : "search_finance";
+        const res = await fetch(`${SCRIPT_URL}?action=${action}&q=${encodeURIComponent(query)}`);
         const data = await res.json();
-        renderFilteredItems(data); // Usa la funzione di render che abbiamo fatto prima
-    } catch (e) {
-        container.innerHTML = "ERRORE_RICERCA";
-    }
-}
-
-// Funzione unica che esegue la chiamata (usata da tastiera e dai bottoni)
-async function executeLogSearch(query) {
-    if (!query) return;
-
-    const container = document.getElementById('filtered-results');
-    const input = document.getElementById('log-search');
-
-    // UX: Chiudi tastiera e mostra Loading
-    input.value = query; // Se ho cliccato un bottone, scrivo il testo nell'input
-    input.blur(); 
-    container.innerHTML = `<div style="text-align:center; color:var(--accent); margin-top:40px; font-family:'Rajdhani'; animation: pulse 1.5s infinite;">
-                            <i data-lucide="database" style="margin-bottom:10px;"></i><br>
-                            QUERYING_DATABASE: "${query.toUpperCase()}"...
-                           </div>`;
-    if(window.lucide) lucide.createIcons();
-
-    try {
-        // Chiamata al server (Apps Script)
-        const response = await fetch(`${SCRIPT_URL}?action=search_finance&q=${encodeURIComponent(query)}`);
-        const results = await response.json();
         
-        // Render dei risultati
-        if (results.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:#555; margin-top:40px;">NO_MATCHES_FOUND</div>`;
+        if (data.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--dim);">NESSUN_RISULTATO_TROVATO</div>`;
         } else {
-            renderFilteredItems(results);
+            renderFilteredItems(data); 
         }
-        
     } catch (e) {
-        console.error(e);
-        container.innerHTML = `<div style="color:red; text-align:center; margin-top:20px;">CRITICAL_ERROR: CONNECTION_LOST</div>`;
+        container.innerHTML = "ERRORE_CONNESSIONE_DATABASE";
     }
 }
+
+// Funzione per i tasti rapidi
+function quickFilter(tag) {
+    const input = document.getElementById('finance-search');
+    input.value = tag;
+    aiSearchActive = false; // Disattiviamo AI per i filtri semplici
+    document.getElementById('ai-status').innerText = 'OFF';
+    handleLogSearch({ key: 'Enter', target: input });
+}
+
+function toggleAISearch() {
+    aiSearchActive = !aiSearchActive;
+    const status = document.getElementById('ai-status');
+    const box = document.getElementById('ai-search-toggle');
+    status.innerText = aiSearchActive ? 'ON' : 'OFF';
+    status.style.color = aiSearchActive ? 'var(--accent)' : '#666';
+    box.style.borderColor = aiSearchActive ? 'var(--accent)' : '#444';
+}
+
+function clearLogSearch() {
+    const input = document.getElementById('finance-search');
+    input.value = '';
+    document.getElementById('search-clear').style.display = 'none';
+    // Se hai una funzione che mostra tutti i dati iniziali, chiamala qui
+    // Esempio: renderFilteredItems(fullDataBackUp); 
+}
+
 
 function switchPage(pageId) {
     // 1. Nascondi tutte le pagine
@@ -1402,3 +1406,4 @@ function renderCategoryChart(data) {
         }
     });
 }
+
