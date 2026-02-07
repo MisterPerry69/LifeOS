@@ -937,7 +937,15 @@ async function handleFinanceSubmit(event) {
 
     try {
         // Riconoscimento wallet semplice: se scrivi *c nel testo usa CASH, altrimenti BANK
-        const targetWallet = rawText.toLowerCase().includes('*c') ? "CASH" : "BANK";
+        const textLower = rawText.toLowerCase();
+        let targetWallet = "BANK"; // Default
+
+        // Riconoscimento intelligente
+        if (textLower.includes('*c') || textLower.includes('cash') || textLower.includes('contanti')) {
+            targetWallet = "CASH";
+        } else if (textLower.includes('*b') || textLower.includes('bank') || textLower.includes('banca')) {
+            targetWallet = "BANK";
+        }
         
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
@@ -1036,7 +1044,7 @@ function renderFinanceLog(transactions) {
             <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
                 ${hasNote ? `<i data-lucide="info" 
-       onclick="showTransactionNote('${t.note}', '${t.desc}')" 
+       onclick="showTransactionNote('${t.note}', '${t.desc}', '${t.advice}')" 
        style="width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; cursor: pointer; margin-left: 5px;">
     </i>` : ''}
             </div>
@@ -1050,7 +1058,7 @@ function renderFinanceLog(transactions) {
     if (window.lucide) lucide.createIcons();
 }
 
-async function showTransactionNote(noteText, description) { // <--- Aggiunto description qui
+async function showTransactionNote(noteText, description, advice) { // <--- Aggiunto description qui
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
@@ -1070,11 +1078,12 @@ async function showTransactionNote(noteText, description) { // <--- Aggiunto des
         <div style="color: #fff; font-style: italic; margin-bottom: 12px; border-left: 2px solid #444; padding-left: 8px; font-size: 0.85rem;">
             "${(noteText || 'NESSUNA NOTA').toUpperCase()}"
         </div>
-        <div id="ai-typing" style="font-size: 0.8rem; color: var(--accent);">
-            ANALISTA sta elaborando<span class="dot-ani">...</span>
+        <div style="margin-top: 10px; border-top: 1px dashed #333; padding-top: 10px;">
+            <span style="font-size: 0.7rem; color: var(--dim);">PREVIOUS_ANALYSIS:</span><br>
+            <span style="color: var(--accent); font-weight: bold;">"${(advice || 'NESSUN COMMENTO ARCHIVIATO').toUpperCase()}"</span>
         </div>
     `;
-
+/* 
     // 2. Chiamata all'AI
     const prompt = `Fai un breve, cinico (ma non troppo) e divertente commento sulla descrizione di questa transazione: "${description, noteText}"`;
     
@@ -1092,7 +1101,7 @@ async function showTransactionNote(noteText, description) { // <--- Aggiunto des
     } catch (e) {
         const typingElem = document.getElementById('ai-typing');
         if(typingElem) typingElem.innerText = "ERROR: NEURAL_LINK_DOWN";
-    }
+    } */
     
     // Chiudi dopo un po'
     setTimeout(() => bubble.classList.remove('active'), 8000);
