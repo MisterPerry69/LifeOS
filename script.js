@@ -1531,3 +1531,27 @@ async function loadFinanceStats() {
     // 5. Render del Grafico (come abbiamo visto prima)
     renderDoughnutChart(data.categories);
 }
+
+async function requestAnalystUpdate() {
+    const evalBox = document.getElementById('stats-eval');
+    const spent = document.getElementById('stat-total-spent').innerText;
+    const income = document.getElementById('stat-total-income').innerText;
+    
+    evalBox.innerText = "ANALISI_IN_CORSO... ATTENDERE...";
+    evalBox.style.color = "var(--accent)";
+
+    try {
+        // Chiamata all'AI passando i dati attuali
+        const response = await fetch(`${SCRIPT_URL}?action=search_finance_ai&q=Analizza brevemente queste spese mensili: Entrate ${income}, Uscite ${spent}. Sii sintetico, tecnico e un po' cinico nello stile LifeOS.`);
+        const report = await response.json();
+        
+        // Se il tuo backend search_finance_ai restituisce un testo o un array
+        // Adatta questa riga in base a come risponde il tuo Apps Script
+        evalBox.innerText = report.aiAnalysis || report; 
+        evalBox.style.color = "#fff";
+        
+    } catch (e) {
+        evalBox.innerText = "ERRORE_DI_COLLEGAMENTO_CORE. RIPROVA.";
+        console.error(e);
+    }
+}

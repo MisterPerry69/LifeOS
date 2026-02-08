@@ -1365,11 +1365,12 @@ CSS
 
 #finance-stats-view {
     display: none; 
-    padding: 20px 15px 120px 15px; /* Spazio extra in fondo per non coprire col menu */
+    padding: 20px 15px 150px 15px; /* Spazio extra in fondo per non coprire col menu */
     width: 100%;
     box-sizing: border-box;
     overflow-y: auto !important; /* Forza lo scroll verticale */
     max-height: 100vh; /* Permette lo scroll se il contenuto eccede lo schermo */
+    height: 100%;
 }
 
 /* Griglia adattiva: 1 colonna su mobile, 2 su desktop */
