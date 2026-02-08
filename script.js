@@ -1421,22 +1421,16 @@ async function openTimeFilter() {
 async function filterByMonth(val) {
     if (!val) return;
     
-    // val arriva dal picker come "2026-02"
+    // val arriva dal calendario come "2026-02"
     const parts = val.split('-');
     const year = parts[0];
-    const month = parts[1]; // Questo è già "02", "03", ecc.
+    const month = parts[1]; // "02"
 
-    // Creiamo la stringa di ricerca che corrisponde al tuo DB: "/02/2026"
-    // Usiamo lo slash davanti per evitare che trovi "02" nei centesimi o nell'importo
+    // Stringa per il tuo database numerico (07/02/2026)
     const formattedQuery = `/${month}/${year}`;
     
-    console.log("Ricerca numerica per periodo:", formattedQuery);
+    console.log("Trigger ricerca numerica:", formattedQuery);
 
-    // AI OFF per risparmiare quota
-    aiSearchActive = false;
-    const aiStatus = document.getElementById('fin-ai-status');
-    if(aiStatus) aiStatus.innerText = 'OFF';
-
-    // Esegui la ricerca standard
+    // Passiamo la palla a quickFilter che già funziona per i bottoni!
     quickFilter(formattedQuery);
 }

@@ -328,8 +328,10 @@
                 <button onclick="quickFilter('SET_BALANCE')" class="cat-btn"><i data-lucide="refresh-cw"></i> RESET</button>
             </div>
 
-            <div class="fin-time-filters">
-                <button onclick="openTimeFilter()" class="cat-btn time-btn">
+            <div class="fin-time-filters" style="text-align: center; margin-bottom: 20px;">
+                <input type="month" id="month-picker" onchange="filterByMonth(this.value)" style="position: absolute; opacity: 0; pointer-events: none; width: 0;">
+                
+                <button onclick="document.getElementById('month-picker').showPicker()" class="cat-btn time-btn">
                     <i data-lucide="calendar"></i> RICERCA MESE / ANNO
                 </button>
             </div>
