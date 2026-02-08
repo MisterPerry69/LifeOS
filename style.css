@@ -1274,3 +1274,24 @@ CSS
     scrollbar-color: var(--accent) #050505;
 }
 
+#credits-history-engine {
+    position: relative !important; /* Forza il posizionamento relativo */
+    top: 0 !important;
+    left: 0 !important;
+    display: block !important; /* Assicurati che sia visibile */
+    visibility: visible !important;
+    width: 100%;
+    margin-bottom: 20px;
+    background: rgba(10, 10, 10, 0.8);
+    padding: 15px;
+    border: 1px solid #222;
+    z-index: 10; /* Sopra lo sfondo, ma nel flusso della pagina */
+}
+
+/* Fix per i tag se sono compressi */
+#credits-history-engine .search-tags {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-top: 10px;
+}
