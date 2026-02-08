@@ -1415,26 +1415,28 @@ async function openTimeFilter() {
     aiSearchActive = true; 
     document.getElementById('fin-ai-status').innerText = 'ON';
     
-    executeLogSearch(period);
+    quickFilter(period);
 }
 
 async function filterByMonth(val) {
     if (!val) return;
     
-    // val sarà nel formato "2026-02"
-    const [year, month] = val.split('-');
-    const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", 
-                        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    // val arriva dal picker come "2026-02"
+    const parts = val.split('-');
+    const year = parts[0];
+    const month = parts[1]; // Questo è già "02", "03", ecc.
+
+    // Creiamo la stringa di ricerca che corrisponde al tuo DB: "/02/2026"
+    // Usiamo lo slash davanti per evitare che trovi "02" nei centesimi o nell'importo
+    const formattedQuery = `/${month}/${year}`;
     
-    const query = `${monthNames[parseInt(month)-1]} ${year}`;
-    
-    // Forziamo la ricerca standard (AI OFF) per risparmiare quota
-    aiSearchActive = false; 
-    const status = document.getElementById('fin-ai-status');
-    if(status) {
-        status.innerText = 'OFF';
-        status.style.color = '#666';
-    }
-    
-    executeLogSearch(query);
+    console.log("Ricerca numerica per periodo:", formattedQuery);
+
+    // AI OFF per risparmiare quota
+    aiSearchActive = false;
+    const aiStatus = document.getElementById('fin-ai-status');
+    if(aiStatus) aiStatus.innerText = 'OFF';
+
+    // Esegui la ricerca standard
+    quickFilter(formattedQuery);
 }
