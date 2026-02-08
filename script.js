@@ -1453,3 +1453,44 @@ async function filterByMonth(val) {
     // Passiamo la palla a quickFilter che già funziona per i bottoni!
     quickFilter(formattedQuery);
 }
+
+let myChart = null;
+
+async function loadFinanceStats() {
+    const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
+    const data = await res.json();
+
+    // 1. Aggiorna i Vital Signs
+    document.getElementById('stat-total-spent').innerText = `${data.spent.toFixed(2)}€`;
+    document.getElementById('stat-total-income').innerText = `${data.income.toFixed(2)}€`;
+
+    // 2. Prepara i dati per il grafico
+    const labels = Object.keys(data.categories);
+    const values = Object.values(data.categories);
+
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    
+    // Distruggi il grafico vecchio se esiste per evitare bug visivi
+    if (myChart) myChart.destroy();
+
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: ['#00f3ff', '#ff4d4d', '#7000ff', '#ff00c1', '#00ff41', '#ff9a00'],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#666', font: { family: 'Rajdhani', size: 10 } } }
+            },
+            cutout: '70%' // Lo rende un anello sottile, molto più tech
+        }
+    });
+}
