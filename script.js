@@ -1457,40 +1457,47 @@ async function filterByMonth(val) {
 let myChart = null;
 
 async function loadFinanceStats() {
+    // 1. Fetch dei dati (Assicurati che l'action get_finance_stats sia attiva in Apps Script)
     const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
     const data = await res.json();
 
-    // 1. Aggiorna i Vital Signs
+    // 2. Aggiorna Contatori Numerici
     document.getElementById('stat-total-spent').innerText = `${data.spent.toFixed(2)}€`;
     document.getElementById('stat-total-income').innerText = `${data.income.toFixed(2)}€`;
 
-    // 2. Prepara i dati per il grafico
-    const labels = Object.keys(data.categories);
-    const values = Object.values(data.categories);
-
-    const ctx = document.getElementById('categoryChart').getContext('2d');
+    // 3. Survival Bar Logic
+    // Calcoliamo quanto abbiamo speso rispetto a quanto abbiamo incassato
+    let survivalPercent = 0;
+    if (data.income > 0) {
+        survivalPercent = (data.spent / data.income) * 100;
+    } else {
+        survivalPercent = data.spent > 0 ? 100 : 0; // Se non hai entrate ma spendi, sei al 100% di rischio
+    }
     
-    // Distruggi il grafico vecchio se esiste per evitare bug visivi
-    if (myChart) myChart.destroy();
+    const bar = document.getElementById('survival-bar-fill');
+    const percentText = document.getElementById('survival-percentage');
+    
+    bar.style.width = Math.min(survivalPercent, 100) + "%";
+    percentText.innerText = Math.round(survivalPercent) + "%";
+    
+    // Cambio colore barra in base al pericolo
+    if (survivalPercent > 85) bar.style.background = "#ff4d4d"; // Rosso alert
+    else if (survivalPercent > 60) bar.style.background = "#ff9a00"; // Arancio warning
+    else bar.style.background = "var(--accent)"; // Tutto ok
 
-    myChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                backgroundColor: ['#00f3ff', '#ff4d4d', '#7000ff', '#ff00c1', '#00ff41', '#ff9a00'],
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#666', font: { family: 'Rajdhani', size: 10 } } }
-            },
-            cutout: '70%' // Lo rende un anello sottile, molto più tech
-        }
-    });
+    // 4. Top Expenses List (Mobile Friendly)
+    const topList = document.getElementById('top-expenses-list');
+    const sortedCats = Object.entries(data.categories)
+        .sort((a, b) => b[1] - a[1]) // Ordina dalla spesa più alta
+        .slice(0, 3); // Prendi le prime 3
+
+    topList.innerHTML = sortedCats.map(([cat, val]) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #222; padding-bottom: 5px;">
+            <span style="font-family: 'Rajdhani'; font-size: 0.8rem; color: #fff;">${cat}</span>
+            <span style="font-family: 'Rajdhani'; font-size: 0.9rem; color: #ff4d4d;">-${val.toFixed(2)}€</span>
+        </div>
+    `).join('');
+
+    // 5. Render del Grafico (come abbiamo visto prima)
+    renderDoughnutChart(data.categories);
 }
