@@ -1362,3 +1362,32 @@ CSS
     max-height: 180px !important;
     width: 100% !important;
 }
+
+#finance-stats-view {
+    display: none; 
+    padding: 20px 15px 120px 15px; /* Spazio extra in fondo per non coprire col menu */
+    width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto !important; /* Forza lo scroll verticale */
+    max-height: 100vh; /* Permette lo scroll se il contenuto eccede lo schermo */
+}
+
+/* Griglia adattiva: 1 colonna su mobile, 2 su desktop */
+.stats-grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 1200px; /* Larghezza massima su desktop */
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .stats-grid-container {
+        grid-template-columns: 1fr 1fr; /* Due colonne su schermi grandi */
+    }
+    
+    /* Facciamo in modo che la Survival Bar e l'Audit occupino tutta la riga se vuoi */
+    .full-width-card {
+        grid-column: span 2;
+    }
+}

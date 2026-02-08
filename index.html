@@ -273,47 +273,48 @@
             </div>
         </div>
  
-<div id="finance-stats-view" style="display:none; padding: 20px 15px 100px 15px; max-width: 500px; margin: 0 auto;">
-    <h2 style="font-size: 1rem; color: var(--accent); margin-bottom: 20px; font-family:'Rajdhani'; letter-spacing: 2px;">DIAGNOSTICS_V1.0</h2>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-        <div class="stats-card">
-            <div style="font-size: 9px; color: var(--dim);">MONTHLY_SPENT</div>
-            <div id="stat-total-spent" style="font-size: 1.1rem; color: #ff4d4d; font-family:'Rajdhani';">0.00€</div>
-        </div>
-        <div class="stats-card">
-            <div style="font-size: 9px; color: var(--dim);">MONTHLY_INCOME</div>
-            <div id="stat-total-income" style="font-size: 1.1rem; color: var(--accent); font-family:'Rajdhani';">0.00€</div>
-        </div>
-    </div>
-
-    <div class="stats-card">
-        <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--dim);">
-            <span>SURVIVAL_INDEX</span>
-            <span id="survival-percentage">0%</span>
-        </div>
-        <div class="survival-bar-container">
-            <div id="survival-bar-fill"></div>
-        </div>
-    </div>
-
-    <div class="stats-card">
-        <div style="font-size: 9px; color: var(--dim); margin-bottom: 15px;">CATEGORY_WEIGHT</div>
-        <div style="height: 180px; position: relative;">
-            <canvas id="categoryChart"></canvas>
-        </div>
-    </div>
-
-    <div class="stats-card">
-        <div style="font-size: 9px; color: var(--dim); margin-bottom: 10px;">TOP_RESOURCE_DRAIN</div>
-        <div id="top-expenses-list" style="font-family:'Rajdhani'; font-size: 0.85rem;">
+<div id="finance-stats-view" style="display:none;">
+    <div class="stats-grid-container">
+        
+        <h2 style="grid-column: 1 / -1; font-size: 1.1rem; color: var(--accent); font-family:'Rajdhani'; letter-spacing: 2px;">
+            DIAGNOSTICS_V1.0
+        </h2>
+        
+        <div class="stats-card full-width-card">
+            <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--dim);">
+                <span>SURVIVAL_INDEX</span>
+                <span id="survival-percentage">0%</span>
             </div>
-    </div>
+            <div class="survival-bar-container"><div id="survival-bar-fill"></div></div>
+        </div>
 
-    <div id="analyst-stats-comment" style="background: rgba(0,243,255,0.03); border: 1px solid #111; padding: 15px; border-radius: 8px;">
-        <div style="font-size: 9px; color: var(--accent); margin-bottom: 8px;">AUDIT_REPORT_V1</div>
-        <div id="stats-eval" style="font-size: 0.85rem; color: #ccc; line-height: 1.4;">INIZIALIZZAZIONE_ANALISTA...</div>
-        <button onclick="requestAnalystUpdate()" style="margin-top: 12px; background: none; border: 1px solid var(--accent); color: var(--accent); padding: 5px 10px; font-size: 10px; cursor: pointer; border-radius: 4px; font-family:'Rajdhani';">RUN_NEW_AUDIT</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="stats-card">
+                <div style="font-size: 9px; color: var(--dim);">MONTHLY_SPENT</div>
+                <div id="stat-total-spent" style="font-size: 1.2rem; color: #ff4d4d; font-family:'Rajdhani';">0.00€</div>
+            </div>
+            <div class="stats-card">
+                <div style="font-size: 9px; color: var(--dim);">MONTHLY_INCOME</div>
+                <div id="stat-total-income" style="font-size: 1.2rem; color: var(--accent); font-family:'Rajdhani';">0.00€</div>
+            </div>
+            <div class="stats-card" style="grid-column: span 2;">
+                <div style="font-size: 9px; color: var(--dim); margin-bottom: 10px;">TOP_RESOURCE_DRAIN</div>
+                <div id="top-expenses-list"></div>
+            </div>
+        </div>
+
+        <div class="stats-card">
+            <div style="font-size: 9px; color: var(--dim); margin-bottom: 15px;">CATEGORY_WEIGHT</div>
+            <div style="height: 220px; position: relative;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <div id="analyst-stats-comment" class="stats-card full-width-card" style="background: rgba(0,243,255,0.03);">
+            <div style="font-size: 9px; color: var(--accent); margin-bottom: 8px;">AUDIT_REPORT_V1</div>
+            <div id="stats-eval" style="font-size: 0.9rem; color: #ccc; line-height: 1.4; font-family:'Rajdhani';">INIZIALIZZAZIONE_ANALISTA...</div>
+            <button onclick="requestAnalystUpdate()" style="margin-top: 12px; background: none; border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; font-size: 11px; cursor: pointer; border-radius: 4px; font-family:'Rajdhani';">RUN_NEW_AUDIT</button>
+        </div>
     </div>
 </div>
 
