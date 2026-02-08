@@ -1354,25 +1354,38 @@ function initStats() {
     });
 
     // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
-    renderCategoryChart(categories);
-
-    const catKeys = Object.keys(categories);
-    const topCat = catKeys.reduce((a, b) => categories[a] > categories[b] ? a : b);
-    const totalSpent = Object.values(categories).reduce((a, b) => a + b, 0);
-    
-    const evalElem = document.getElementById('stats-eval');
-    
-    // Messaggi personalizzati in base alla spesa maggiore
-    if (topCat === "CIBO" && categories[topCat] > (totalSpent * 0.4)) {
-        evalElem.innerText = "RILEVATO_ECCESSO_ALIMENTARE. Il tuo sostentamento sta drenando il 40% delle risorse. Ottimizzare dieta o budget.";
-    } else if (totalSpent > 1000) {
-        evalElem.innerText = "BURN_RATE_CRITICO. Le uscite superano i parametri di sicurezza. Suggerisco modalità risparmio energetico.";
-    } else {
-        evalElem.innerText = "FLUSSI_STABILI. Nessuna anomalia critica rilevata nel settore " + topCat + ".";
+function renderCategoryChart(categories) {
+    const canvas = document.getElementById('categoryChart');
+    if (!canvas) {
+        console.error("ERRORE: Canvas 'categoryChart' non trovato nel DOM!");
+        return;
     }
+    const ctx = canvas.getContext('2d');
     
-    // --- RENDER GRAFICO TREND (Line) ---
-    // (Qui potremmo aggregare per data, per ora facciamo le categorie che è il più utile)
+    if (myChart) myChart.destroy();
+
+    const labels = Object.keys(categories);
+    const values = Object.values(categories);
+
+    myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: ['#00f3ff', '#ff4d4d', '#7000ff', '#ff00c1', '#00ff41', '#ff9a00'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%', // Lo rende un anello elegante
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#666', font: { family: 'Rajdhani', size: 10 } } }
+            }
+        }
+    });
 }
 
 function renderCategoryChart(data) {
