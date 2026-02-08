@@ -1339,19 +1339,35 @@ function nav(page) {
     }
 }
 
-function initStats() {
-    if (!lastStatsData || !lastStatsData.finance.transactions) return;
+async function initStats() {
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
+        const data = await res.json();
+        
+        // Aggiorna i testi
+        document.getElementById('stat-total-spent').innerText = `${data.spent.toFixed(2)}€`;
+        document.getElementById('stat-total-income').innerText = `${data.income.toFixed(2)}€`;
+        
+        // Survival Bar
+        const survivalPercent = data.income > 0 ? (data.spent / data.income) * 100 : 0;
+        document.getElementById('survival-bar-fill').style.width = Math.min(survivalPercent, 100) + "%";
+        document.getElementById('survival-percentage').innerText = Math.round(survivalPercent) + "%";
 
-    const txs = lastStatsData.finance.transactions; // Usiamo le transazioni caricate (o full_history se disponibile)
-    
-    // --- ELABORAZIONE DATI CATEGORIE ---
-    const categories = {};
-    txs.forEach(t => {
-        if (t.amt < 0) { // Consideriamo solo le uscite
-            const cat = t.cat.toUpperCase();
-            categories[cat] = (categories[cat] || 0) + Math.abs(t.amt);
-        }
-    });
+        // Top Expenses
+        const topList = document.getElementById('top-expenses-list');
+        const sortedCats = Object.entries(data.categories).sort((a,b) => b[1] - a[1]).slice(0,3);
+        topList.innerHTML = sortedCats.map(([cat, val]) => `
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; border-bottom:1px solid #222; padding:5px 0;">
+                <span>${cat}</span><span style="color:#ff4d4d;">-${val.toFixed(2)}€</span>
+            </div>
+        `).join('');
+
+        // ORA chiamiamo il grafico
+        renderCategoryChart(data.categories);
+
+    } catch (e) {
+        console.error("Errore nel caricamento stats:", e);
+    }
 }
 
     // --- RENDER GRAFICO CATEGORIE (Doughnut) ---

@@ -273,45 +273,44 @@
             </div>
         </div>
  
-            <div id="finance-stats-view" style="display:none; padding: 20px 0 100px 0;">
-                <h2 style="font-size: 1.1rem; color: var(--accent); margin-bottom: 20px;">DIAGNOSTICS_V1.0</h2>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                    <div class="stats-card" style="background: #0a0a0a; border: 1px solid #222; padding: 10px; border-radius: 4px;">
-                        <div style="font-size: 10px; color: var(--dim);">MONTHLY_SPENT</div>
-                        <div id="stat-total-spent" style="font-size: 1.2rem; color: #ff4d4d; font-family: 'Rajdhani';">0.00€</div>
-                    </div>
-                    <div class="stats-card" style="background: #0a0a0a; border: 1px solid #222; padding: 10px; border-radius: 4px;">
-                        <div style="font-size: 10px; color: var(--dim);">MONTHLY_INCOME</div>
-                        <div id="stat-total-income" style="font-size: 1.2rem; color: var(--accent); font-family: 'Rajdhani';">0.00€</div>
-                    </div>
-                </div>
+<div id="finance-stats-view" style="display:none; padding: 20px 10px 100px 10px;">
+    <h2 style="font-size: 1.1rem; color: var(--accent); margin-bottom: 20px; font-family:'Rajdhani';">DIAGNOSTICS_V1.0</h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+        <div class="stats-card">
+            <div style="font-size: 9px; color: var(--dim);">MONTHLY_SPENT</div>
+            <div id="stat-total-spent" style="font-size: 1.1rem; color: #ff4d4d;">0.00€</div>
+        </div>
+        <div class="stats-card">
+            <div style="font-size: 9px; color: var(--dim);">MONTHLY_INCOME</div>
+            <div id="stat-total-income" style="font-size: 1.1rem; color: var(--accent);">0.00€</div>
+        </div>
+    </div>
 
-                <div style="display: grid; gap: 20px;">
-                    <div class="stats-card" style="background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--dim);">
-                            <span>MONTHLY_SURVIVAL_INDEX</span>
-                            <span id="survival-percentage">0%</span>
-                        </div>
-                        <div class="survival-bar-container" style="width: 100%; height: 8px; background: #1a1a1a; border-radius: 10px; margin-top: 8px; overflow: hidden; border: 1px solid #333;">
-                            <div id="survival-bar-fill" style="width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 10px var(--accent); transition: width 0.8s ease;"></div>
-                        </div>
-                    </div>
+    <div class="stats-card" style="margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--dim);">
+            <span>SURVIVAL_INDEX</span>
+            <span id="survival-percentage">0%</span>
+        </div>
+        <div class="survival-bar-container"><div id="survival-bar-fill"></div></div>
+    </div>
 
-                    <div class="stats-card" style="background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                        <div style="font-size: 10px; color: var(--dim); margin-bottom: 10px;">TOP_RESOURCES_DRAIN (CURRENT_MONTH)</div>
-                        <div id="top-expenses-list" style="display: flex; flex-direction: column; gap: 10px;">
-                            </div>
-                    </div>                    </div>
+    <div class="stats-card" style="margin-bottom: 15px;">
+        <div style="font-size: 9px; color: var(--dim); margin-bottom: 10px;">CATEGORY_WEIGHT</div>
+        <div style="height: 180px;"><canvas id="categoryChart"></canvas></div>
+    </div>
 
-                    <div id="analyst-stats-comment" style="background: rgba(0,243,255,0.05); border: 1px solid var(--accent); padding: 15px; border-radius: 4px; font-family: 'Rajdhani';">
-                        <div style="font-size: 10px; color: var(--accent);">AUDIT_CORE_REPORT:</div>
-                        <div id="stats-eval" style="font-size: 0.9rem; margin-top: 5px; color: #fff;">INIZIALIZZAZIONE_DATI...</div>
-                        <button onclick="requestAnalystUpdate()" id="refresh-audit-btn" style="margin-top:10px; background:none; border:1px solid var(--accent); color:var(--accent); font-size:10px; cursor:pointer;">RUN_NEW_AUDIT</button>
-                    </div>
-                </div>
-            </div>
+    <div class="stats-card" style="margin-bottom: 15px;">
+        <div style="font-size: 9px; color: var(--dim); margin-bottom: 10px;">TOP_RESOURCE_DRAIN</div>
+        <div id="top-expenses-list"></div>
+    </div>
 
+    <div id="analyst-stats-comment" class="audit-box">
+        <div style="font-size: 9px; color: var(--accent);">AUDIT_REPORT:</div>
+        <div id="stats-eval" style="font-size: 0.85rem; margin-top: 5px; color: #fff; font-family: 'Rajdhani';">INIZIALIZZAZIONE_DATI...</div>
+        <button onclick="requestAnalystUpdate()" class="audit-btn">RUN_NEW_AUDIT</button>
+    </div>
+</div>
         <div id="finance-search-view" style="display:none; padding-bottom: 100px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom:10px;">
             <h2 style="font-size:1.2rem; color:var(--accent); margin:0;">DATABASE_QUERY</h2>
