@@ -1352,6 +1352,7 @@ function initStats() {
             categories[cat] = (categories[cat] || 0) + Math.abs(t.amt);
         }
     });
+}
 
     // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
 function renderCategoryChart(categories) {
