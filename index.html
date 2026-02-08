@@ -304,23 +304,36 @@
 
         <div id="credits-history-engine" style="margin-bottom: 20px;">
             <div style="position: relative; display: flex; align-items: center; gap: 10px;">
-                <div id="ai-search-toggle" onclick="toggleAISearch()" style="cursor:pointer; padding: 5px; border: 1px solid #444; border-radius: 4px; font-size: 0.7rem; color: var(--dim);">
-                    AI: <span id="ai-status" style="color:#666;">OFF</span>
-                </div>
                 
                 <div style="position: relative; flex-grow: 1;">
                     <input type="text" id="finance-search" placeholder="CERCA NEL LOG..." onkeyup="handleLogSearch(event)" style="width: 100%;">
                     <span id="search-clear" onclick="clearLogSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--accent); display: none;">&times;</span>
                 </div>
+
+                <div id="ai-search-toggle" onclick="toggleAISearch()" style="cursor:pointer; padding: 5px; border: 1px solid #444; border-radius: 4px; font-size: 0.7rem; color: var(--dim);">
+                    AI: <span id="ai-status" style="color:#666;">OFF</span>
+                </div>        
+                
             </div>
 
-            <div class="search-tags" style="display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; white-space: nowrap; padding-bottom: 5px;">
-                <button onclick="quickFilter('CIBO')" class="tag-btn">#CIBO</button>
-                <button onclick="quickFilter('TECH')" class="tag-btn">#TECH</button>
-                <button onclick="quickFilter('SVAGO')" class="tag-btn">#SVAGO</button>
-                <button onclick="quickFilter('STIPENDIO')" class="tag-btn">#ENTRATE</button>
-                <button onclick="quickFilter('CASH')" class="tag-btn">#CASH</button>
+            <div class="fin-categories-grid">
+                <button onclick="executeLogSearch('CIBO')" class="cat-btn"><i data-lucide="utensils"></i> CIBO</button>
+                <button onclick="executeLogSearch('CASA')" class="cat-btn"><i data-lucide="home"></i> CASA</button>
+                <button onclick="executeLogSearch('TECH')" class="cat-btn"><i data-lucide="cpu"></i> TECH</button>
+                <button onclick="executeLogSearch('SVAGO')" class="cat-btn"><i data-lucide="gamepad-2"></i> SVAGO</button>
+                <button onclick="executeLogSearch('TRASPORTI')" class="cat-btn"><i data-lucide="car"></i> TRASPORTI</button>
+                <button onclick="executeLogSearch('SALUTE')" class="cat-btn"><i data-lucide="pill"></i> SALUTE</button>
+                <button onclick="executeLogSearch('ENTRATE')" class="cat-btn"><i data-lucide="trending-up"></i> ENTRATE</button>
+                <button onclick="executeLogSearch('ALTRO')" class="cat-btn"><i data-lucide="layers"></i> ALTRO</button>
+                <button onclick="executeLogSearch('SET_BALANCE')" class="cat-btn"><i data-lucide="refresh-cw"></i> RESET</button>
             </div>
+
+<div class="fin-time-filters">
+    <input type="month" id="month-picker" onchange="filterByMonth(this.value)" style="display:none;">
+    <button onclick="document.getElementById('month-picker').showPicker()" class="cat-btn time-btn">
+        <i data-lucide="calendar"></i> RICERCA MESE / ANNO
+    </button>
+</div>
         </div>
                     
         <div id="filtered-results">

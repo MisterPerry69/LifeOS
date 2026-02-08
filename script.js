@@ -1407,3 +1407,34 @@ function renderCategoryChart(data) {
     });
 }
 
+async function openTimeFilter() {
+    const period = prompt("Inserisci Mese e Anno (es: Gennaio 2026):");
+    if (!period) return;
+    
+    // Attiviamo l'AI per questa ricerca perché deve capire il periodo
+    aiSearchActive = true; 
+    document.getElementById('fin-ai-status').innerText = 'ON';
+    
+    executeLogSearch(period);
+}
+
+async function filterByMonth(val) {
+    if (!val) return;
+    
+    // val sarà nel formato "2026-02"
+    const [year, month] = val.split('-');
+    const monthNames = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", 
+                        "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+    
+    const query = `${monthNames[parseInt(month)-1]} ${year}`;
+    
+    // Forziamo la ricerca standard (AI OFF) per risparmiare quota
+    aiSearchActive = false; 
+    const status = document.getElementById('fin-ai-status');
+    if(status) {
+        status.innerText = 'OFF';
+        status.style.color = '#666';
+    }
+    
+    executeLogSearch(query);
+}
