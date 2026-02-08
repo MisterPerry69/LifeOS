@@ -1210,9 +1210,21 @@ async function handleLogSearch(event) {
 // Funzione per i tasti rapidi
 function quickFilter(tag) {
     const input = document.getElementById('finance-search');
-    input.value = tag;
-    aiSearchActive = false; // Disattiviamo AI per i filtri semplici
-    document.getElementById('ai-status').innerText = 'OFF';
+    const currentVal = input.value.trim();
+
+    // Se il tag è già presente, non aggiungerlo di nuovo
+    if (!currentVal.includes(tag)) {
+        // Aggiunge il nuovo tag con uno spazio se c'è già qualcosa
+        input.value = currentVal ? `${currentVal} ${tag}` : tag;
+    }
+
+    aiSearchActive = false; 
+    const aiStatus = document.getElementById('fin-ai-status');
+    if(aiStatus) aiStatus.innerText = 'OFF';
+    
+    document.getElementById('search-clear').style.display = 'block';
+
+    // Lanciamo la ricerca con la stringa combinata (es: "/02/2026 CIBO")
     handleLogSearch({ key: 'Enter', target: input });
 }
 
@@ -1227,10 +1239,17 @@ function toggleAISearch() {
 
 function clearLogSearch() {
     const input = document.getElementById('finance-search');
+    const container = document.getElementById('filtered-results');
+    const clearBtn = document.getElementById('search-clear');
+
     input.value = '';
-    document.getElementById('search-clear').style.display = 'none';
-    // Se hai una funzione che mostra tutti i dati iniziali, chiamala qui
-    // Esempio: renderFilteredItems(fullDataBackUp); 
+    clearBtn.style.display = 'none';
+    
+    // Svuota i risultati filtrati
+    container.innerHTML = ''; 
+    
+    // Opzionale: se vuoi che torni la lista iniziale delle ultime 10:
+    // refreshFinanceLog(); 
 }
 
 
