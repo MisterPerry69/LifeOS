@@ -1330,3 +1330,35 @@ CSS
     border-color: #444;
     width: fit-content;
 }
+
+.stats-card {
+    background: #0a0a0a; 
+    border: 1px solid #222; 
+    padding: 15px; 
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.survival-bar-container {
+    width: 100%; 
+    height: 10px; 
+    background: #1a1a1a; 
+    border-radius: 5px; 
+    margin-top: 10px; 
+    border: 1px solid #333;
+    overflow: hidden;
+}
+
+#survival-bar-fill {
+    width: 0%; 
+    height: 100%; 
+    background: var(--accent); 
+    box-shadow: 0 0 10px var(--accent); 
+    transition: width 1s ease;
+}
+
+/* Fix per rendere il grafico visibile ma non enorme */
+#categoryChart {
+    max-height: 180px !important;
+    width: 100% !important;
+}
