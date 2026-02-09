@@ -196,136 +196,115 @@ async function loadStats() {
     }
 }
 
+// Aggiungi queste variabili globali in cima
+let loadedNotesData = [];
+let deleteTarget = null;
+
+// Funzione Render (Aggiornata per oggetto)
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
-    
-    lastStatsData = data;
-    loadedNotesData = data.notes || [];
 
-    // FIX: Controlli null prima di aggiornare
-    const widgetNotes = document.getElementById('widget-notes');
-    const widgetWeight = document.getElementById('widget-weight');
+    loadedNotesData = data.notes || []; // Assicuriamoci che notes esista
     
-    if (widgetNotes) widgetNotes.innerText = (loadedNotesData.length + 1);
-    if (widgetWeight) widgetWeight.innerText = data.weight || "94.5";
-
+    // Puliamo la griglia
+    grid.innerHTML = "";
     const fragment = document.createDocumentFragment();
-    const isSearching = searchQuery.length > 0;
     
-    // Card EXTRA pinnata
-    if ((currentFilter === 'ALL' || currentFilter === 'EXTRA') && !isSearching) {
-        const extraCard = document.createElement('div');
-        extraCard.className = "keep-card bg-default extra-card pinnato";
-        extraCard.innerHTML = `
-            <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
-            <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
-            <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal || 0}h</div>
-            <div class="label" style="opacity:0.5">${data.monthLabel || ''}</div>
-        `;
-        extraCard.onclick = () => openExtraDetail();
-        fragment.appendChild(extraCard);
-    }
+    // ... (Logica ricerca e filtro esistente, se la usi) ...
+    // Se usi il filtro, usa filter() su loadedNotesData
 
-    // Filtraggio e ordinamento note
-    const filteredNotes = loadedNotesData
-        .map((note, originalIndex) => ({ note, originalIndex }))
-        .filter(item => {
-            const title = String(item.note[5] || "").toLowerCase();
-            const content = String(item.note[1] || "").toLowerCase();
-            const type = item.note[2];
-            const searchLower = searchQuery.toLowerCase();
-            
-            const matchesSearch = !isSearching || title.includes(searchLower) || content.includes(searchLower);
-            if (!matchesSearch) return false;
+    // Generazione CARD
+    loadedNotesData.forEach((note) => {
+        // Ora note è un oggetto {id, type, content...}
+        const isPinned = note.type === "PINNED";
 
-            if (currentFilter === 'ALL') return true;
-            if (currentFilter === 'PINNED') return type === 'PINNED';
-            if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
-            if (currentFilter === 'LINK') return content.includes('http');
-            if (currentFilter === 'EXTRA') return false;
-            return true;
-        })
-        .sort((a, b) => {
-            if (currentFilter === 'ALL' && !isSearching) {
-                if (a.note[2] === "PINNED" && b.note[2] !== "PINNED") return -1;
-                if (a.note[2] !== "PINNED" && b.note[2] === "PINNED") return 1;
-            }
-            return 0;
-        });
-
-    // Generazione card
-    filteredNotes.forEach((item) => {
-        const note = item.note;
-        const index = item.originalIndex;
-        const isPinned = note[2] === "PINNED";
-        
         const card = document.createElement('div');
-        card.className = `keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}`;
-        card.id = `card-${note[4]}`;
-        card.dataset.type = note[2];
+        // Usa le proprietà dell'oggetto
+        card.className = `keep-card bg-${note.color} ${isPinned ? 'pinnato' : ''}`;
+        card.id = `card-${note.id}`; // ID univoco HTML
         
-        const isDraggable = (currentFilter === 'ALL' && !isSearching);
-        card.draggable = isDraggable;
-
+        // Costruiamo l'HTML della card
         card.innerHTML = `
             ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
-            <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
-            <div class="content-preview">${note[1]}</div>
+            <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
+            <div class="content-preview">${note.content}</div>
+            
+            <div style="display: flex; justify-content: flex-end; margin-top: 10px; gap: 5px;">
+                <button onclick="togglePin('${note.id}', '${isPinned ? 'NOTE' : 'PINNED'}', event)" class="action-btn">
+                    <i class="fas ${isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack'}"></i>
+                </button>
+                <button onclick="confirmDelete('${note.id}', 'BRAIN', event)" class="action-btn delete-btn">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            
             <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
-                ${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+                ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
             </div>
         `;
-
-        // Eventi Drag & Drop
-        card.ondragstart = (e) => {
-            if (!isDraggable) {
-                e.preventDefault();
-                return;
-            }
-            draggedItem = card;
-            card.classList.add('dragging');
-        };
-
-        card.ondragend = () => {
-            card.classList.remove('dragging');
-            document.querySelectorAll('.keep-card').forEach(c => c.classList.remove('drag-over'));
-            if (isDraggable) saveNewOrder();
-        };
-
-        card.ondragover = (e) => e.preventDefault();
-
-        card.ondragenter = () => {
-            if (isDraggable && draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
-                card.classList.add('drag-over');
-            }
-        };
-
-        card.ondragleave = () => card.classList.remove('drag-over');
-
-        card.ondrop = (e) => {
-            e.preventDefault();
-            card.classList.remove('drag-over');
-            if (!isDraggable || !draggedItem || draggedItem === card) return;
-
-            if (!card.classList.contains('extra-card') && draggedItem.dataset.type === card.dataset.type) {
-                const allCards = [...grid.querySelectorAll('.keep-card')];
-                const draggedIdx = allCards.indexOf(draggedItem);
-                const targetIdx = allCards.indexOf(card);
-                if (draggedIdx < targetIdx) card.after(draggedItem);
-                else card.before(draggedItem);
-            }
-        };
-
-        card.onclick = () => {
-            if (!card.classList.contains('dragging')) openNoteByIndex(index);
-        };
-
+        
         fragment.appendChild(card);
     });
-
-    grid.innerHTML = "";
+    
     grid.appendChild(fragment);
+}
+
+// Funzione Toggle Pin (Nuova e Robusta)
+async function togglePin(id, newType, event) {
+    event.stopPropagation(); // Evita di aprire la nota se clicchi il bottone
+    
+    // Feedback immediato visivo (Optimistic UI)
+    const card = document.getElementById(`card-${id}`);
+    if(card) {
+        card.style.opacity = '0.5'; // "Sto lavorando..."
+    }
+
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                service: "update_note_type",
+                id: id,
+                type: newType
+            })
+        });
+        
+        // Ricarichiamo tutto per confermare
+        loadStats(); 
+    } catch (e) {
+        console.error("Errore Pinning:", e);
+        if(card) card.style.opacity = '1'; // Torna normale se fallisce
+    }
+}
+
+// Funzione Delete (Aggiornata per ID)
+function confirmDelete(id, type, event) {
+    if(event) event.stopPropagation();
+    
+    if(confirm("ELIMINARE DEFINITIVAMENTE QUESTA NOTA?")) {
+        executeDeleteSecure(id, type);
+    }
+}
+
+async function executeDeleteSecure(id, type) {
+    // Feedback visivo immediato: Nascondi la card
+    const card = document.getElementById(`card-${id}`);
+    if(card) card.style.display = 'none';
+
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({
+            service: "delete_item",
+            id: id, 
+            type: type
+        })
+    });
+    
+    // Non serve ricaricare tutto se l'abbiamo nascosta, ma è meglio per sicurezza
+    setTimeout(() => loadStats(), 1000); 
 }
 
 async function saveNewOrder() {
