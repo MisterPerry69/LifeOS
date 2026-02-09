@@ -737,7 +737,32 @@ async function executeDelete() {
     const deleteModal = document.getElementById('delete-modal');
     if (deleteModal) deleteModal.style.display = 'none';
     
-    await fetch(SCRIPT_URL, {
+    // 1. CHIUDI SUBITO IL MODAL DELLA NOTA
+    const noteModal = document.getElementById('note-detail');
+    const backdrop = document.getElementById('modal-backdrop');
+    if (noteModal) noteModal.style.display = 'none';
+    if (backdrop) backdrop.style.display = 'none';
+    
+    // 2. NASCONDI LA CARD IMMEDIATAMENTE (UI Ottimistica)
+    const card = document.getElementById(`card-${deleteTarget.id}`);
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.8)';
+        card.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            card.style.display = 'none';
+        }, 300);
+    }
+    
+    // 3. RIMUOVI DALLA MEMORIA LOCALE (evita il reset colori)
+    const indexToRemove = loadedNotesData.findIndex(n => String(n.id) === String(deleteTarget.id));
+    if (indexToRemove !== -1) {
+        loadedNotesData.splice(indexToRemove, 1);
+    }
+    
+    // 4. SALVA SU SERVER IN BACKGROUND (no await!)
+    fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         body: JSON.stringify({
@@ -745,10 +770,17 @@ async function executeDelete() {
             id: deleteTarget.id,
             type: deleteTarget.type
         })
+    }).then(() => {
+        console.log("Nota cancellata dal server");
+    }).catch(err => {
+        console.error("Errore cancellazione:", err);
+        // Se fallisce, ricarica per sicurezza
+        loadStats();
     });
     
-    closeNoteDetail(false);
-    await loadStats();
+    // 5. RESET
+    currentNoteData = null;
+    deleteTarget = null;
 }
 
 // ============================================
