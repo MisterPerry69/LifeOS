@@ -320,7 +320,7 @@ function renderGrid(data) {
         };
 
         card.onclick = () => {
-            if (!card.classList.contains('dragging')) openNoteByIndex(index);
+            if (!card.classList.contains('dragging')) openNoteById(index);
         };
 
         fragment.appendChild(card);
