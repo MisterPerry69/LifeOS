@@ -140,12 +140,12 @@
             
             <div class="nav-item" id="nav-ghost" onclick="startAIExpansion()" style="flex:1; text-align: center; color: var(--dim);">
                 <i data-lucide="cpu" style="width: 22px;"></i>
-                <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
+                <div style="font-size: 8px; margin-top: 4px;">GHOST</div>
             </div>
             
-            <div class="nav-item" id="nav-search" onclick="toggleSearchOverlay('log')" style="flex:1; text-align: center; color: var(--dim);">
-                <i data-lucide="filter" style="width: 22px;"></i>
-                <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
+            <div class="nav-item" id="nav-search" onclick="toggleSearch(true)" style="flex:1; text-align: center; color: var(--dim);">
+                <i data-lucide="search" style="width: 22px;"></i>
+                <div style="font-size: 8px; margin-top: 4px;">SEARCH</div>
             </div>
 
             <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
@@ -155,8 +155,8 @@
             </div>
 
             <div class="nav-item" id="nav-archive" onclick="filterArchive()" style="flex:1; text-align: center; color: #222;"> 
-                <i data-lucide="bar-chart-3" style="width: 22px;"></i>
-                <div style="font-size: 8px; margin-top: 4px;">STATS</div>
+                <i data-lucide="archive" style="width: 22px;"></i>
+                <div style="font-size: 8px; margin-top: 4px;">ARCHIVE</div>
             </div>
 
             <div class="nav-item" id="nav-entry-dump" onclick="toggleQuickMenu()" style="flex:1; text-align: center; color: var(--dim);">
