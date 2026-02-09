@@ -123,6 +123,47 @@
       <input type="text" id="dump-input" placeholder="Prendi una nota..." onkeypress="sendCmd(event)">
       <div id="keep-grid"></div>
     </main>
+
+            <div id="quick-menu" class="quick-menu-hidden" style="position: fixed; bottom: 85px; right: 15px; background: #050505; border: 1px solid #222; border-radius: 8px; z-index: 9001; padding: 5px;">
+                <div onclick="createNew('NOTE')" style="padding: 12px 20px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
+                    <i data-lucide="sticky-note" style="width:14px"></i> NOTA
+                </div>
+                <div onclick="createNew('LIST')" style="padding: 12px 20px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
+                    <i data-lucide="list-checks" style="width:14px"></i> LISTA
+                </div>
+                <div onclick="createNew('LINK')" style="padding: 12px 20px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="link" style="width:14px"></i> LINK
+                </div>
+            </div>
+
+            <div class="bottom-nav">
+                <div class="nav-item" id="nav-ghost" onclick="startAIExpansion()" style="flex:1; text-align: center; color: var(--dim);">
+                    <i data-lucide="cpu" style="width: 22px;"></i>
+                    <div style="font-size: 8px; margin-top: 4px;">GHOST</div>
+                </div>
+                
+                <div class="nav-item" id="nav-search" onclick="toggleSearchOverlay()" style="flex:1; text-align: center; color: var(--dim);">
+                    <i data-lucide="search" style="width: 22px;"></i>
+                    <div style="font-size: 8px; margin-top: 4px;">SEARCH</div>
+                </div>
+
+                <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
+                    <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
+                        <i data-lucide="home" style="width: 28px; color: #000;"></i>
+                    </div>
+                </div>
+
+                <div class="nav-item" id="nav-archive" onclick="filterArchive()" style="flex:1; text-align: center; color: var(--dim);"> 
+                    <i data-lucide="archive" style="width: 22px;"></i>
+                    <div style="font-size: 8px; margin-top: 4px;">ARCHIVE</div>
+                </div>
+
+                <div class="nav-item" id="nav-entry" onclick="toggleQuickMenu()" style="flex:1; text-align: center; color: var(--dim);">
+                    <i data-lucide="plus-square" style="width: 22px;"></i>
+                    <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
+                </div>
+            </div>
+
   </div>
 
   <!-- ============================================ -->

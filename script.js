@@ -1696,3 +1696,30 @@ function updateUI(data) {
         // ... ecc
     }
 }
+
+// Toggle del menu a comparsa del tasto +
+function toggleQuickMenu() {
+    const menu = document.getElementById('quick-menu');
+    menu.classList.toggle('quick-menu-hidden');
+}
+
+// Funzione per AI Smart Note
+function startAIExpansion() {
+    // Apriamo una nuova nota vuota
+    openNewNoteModal(); 
+    
+    // Mostriamo la bolla di dialogo (che dovresti già avere come stile)
+    // Qui sotto un esempio di logica "in attesa di input"
+    const aiBubble = document.getElementById('ai-dialog-bubble'); 
+    if(aiBubble) {
+        aiBubble.innerText = "SISTEMA_GHOST: In attesa di input da espandere...";
+        aiBubble.classList.add('active');
+    }
+}
+
+// Chiudi menu se clicchi fuori
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#nav-entry') && !e.target.closest('#quick-menu')) {
+        document.getElementById('quick-menu').classList.add('quick-menu-hidden');
+    }
+});
