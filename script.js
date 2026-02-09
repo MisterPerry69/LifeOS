@@ -1697,29 +1697,44 @@ function updateUI(data) {
     }
 }
 
-// Toggle del menu a comparsa del tasto +
 function toggleQuickMenu() {
-    const menu = document.getElementById('quick-menu');
-    menu.classList.toggle('quick-menu-hidden');
+    const qMenu = document.getElementById('quick-menu');
+    if (qMenu) {
+        qMenu.classList.toggle('quick-menu-hidden');
+    }
 }
 
-// Funzione per AI Smart Note
-function startAIExpansion() {
-    // Apriamo una nuova nota vuota
-    openNewNoteModal(); 
+// Funzione chiamata dalle opzioni del menu
+function createNew(kind) {
+    createNewNote(); // Apre il modal
+    if (kind === 'LINK') document.getElementById('detail-text').value = "http://";
+    if (kind === 'LIST') document.getElementById('detail-text').value = "- ";
+    toggleQuickMenu(); // Chiude il menu
+}
+
+function toggleGhostAI() {
+    // 1. Apri una nuova nota (se non ne hai già una aperta)
+    if (!document.getElementById('note-detail') || document.getElementById('note-detail').style.display === 'none') {
+        // Creiamo una nota fittizia o chiamiamo la tua funzione per nuova nota
+        // Se non hai una funzione 'newNote', la creiamo al volo
+        createNewNote(); 
+    }
+
+    const bubble = document.getElementById('analyst-bubble'); 
+    // Assicurati di avere un <div id="analyst-bubble"> nel modal della nota
     
-    // Mostriamo la bolla di dialogo (che dovresti già avere come stile)
-    // Qui sotto un esempio di logica "in attesa di input"
-    const aiBubble = document.getElementById('ai-dialog-bubble'); 
-    if(aiBubble) {
-        aiBubble.innerText = "SISTEMA_GHOST: In attesa di input da espandere...";
-        aiBubble.classList.add('active');
+    if (bubble) {
+        bubble.innerText = "GHOST_READY: In attesa di input da espandere...";
+        bubble.classList.toggle('active');
     }
 }
 
-// Chiudi menu se clicchi fuori
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('#nav-entry') && !e.target.closest('#quick-menu')) {
-        document.getElementById('quick-menu').classList.add('quick-menu-hidden');
-    }
-});
+// Funzione di supporto per aprire il modal vuoto
+function createNewNote() {
+    currentNoteData = { id: null, type: 'NOTE', color: 'default', index: undefined };
+    document.getElementById('detail-type').innerText = "NUOVA_NOTA";
+    document.getElementById('detail-text').value = "";
+    document.getElementById('note-detail').className = "note-overlay bg-default";
+    document.getElementById('note-detail').style.display = "flex";
+    document.getElementById('modal-backdrop').style.display = "block";
+}
