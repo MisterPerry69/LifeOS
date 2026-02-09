@@ -21,9 +21,6 @@ let searchQuery = "";
 let currentMonthOffset = 0;
 let detailMonthOffset = 0;
 let draggedItem = null;
-let charts = {};
-let deleteTarget = null;
-
 
 // ============================================
 // 2. CORE & NAVIGATION
@@ -198,9 +195,6 @@ async function loadStats() {
     }
 }
 
-// Aggiungi queste variabili globali in cima
-
-// Funzione Render (Aggiornata per oggetto)
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
     if (!grid) return;
@@ -331,63 +325,6 @@ function renderGrid(data) {
 
     grid.innerHTML = "";
     grid.appendChild(fragment);
-}
-
-// Funzione Toggle Pin (Nuova e Robusta)
-async function togglePin(id, newType, event) {
-    event.stopPropagation(); // Evita di aprire la nota se clicchi il bottone
-    
-    // Feedback immediato visivo (Optimistic UI)
-    const card = document.getElementById(`card-${id}`);
-    if(card) {
-        card.style.opacity = '0.5'; // "Sto lavorando..."
-    }
-
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                service: "update_note_type",
-                id: id,
-                type: newType
-            })
-        });
-        
-        // Ricarichiamo tutto per confermare
-        loadStats(); 
-    } catch (e) {
-        console.error("Errore Pinning:", e);
-        if(card) card.style.opacity = '1'; // Torna normale se fallisce
-    }
-}
-
-// Funzione Delete (Aggiornata per ID)
-function confirmDelete(id, type, event) {
-    if(event) event.stopPropagation();
-    
-    if(confirm("ELIMINARE DEFINITIVAMENTE QUESTA NOTA?")) {
-        executeDeleteSecure(id, type);
-    }
-}
-
-async function executeDeleteSecure(id, type) {
-    // Feedback visivo immediato: Nascondi la card
-    const card = document.getElementById(`card-${id}`);
-    if(card) card.style.display = 'none';
-
-    await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({
-            service: "delete_item",
-            id: id, 
-            type: type
-        })
-    });
-    
-    // Non serve ricaricare tutto se l'abbiamo nascosta, ma è meglio per sicurezza
-    setTimeout(() => loadStats(), 1000); 
 }
 
 async function saveNewOrder() {
@@ -687,6 +624,7 @@ async function togglePin() {
     loadStats();
 }
 
+let deleteTarget = null;
 
 function confirmDelete(id, type) {
     deleteTarget = { id, type };
@@ -982,93 +920,70 @@ function toggleTaskVisual(index) {
 
 async function handleFinanceSubmit(event) {
     if (event.key !== 'Enter') return;
+    
     const input = document.getElementById('finance-input');
+    if (!input) return;
+    
     const rawText = input.value.trim();
     if (!rawText) return;
 
-    // 1. UI: Chiudi input e mostra l'analista che "lavora"
-    input.blur();
     toggleFinanceInput(false);
+    input.value = '';
+
+    const entries = rawText.split(',');
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
-    text.innerText = "NEURAL_PROCESSING_IN_PROGRESS...";
-    bubble.classList.add('active');
-    input.value = '';
+    if (text) text.innerText = "ANALISI_FLUSSI...";
+    if (bubble) bubble.classList.add('active');
 
-    try {
-        // Riconoscimento wallet semplice: se scrivi *c nel testo usa CASH, altrimenti BANK
-        const textLower = rawText.toLowerCase();
-        let targetWallet = "BANK"; // Default
+    for (let entry of entries) {
+        const isCash = entry.includes('*c');
+        const cleanText = entry.replace('*c', '').trim();
 
-        // Riconoscimento intelligente
-        if (textLower.includes('*c') || textLower.includes('cash') || textLower.includes('contanti')) {
-            targetWallet = "CASH";
-        } else if (textLower.includes('*b') || textLower.includes('bank') || textLower.includes('banca')) {
-            targetWallet = "BANK";
-        }
-        
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                service: "finance_smart_entry",
-                text: rawText,
-                wallet: targetWallet
-            })
-        });
-
-        // Leggiamo la risposta come testo prima per evitare il crash del "Unexpected Token E"
-        const responseData = await response.text();
-        
         try {
-            const result = JSON.parse(responseData);
-            if (result.status === "SUCCESS") {
-                text.innerText = result.advice.toUpperCase(); // Il commento cinico
-                // 2. Ricarica i dati per aggiornare saldo e HP bar
-                if (typeof loadStats === "function") await loadStats();
-            } else {
-                text.innerText = "DANGER: " + (result.message || "SYNC_ERROR");
-            }
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "finance_smart_entry",
+                    text: cleanText,
+                    wallet: isCash ? "CASH" : "BANK"
+                })
+            });
+            
+            const result = await response.json();
+            if (text && result.advice) text.innerText = result.advice;
+            
+            await loadStats();
         } catch (e) {
-            // Se arriviamo qui, il server ha mandato un errore testuale (quello che inizia con "E")
-            console.error("Server Error Raw:", responseData);
-            text.innerText = "CRITICAL_ERROR: APPS_SCRIPT_CRASHED";
+            if (text) text.innerText = "ERRORE_DI_SINCRO_NEURALE";
         }
-
-    } catch (err) {
-        text.innerText = "CONNECTION_LOST: SYNC_FAILED";
-        console.error(err);
     }
-    
-    // 3. Chiudi l'analista dopo 6 secondi
-    setTimeout(() => bubble.classList.remove('active'), 6000);
+
+    if (bubble) {
+        setTimeout(() => bubble.classList.remove('active'), 7000);
+    }
 }
 
 function toggleAnalyst() {
     const bubble = document.getElementById('analyst-bubble');
-    const inputZone = document.getElementById('finance-input-zone');
-    
-    // Chiudi l'input se è aperto
-    inputZone.classList.remove('active');
-    
-    // Toggle Analista
-    bubble.classList.toggle('active');
+    if (bubble) bubble.classList.toggle('active');
 }
 
 function toggleFinanceInput(show) {
-    const inputZone = document.getElementById('finance-input-zone');
-    const input = document.getElementById('finance-input');
+    const zone = document.getElementById('finance-input-zone');
+    const fab = document.getElementById('fab-finance');
+    
+    if (!zone || !fab) return;
     
     if (show) {
-        inputZone.style.display = 'block'; // Prima lo rendi disponibile
-        setTimeout(() => {
-            inputZone.classList.add('active');
-            input.focus();
-        }, 10);
+        zone.classList.add('active');
+        fab.style.opacity = "0";
+        const input = document.getElementById('finance-input');
+        if (input) input.focus();
     } else {
-        input.blur(); // CHIUDE LA TASTIERA
-        inputZone.classList.remove('active');
-        setTimeout(() => inputZone.style.display = 'none', 300);
+        zone.classList.remove('active');
+        fab.style.opacity = "1";
     }
 }
 
@@ -1084,255 +999,30 @@ const financeIcons = {
 
 function renderFinanceLog(transactions) {
     const log = document.getElementById('finance-log');
-    if (!log) return;
+    if (!log || !transactions) return;
     
-    const financeIcons = {
-        "CIBO": "utensils", "SPESA": "shopping-cart", "SVAGO": "gamepad-2",
-        "CASA": "home", "SALUTE": "heart", "TRASPORTI": "car", "LAVORO": "briefcase"
-    };
-
     log.innerHTML = transactions.map(t => {
         const iconName = financeIcons[t.cat] || "arrow-right-left";
         const hasNote = t.note && t.note !== "";
-        const color = t.amt < 0 ? "#ff0055" : "#00ff88"; // Testi rossi per uscite, verdi per entrate
-
         return `
-        <div class="trans-row" style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #525252;">
-            <span style="font-size: 10px; color: var(--dim); min-width: 35px;">${t.date}</span>
-            
-            <i data-lucide="${iconName}" style="width: 16px; color: #fff; opacity: 0.8;"></i>
-            
-            <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
-                ${hasNote ? `<i data-lucide="info" 
-       onclick="showTransactionNote('${t.note}', '${t.desc}', '${t.advice}')" 
-       style="width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; cursor: pointer; margin-left: 5px;">
-    </i>` : ''}
-            </div>
-            
-            <span style="color: ${color}; font-family: 'Rajdhani'; font-weight: 700; font-size: 13px;">
+        <div class="trans-row" style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #111; font-size: 11px;">
+            <i data-lucide="${iconName}" style="width: 14px; opacity: 0.7;"></i>
+            <span style="color: var(--dim);">${t.date}</span>
+            <span style="flex: 1; font-weight: bold;">
+                ${t.desc} ${hasNote ? `<i data-lucide="info" title="${t.note}" style="width: 10px; opacity: 0.4; cursor: help;"></i>` : ''}
+            </span>
+            <span style="color: ${t.amt < 0 ? '#ff4d4d' : '#00ff88'}; font-family: 'Rajdhani'; font-weight: 700;">
                 ${t.amt > 0 ? '+' : ''}${parseFloat(t.amt).toFixed(2)}€
             </span>
         </div>`;
     }).join('');
     
-    if (window.lucide) lucide.createIcons();
-}
-
-async function showTransactionNote(noteText, description, advice) { // <--- Aggiunto description qui
-    const bubble = document.getElementById('analyst-bubble');
-    const text = document.getElementById('analyst-text');
-    
-    if (!bubble || !text) return;
-
-    // Forza la riattivazione se era già aperto
-    bubble.classList.remove('active');
-    void bubble.offsetWidth; 
-    bubble.classList.add('active');
-
-    // 1. Mostra subito i dati locali
-    text.innerHTML = `
-        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT_about </div>
-        <div style="color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 4px;">
-            ${(description || 'TRANSACTION').toUpperCase()}
-        </div>
-        <div style="color: #fff; font-style: italic; margin-bottom: 12px; border-left: 2px solid #444; padding-left: 8px; font-size: 0.85rem;">
-            "${(noteText || 'NESSUNA NOTA').toUpperCase()}"
-        </div>
-        <div style="margin-top: 10px; border-top: 1px dashed #333; padding-top: 10px;">
-            <span style="font-size: 0.7rem; color: var(--dim);">PREVIOUS_ANALYSIS:</span><br>
-            <span style="color: var(--accent); font-weight: bold;">"${(advice || 'NESSUN COMMENTO ARCHIVIATO').toUpperCase()}"</span>
-        </div>
-    `;
-/* 
-    // 2. Chiamata all'AI
-    const prompt = `Fai un breve, cinico (ma non troppo) e divertente commento sulla descrizione di questa transazione: "${description, noteText}"`;
-    
-    try {
-        const response = await fetch(`${SCRIPT_URL}?action=ai_interpret&text=${encodeURIComponent(prompt)}`);
-        const aiResponse = await response.text();
-        
-        const typingElem = document.getElementById('ai-typing');
-        if(typingElem) {
-            typingElem.innerHTML = `
-                <span style="font-size: 0.7rem; color: var(--dim);">ANALYSIS:</span><br>
-                <span style="color: var(--accent); font-weight: bold;">"${aiResponse.toUpperCase()}"</span>
-            `;
-        }
-    } catch (e) {
-        const typingElem = document.getElementById('ai-typing');
-        if(typingElem) typingElem.innerText = "ERROR: NEURAL_LINK_DOWN";
-    } */
-    
-    // Chiudi dopo un po'
-    setTimeout(() => bubble.classList.remove('active'), 8000);
-}
-
-let allTransactions = []; // Da riempire durante il loadStats
-
-// Apre l'overlay e resetta
-function toggleFilters(show) {
-    const overlay = document.getElementById('filter-overlay');
-    const input = document.getElementById('log-search');
-    const container = document.getElementById('filtered-results');
-    
-    if(show) {
-        overlay.style.display = 'block';
-        input.value = ''; // Pulisci input
-        input.focus();
-        // Messaggio di benvenuto o lista vuota
-        container.innerHTML = `<div style="text-align:center; color:#444; margin-top:30px; font-size:12px;">DIGITA E PREMI INVIO PER CERCARE NEL DATABASE COMPLETO</div>`;
-    } else {
-        overlay.style.display = 'none';
-        // Togli focus per chiudere tastiera
-        input.blur();
+    // Reinit Lucide icons
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
     }
 }
 
-// Filtra in tempo reale
-function applyFilters() {
-    const query = document.getElementById('log-search').value.toLowerCase();
-    const allData = lastStatsData.finance.full_history || []; // Usa la lista LUNGA
-    
-    const filtered = allData.filter(t => 
-        t.desc.toLowerCase().includes(query) || 
-        t.cat.toLowerCase().includes(query) ||
-        (t.note && t.note.toLowerCase().includes(query))
-    );
-
-    renderFilteredItems(filtered);
-}
-
-function renderFilteredItems(items) {
-    const container = document.getElementById('filtered-results');
-    const financeIcons = {
-        "CIBO": "utensils", "SPESA": "shopping-cart", "SVAGO": "gamepad-2",
-        "CASA": "home", "SALUTE": "heart", "TRASPORTI": "car", "LAVORO": "briefcase"
-    };
-
-    if (items.length === 0) {
-        container.innerHTML = "<div style='color:#555; text-align:center; margin-top:20px;'>NO_DATA_FOUND</div>";
-        return;
-    }
-
-    container.innerHTML = items.map(t => {
-        const iconName = financeIcons[t.cat] || "arrow-right-left";
-        const hasNote = t.note && t.note !== "";
-        const color = t.amt < 0 ? "#fff" : "#00ff88";
-
-        return `
-        <div style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #1a1a1a;">
-            <span style="font-size: 10px; color: var(--dim); min-width: 35px;">${t.date}</span>
-            <i data-lucide="${iconName}" style="width: 16px; color: #fff; opacity: 0.8;"></i>
-            <div style="flex: 1; display: flex; flex-direction: column;">
-                <span style="font-size: 11px; font-weight: 500; color: #fff; text-transform: uppercase;">${t.desc}</span>
-                ${hasNote ? `<span style="font-size:9px; color:var(--accent);">${t.note}</span>` : ''}
-            </div>
-            <span style="color: ${color}; font-family: 'Rajdhani'; font-weight: 700; font-size: 13px;">
-                ${t.amt > 0 ? '+' : ''}${parseFloat(t.amt).toFixed(2)}€
-            </span>
-        </div>`;
-    }).join('');
-
-    if (window.lucide) lucide.createIcons();
-}
-
-let aiSearchActive = false;
-
-async function handleLogSearch(event) {
-    if (event.key !== 'Enter') {
-        document.getElementById('search-clear').style.display = event.target.value ? 'block' : 'none';
-        return;
-    }
-    
-    const query = event.target.value.trim();
-    if (!query) return;
-
-    const container = document.getElementById('filtered-results');
-    event.target.blur();
-    container.innerHTML = `<div class="loading-ani">QUERYING_${aiSearchActive ? 'NEURAL_' : ''}DATABASE...</div>`;
-
-    try {
-        // Se l'AI è attiva, usiamo una action diversa, altrimenti quella normale
-        const action = aiSearchActive ? "search_finance_ai" : "search_finance";
-        const res = await fetch(`${SCRIPT_URL}?action=${action}&q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        
-        if (data.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--dim);">NESSUN_RISULTATO_TROVATO</div>`;
-        } else {
-            renderFilteredItems(data); 
-        }
-    } catch (e) {
-        container.innerHTML = "ERRORE_CONNESSIONE_DATABASE";
-    }
-}
-
-// Funzione per i tasti rapidi
-function quickFilter(tag) {
-    const input = document.getElementById('finance-search');
-    const currentVal = input.value.trim();
-
-    // Se il tag è già presente, non aggiungerlo di nuovo
-    if (!currentVal.includes(tag)) {
-        // Aggiunge il nuovo tag con uno spazio se c'è già qualcosa
-        input.value = currentVal ? `${currentVal} ${tag}` : tag;
-    }
-
-    aiSearchActive = false; 
-    const aiStatus = document.getElementById('fin-ai-status');
-    if(aiStatus) aiStatus.innerText = 'OFF';
-    
-    document.getElementById('search-clear').style.display = 'block';
-
-    // Lanciamo la ricerca con la stringa combinata (es: "/02/2026 CIBO")
-    handleLogSearch({ key: 'Enter', target: input });
-}
-
-function toggleAISearch() {
-    aiSearchActive = !aiSearchActive;
-    const status = document.getElementById('ai-status');
-    const box = document.getElementById('ai-search-toggle');
-    status.innerText = aiSearchActive ? 'ON' : 'OFF';
-    status.style.color = aiSearchActive ? 'var(--accent)' : '#666';
-    box.style.borderColor = aiSearchActive ? 'var(--accent)' : '#444';
-}
-
-function clearLogSearch() {
-    const input = document.getElementById('finance-search');
-    const container = document.getElementById('filtered-results');
-    const clearBtn = document.getElementById('search-clear');
-
-    input.value = '';
-    clearBtn.style.display = 'none';
-    
-    // Svuota i risultati filtrati
-    container.innerHTML = ''; 
-    
-    // Opzionale: se vuoi che torni la lista iniziale delle ultime 10:
-    // refreshFinanceLog(); 
-}
-
-
-function switchPage(pageId) {
-    // 1. Nascondi tutte le pagine
-    document.querySelectorAll('.app-page').forEach(p => p.style.display = 'none');
-    
-    // 2. Mostra quella selezionata
-    const target = document.getElementById(pageId + '-page');
-    if (target) {
-        target.style.display = 'block';
-    }
-
-    // 3. Logica specifica
-    if (pageId === 'log') {
-        // Se entriamo nel log e non c'è ricerca, possiamo mostrare gli ultimi 20 di default
-        if (lastStatsData) renderFilteredItems(lastStatsData.finance.transactions);
-    }
-    
-    // 4. Aggiorna icone (se necessario)
-    if (window.lucide) lucide.createIcons();
-}
 // ============================================
 // 10. EVENT LISTENERS (DOM READY)
 // ============================================
@@ -1365,254 +1055,3 @@ document.addEventListener('click', (e) => {
         toggleFinanceInput(false);
     }
 });
-
-function switchFinanceTab(target) {
-    const dashboard = document.getElementById('finance-home-view');
-    const searchView = document.getElementById('finance-search-view');
-    const statsView = document.getElementById('finance-stats-view');
-
-    // Nascondi tutto
-    [dashboard, searchView, statsView].forEach(v => { if(v) v.style.display = 'none' });
-
-    if (target === 'log') {
-        searchView.style.display = 'block';
-    } else if (target === 'stats') {
-        statsView.style.display = 'block';
-        initStats(); // <--- GENERA I GRAFICI
-    } else {
-        dashboard.style.display = 'block';
-    }
-    
-    if (window.lucide) lucide.createIcons();
-}
-
-function nav(page) {
-    // Nascondi tutte le pagine principali (.page)
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    
-    // Mostra la pagina target (es. 'home' per le note o 'finance' per i soldi)
-    const targetPage = document.getElementById(page);
-    if (targetPage) targetPage.classList.add('active');
-
-    // Se stiamo andando alla HOME principale, resettiamo le tab di finance per la prossima volta
-    if (page === 'home') {
-        switchFinanceTab('dashboard');
-    }
-}
-
-async function initStats() {
-    try {
-        const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
-        const data = await res.json();
-        
-        // Aggiorna i testi
-        document.getElementById('stat-total-spent').innerText = `${data.spent.toFixed(2)}€`;
-        document.getElementById('stat-total-income').innerText = `${data.income.toFixed(2)}€`;
-        
-        // Survival Bar
-        const survivalPercent = data.income > 0 ? (data.spent / data.income) * 100 : 0;
-        document.getElementById('survival-bar-fill').style.width = Math.min(survivalPercent, 100) + "%";
-        document.getElementById('survival-percentage').innerText = Math.round(survivalPercent) + "%";
-
-        // Top Expenses
-        const topList = document.getElementById('top-expenses-list');
-        const sortedCats = Object.entries(data.categories).sort((a,b) => b[1] - a[1]).slice(0,3);
-        topList.innerHTML = sortedCats.map(([cat, val]) => `
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; border-bottom:1px solid #222; padding:5px 0;">
-                <span>${cat}</span><span style="color:#ff4d4d;">-${val.toFixed(2)}€</span>
-            </div>
-        `).join('');
-
-        // ORA chiamiamo il grafico
-        renderCategoryChart(data.categories);
-
-    } catch (e) {
-        console.error("Errore nel caricamento stats:", e);
-    }
-}
-
-    // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
-function renderCategoryChart(categories) {
-    const canvas = document.getElementById('categoryChart');
-    if (!canvas) {
-        console.error("ERRORE: Canvas 'categoryChart' non trovato nel DOM!");
-        return;
-    }
-    const ctx = canvas.getContext('2d');
-    
-    if (myChart) myChart.destroy();
-
-    const labels = Object.keys(categories);
-    const values = Object.values(categories);
-
-    myChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                backgroundColor: ['#00f3ff', '#ff4d4d', '#7000ff', '#ff00c1', '#00ff41', '#ff9a00'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '75%', // Lo rende un anello elegante
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#666', font: { family: 'Rajdhani', size: 10 } } }
-            }
-        }
-    });
-}
-
-function renderCategoryChart(data) {
-    const ctx = document.getElementById('categoryChart').getContext('2d');
-    if (charts.cat) charts.cat.destroy();
-
-    charts.cat = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(data),
-            datasets: [{
-                data: Object.values(data),
-                backgroundColor: [
-                    '#00f3ff', // Cyan
-                    '#ff0055', // Magenta
-                    '#9d00ff', // Purple
-                    '#00ff88', // Green
-                    '#ffb300'  // Amber
-                ],
-                hoverBackgroundColor: '#fff',
-                borderColor: '#080808', // Sfondo scuro tra le fette
-                borderWidth: 3,
-                hoverOffset: 15
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#aaa',
-                        font: { family: 'Rajdhani', size: 11, weight: 'bold' },
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'rectRot' // Icone a diamante
-                    }
-                },
-                tooltip: {
-                    backgroundColor: '#000',
-                    titleFont: { family: 'Rajdhani' },
-                    bodyFont: { family: 'Rajdhani' },
-                    borderColor: 'var(--accent)',
-                    borderWidth: 1,
-                    displayColors: false
-                }
-            },
-            cutout: '75%' // Cerchio molto sottile, stile interfaccia futuristica
-        }
-    });
-}
-
-async function openTimeFilter() {
-    const period = prompt("Inserisci Mese e Anno (es: Gennaio 2026):");
-    if (!period) return;
-    
-    // Attiviamo l'AI per questa ricerca perché deve capire il periodo
-    aiSearchActive = true; 
-    document.getElementById('fin-ai-status').innerText = 'ON';
-    
-    quickFilter(period);
-}
-
-async function filterByMonth(val) {
-    if (!val) return;
-    
-    // val arriva dal calendario come "2026-02"
-    const parts = val.split('-');
-    const year = parts[0];
-    const month = parts[1]; // "02"
-
-    // Stringa per il tuo database numerico (07/02/2026)
-    const formattedQuery = `/${month}/${year}`;
-    
-    console.log("Trigger ricerca numerica:", formattedQuery);
-
-    // Passiamo la palla a quickFilter che già funziona per i bottoni!
-    quickFilter(formattedQuery);
-}
-
-let myChart = null;
-
-async function loadFinanceStats() {
-    // 1. Fetch dei dati (Assicurati che l'action get_finance_stats sia attiva in Apps Script)
-    const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
-    const data = await res.json();
-
-    // 2. Aggiorna Contatori Numerici
-    document.getElementById('stat-total-spent').innerText = `${data.spent.toFixed(2)}€`;
-    document.getElementById('stat-total-income').innerText = `${data.income.toFixed(2)}€`;
-
-    // 3. Survival Bar Logic
-    // Calcoliamo quanto abbiamo speso rispetto a quanto abbiamo incassato
-    let survivalPercent = 0;
-    if (data.income > 0) {
-        survivalPercent = (data.spent / data.income) * 100;
-    } else {
-        survivalPercent = data.spent > 0 ? 100 : 0; // Se non hai entrate ma spendi, sei al 100% di rischio
-    }
-    
-    const bar = document.getElementById('survival-bar-fill');
-    const percentText = document.getElementById('survival-percentage');
-    
-    bar.style.width = Math.min(survivalPercent, 100) + "%";
-    percentText.innerText = Math.round(survivalPercent) + "%";
-    
-    // Cambio colore barra in base al pericolo
-    if (survivalPercent > 85) bar.style.background = "#ff4d4d"; // Rosso alert
-    else if (survivalPercent > 60) bar.style.background = "#ff9a00"; // Arancio warning
-    else bar.style.background = "var(--accent)"; // Tutto ok
-
-    // 4. Top Expenses List (Mobile Friendly)
-    const topList = document.getElementById('top-expenses-list');
-    const sortedCats = Object.entries(data.categories)
-        .sort((a, b) => b[1] - a[1]) // Ordina dalla spesa più alta
-        .slice(0, 3); // Prendi le prime 3
-
-    topList.innerHTML = sortedCats.map(([cat, val]) => `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #222; padding-bottom: 5px;">
-            <span style="font-family: 'Rajdhani'; font-size: 0.8rem; color: #fff;">${cat}</span>
-            <span style="font-family: 'Rajdhani'; font-size: 0.9rem; color: #ff4d4d;">-${val.toFixed(2)}€</span>
-        </div>
-    `).join('');
-
-    // 5. Render del Grafico (come abbiamo visto prima)
-    renderDoughnutChart(data.categories);
-}
-
-async function requestAnalystUpdate() {
-    const evalBox = document.getElementById('stats-eval');
-    const spent = document.getElementById('stat-total-spent').innerText;
-    const income = document.getElementById('stat-total-income').innerText;
-    
-    evalBox.innerText = "ANALISI_IN_CORSO... ATTENDERE...";
-    evalBox.style.color = "var(--accent)";
-
-    try {
-        // Chiamata all'AI passando i dati attuali
-        const response = await fetch(`${SCRIPT_URL}?action=search_finance_ai&q=Analizza brevemente queste spese mensili: Entrate ${income}, Uscite ${spent}. Sii sintetico, tecnico e un po' cinico nello stile LifeOS.`);
-        const report = await response.json();
-        
-        // Se il tuo backend search_finance_ai restituisce un testo o un array
-        // Adatta questa riga in base a come risponde il tuo Apps Script
-        evalBox.innerText = report.aiAnalysis || report; 
-        evalBox.style.color = "#fff";
-        
-    } catch (e) {
-        evalBox.innerText = "ERRORE_DI_COLLEGAMENTO_CORE. RIPROVA.";
-        console.error(e);
-    }
-}
