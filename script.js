@@ -256,28 +256,47 @@ function renderGrid(data) {
             return 0;
         });
 
-    // Generazione card
-    filteredNotes.forEach((item) => {
-        const note = item.note;
-        const index = item.originalIndex;
-        const isPinned = note[2] === "PINNED";
-        
-        const card = document.createElement('div');
-        card.className = `keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}`;
-        card.id = `card-${note[4]}`;
-        card.dataset.type = note[2];
-        
-        const isDraggable = (currentFilter === 'ALL' && !isSearching);
-        card.draggable = isDraggable;
+   // Generazione card - VERSIONE CORRETTA CON OGGETTI
+filteredNotes.forEach((item) => {
+    const note = item.note;  // Ora note è un OGGETTO
+    const index = item.originalIndex;
+    const isPinned = note.type === "PINNED";  // Usa .type invece di note[2]
+    
+    const card = document.createElement('div');
+    card.className = `keep-card bg-${note.color} ${isPinned ? 'pinnato' : ''}`;  // .color invece di note[3]
+    card.id = `card-${note.id}`;  // .id invece di note[4]
+    card.dataset.type = note.type;  // .type invece di note[2]
+    
+    const isDraggable = (currentFilter === 'ALL' && !isSearching);
+    card.draggable = isDraggable;
 
-        card.innerHTML = `
-            ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
-            <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
-            <div class="content-preview">${note[1]}</div>
-            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
-                ${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
-            </div>
-        `;
+    card.innerHTML = `
+        ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
+        <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
+        <div class="content-preview">${note.content}</div>
+        <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
+            ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+        </div>
+    `;
+
+    // Eventi Drag & Drop (resto del codice rimane uguale)
+    card.ondragstart = (e) => {
+        if (!isDraggable) {
+            e.preventDefault();
+            return;
+        }
+        draggedItem = card;
+        card.classList.add('dragging');
+    };
+
+    // ... (resto eventi drag&drop)
+
+    card.onclick = () => {
+        if (!card.classList.contains('dragging')) openNoteByIndex(index);
+    };
+
+    fragment.appendChild(card);
+});
 
         // Eventi Drag & Drop
         card.ondragstart = (e) => {
