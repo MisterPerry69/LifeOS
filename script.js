@@ -233,9 +233,9 @@ function renderGrid(data) {
     const filteredNotes = loadedNotesData
         .map((note, originalIndex) => ({ note, originalIndex }))
         .filter(item => {
-            const title = String(item.note[5] || "").toLowerCase();
-            const content = String(item.note[1] || "").toLowerCase();
-            const type = item.note[2];
+            const title = String(item.note.title || "").toLowerCase();
+            const content = String(item.note.date || "").toLowerCase();
+            const type = item.note.type;
             const searchLower = searchQuery.toLowerCase();
             
             const matchesSearch = !isSearching || title.includes(searchLower) || content.includes(searchLower);
@@ -250,8 +250,8 @@ function renderGrid(data) {
         })
         .sort((a, b) => {
             if (currentFilter === 'ALL' && !isSearching) {
-                if (a.note[2] === "PINNED" && b.note[2] !== "PINNED") return -1;
-                if (a.note[2] !== "PINNED" && b.note[2] === "PINNED") return 1;
+                if (a.note.type === "PINNED" && b.note.type !== "PINNED") return -1;
+                if (a.note.type !== "PINNED" && b.note.type === "PINNED") return 1;
             }
             return 0;
         });
