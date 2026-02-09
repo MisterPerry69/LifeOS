@@ -474,14 +474,31 @@ function openNoteById(id) {
 
     currentNoteData = { ...note }; // Copia della nota corrente
     
-    document.getElementById('detailType').innerText = note.title || "NOTA";
-    document.getElementById('detailText').value = note.content;
-    document.getElementById('noteDetailModal').style.display = 'flex';
-    
-    // Imposta colore attivo nel modal
-    setupColorPicker(note.color);
-}
+    const modal = document.getElementById('note-detail');
+    const colorBtn = document.querySelector('.color-selector-container');
+    const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
+    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+    const detailType = document.getElementById('detail-type');
+    const detailText = document.getElementById('detail-text');
+    const detailExtraList = document.getElementById('detail-extra-list');
+    const backdrop = document.getElementById('modal-backdrop');
 
+    if (!modal || !detailType || !detailText || !detailExtraList) return;
+
+    if(colorBtn) colorBtn.style.display = "block";
+    if(pinTool) pinTool.style.display = "flex";
+    
+    detailType.innerText = note[5] || "NOTA";
+    detailText.value = note[1];
+    detailText.style.display = "block";
+    detailExtraList.style.display = "none";
+    
+    if(pinIcon) pinIcon.style.color = (note[2] === "PINNED") ? "var(--accent)" : "var(--dim)";
+
+    modal.className = `note-overlay bg-${note[3]}`;
+    modal.style.display = 'flex';
+    if (backdrop) backdrop.style.display = 'block';
+}
 function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
