@@ -256,8 +256,8 @@ function renderGrid(data) {
             return 0;
         });
 
-   // Generazione card - VERSIONE CORRETTA CON OGGETTI
-filteredNotes.forEach((item) => {
+    // Generazione card
+    filteredNotes.forEach((item) => {
     const note = item.note;  // Ora note è un OGGETTO
     const index = item.originalIndex;
     const isPinned = note.type === "PINNED";  // Usa .type invece di note[2]
@@ -288,25 +288,6 @@ filteredNotes.forEach((item) => {
         draggedItem = card;
         card.classList.add('dragging');
     };
-
-    // ... (resto eventi drag&drop)
-
-    card.onclick = () => {
-        if (!card.classList.contains('dragging')) openNoteByIndex(index);
-    };
-
-    fragment.appendChild(card);
-});
-
-        // Eventi Drag & Drop
-        card.ondragstart = (e) => {
-            if (!isDraggable) {
-                e.preventDefault();
-                return;
-            }
-            draggedItem = card;
-            card.classList.add('dragging');
-        };
 
         card.ondragend = () => {
             card.classList.remove('dragging');
