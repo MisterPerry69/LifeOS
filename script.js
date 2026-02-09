@@ -320,8 +320,8 @@ function renderGrid(data) {
         };
 
         card.onclick = () => {
-            if (!card.classList.contains('dragging')) openNoteById(index);
-        };
+    if (!card.classList.contains('dragging')) openNoteByIndex(index); // Torna ad usare index
+};
 
         fragment.appendChild(card);
     });
@@ -468,11 +468,17 @@ function handleFinanceCommand(rawText) {
 // 5. UI MODALS & ACTIONS
 // ============================================
 
-function openNoteById(id) {
-    const note = loadedNotesData.find(n => String(n.id) === String(id));
+function openNoteByIndex(index) {
+    const note = loadedNotesData[index];
     if (!note) return;
 
-    currentNoteData = { ...note }; // Copia della nota corrente
+    // FIX: Usa proprietà oggetto invece di array
+    currentNoteData = { 
+        id: note.id, 
+        type: note.type, 
+        color: note.color, 
+        index: index 
+    };
     
     const modal = document.getElementById('note-detail');
     const colorBtn = document.querySelector('.color-selector-container');
@@ -488,17 +494,18 @@ function openNoteById(id) {
     if(colorBtn) colorBtn.style.display = "block";
     if(pinTool) pinTool.style.display = "flex";
     
-    detailType.innerText = note[5] || "NOTA";
-    detailText.value = note[1];
+    detailType.innerText = note.title || "NOTA";
+    detailText.value = note.content;
     detailText.style.display = "block";
     detailExtraList.style.display = "none";
     
-    if(pinIcon) pinIcon.style.color = (note[2] === "PINNED") ? "var(--accent)" : "var(--dim)";
+    if(pinIcon) pinIcon.style.color = (note.type === "PINNED") ? "var(--accent)" : "var(--dim)";
 
-    modal.className = `note-overlay bg-${note[3]}`;
+    modal.className = `note-overlay bg-${note.color}`;
     modal.style.display = 'flex';
     if (backdrop) backdrop.style.display = 'block';
 }
+
 function openExtraDetail() {
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
