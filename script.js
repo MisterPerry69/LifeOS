@@ -604,7 +604,6 @@ async function togglePin() {
     loadStats();
 }
 
-let deleteTarget = null;
 
 function confirmDelete(id, type) {
     deleteTarget = { id, type };
