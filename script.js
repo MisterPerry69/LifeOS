@@ -271,7 +271,7 @@ function renderGrid(data) {
     card.draggable = isDraggable;
 
     card.innerHTML = `
-        ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
+        ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
         <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
         <div class="content-preview">${note.content}</div>
         <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
@@ -592,16 +592,20 @@ function closeNoteDetail(forceSave = true) {
     if (forceSave && currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
         const newText = textArea.value.trim();
         const oldNote = loadedNotesData[currentNoteData.index];
-        const oldText = oldNote ? oldNote[1] : "";
-        const oldColor = oldNote ? oldNote[3] : "default";
+        
+        // FIX: Usa proprietà oggetto
+        const oldText = oldNote ? oldNote.content : "";
+        const oldColor = oldNote ? oldNote.color : "default";
 
         if (newText !== oldText || currentNoteData.color !== oldColor) {
-            if (currentNoteData.index !== undefined) {
-                loadedNotesData[currentNoteData.index][1] = newText;
-                loadedNotesData[currentNoteData.index][3] = currentNoteData.color;
-                if (lastStatsData) renderGrid(lastStatsData);
+            // FIX: Aggiorna OGGETTO locale (UI ottimistica)
+            if (currentNoteData.index !== undefined && oldNote) {
+                oldNote.content = newText;
+                oldNote.color = currentNoteData.color;
+                renderGrid(lastStatsData); // Aggiorna griglia subito
             }
 
+            // Salva su server in background
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -643,11 +647,20 @@ function toggleColorPicker() {
 function changeNoteColor(color) {
     if (!currentNoteData) return;
     
+    // Aggiorna currentNoteData
     currentNoteData.color = color;
     
+    // Aggiorna modal
     const modal = document.getElementById('note-detail');
     if (modal) modal.className = `note-overlay bg-${color}`;
     
+    // FIX: Aggiorna anche l'oggetto in loadedNotesData
+    const note = loadedNotesData[currentNoteData.index];
+    if (note) {
+        note.color = color; // Salva locale
+    }
+    
+    // FIX: Aggiorna card immediatamente
     const card = document.getElementById(`card-${currentNoteData.id}`);
     if (card) {
         card.className = `keep-card bg-${color}${currentNoteData.type === 'PINNED' ? ' pinnato' : ''}`;
@@ -655,27 +668,55 @@ function changeNoteColor(color) {
 }
 
 // IL PIN CHE FUNZIONA
-async function togglePin(id, event) {
-    if (event) event.stopPropagation();
+async function togglePin() {
+    if (!currentNoteData || currentNoteData.type === "EXTRA") return;
+
+    const nuovoStato = (currentNoteData.type === "PINNED") ? "NOTE" : "PINNED";
+    currentNoteData.type = nuovoStato;
     
-    const note = loadedNotesData.find(n => String(n.id) === String(id));
-    if (!note) return;
+    // FIX: Aggiorna anche loadedNotesData
+    const note = loadedNotesData[currentNoteData.index];
+    if (note) {
+        note.type = nuovoStato;
+    }
     
+    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
+    if (pinIcon) pinIcon.style.color = (nuovoStato === "PINNED") ? "var(--accent)" : "var(--dim)";
+
+    await fetch(SCRIPT_URL, {
+        method: 'POST', 
+        mode: 'no-cors',
+        body: JSON.stringify({ 
+            service: "update_note_type", 
+            id: currentNoteData.id, 
+            type: nuovoStato 
+        })
+    });
+    
+    renderGrid(lastStatsData); // Aggiorna griglia
+}
+
+async function togglePinFromCard(id) {
+    const noteIndex = loadedNotesData.findIndex(n => String(n.id) === String(id));
+    if (noteIndex === -1) return;
+    
+    const note = loadedNotesData[noteIndex];
     const newType = note.type === "PINNED" ? "NOTE" : "PINNED";
 
-    // Ottimista: lo cambiamo subito in locale
+    // Ottimistica: cambia subito
     note.type = newType;
-    renderGrid();
+    renderGrid(lastStatsData);
 
-    google.script.run
-        .withSuccessHandler(() => {
-            console.log("Server sincronizzato");
+    // Salva su server
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({ 
+            service: "update_note_type", 
+            id: id, 
+            type: newType 
         })
-        .doPost({
-            action: "update_note_type",
-            id: id,
-            type: newType
-        });
+    });
 }
 
 function confirmDelete(id, type) {
