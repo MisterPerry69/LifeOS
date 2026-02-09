@@ -201,53 +201,51 @@ async function loadStats() {
 // Aggiungi queste variabili globali in cima
 
 // Funzione Render (Aggiornata per oggetto)
-function renderGrid(data) {
-    const grid = document.getElementById('keep-grid');
-    if (!grid) return;
+function renderGrid() {
+    const container = document.getElementById('notes-grid');
+    const searchQ = document.getElementById('searchNote')?.value.toLowerCase() || "";
+    container.innerHTML = '';
 
-    loadedNotesData = data.notes || []; // Assicuriamoci che notes esista
-    
-    // Puliamo la griglia
-    grid.innerHTML = "";
-    const fragment = document.createDocumentFragment();
-    
-    // ... (Logica ricerca e filtro esistente, se la usi) ...
-    // Se usi il filtro, usa filter() su loadedNotesData
+    // 1. Filtra e Ordina (Pinnate sempre su)
+    const filtered = loadedNotesData.filter(note => {
+        const matchesSearch = (note.title + note.content).toLowerCase().includes(searchQ);
+        const matchesFilter = (currentFilter === 'ALL') || 
+                              (currentFilter === 'PINNED' && note.type === 'PINNED') ||
+                              (currentFilter === note.type);
+        return matchesSearch && matchesFilter;
+    }).sort((a, b) => (b.type === 'PINNED') - (a.type === 'PINNED'));
 
-    // Generazione CARD
-    loadedNotesData.forEach((note) => {
-        // Ora note è un oggetto {id, type, content...}
-        const isPinned = note.type === "PINNED";
-
+    // 2. Genera Card
+    filtered.forEach((note) => {
         const card = document.createElement('div');
-        // Usa le proprietà dell'oggetto
-        card.className = `keep-card bg-${note.color} ${isPinned ? 'pinnato' : ''}`;
-        card.id = `card-${note.id}`; // ID univoco HTML
+        const isPinned = note.type === "PINNED";
         
-        // Costruiamo l'HTML della card
+        card.className = `keep-card bg-${note.color || 'default'} ${isPinned ? 'pinnato' : ''}`;
+        card.id = `card-${note.id}`;
+        card.draggable = true; // Per drag & drop
+
         card.innerHTML = `
-            ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
-            <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
-            <div class="content-preview">${note.content}</div>
-            
-            <div style="display: flex; justify-content: flex-end; margin-top: 10px; gap: 5px;">
-                <button onclick="togglePin('${note.id}', '${isPinned ? 'NOTE' : 'PINNED'}', event)" class="action-btn">
-                    <i class="fas ${isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack'}"></i>
-                </button>
-                <button onclick="confirmDelete('${note.id}', 'BRAIN', event)" class="action-btn delete-btn">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <div class="pin-icon" onclick="event.stopPropagation(); togglePin('${note.id}')">
+                ${isPinned ? '📌' : '📍'}
             </div>
-            
-            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
-                ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+            <div onclick="openNoteById('${note.id}')">
+                <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
+                <div class="content-preview">${note.content || ""}</div>
+            </div>
+            <div class="card-footer">
+                <small>${formattaData(note.date)}</small>
+                <span class="delete-btn" onclick="event.stopPropagation(); deleteNote('${note.id}')">🗑️</span>
             </div>
         `;
-        
-        fragment.appendChild(card);
+        container.appendChild(card);
     });
-    
-    grid.appendChild(fragment);
+}
+
+// Funzione di supporto per la data
+function formattaData(d) {
+    if (!d) return "";
+    const date = new Date(d);
+    return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
 }
 
 // Funzione Toggle Pin (Nuova e Robusta)
@@ -408,36 +406,18 @@ function handleFinanceCommand(rawText) {
 // 5. UI MODALS & ACTIONS
 // ============================================
 
-function openNoteByIndex(index) {
-    const note = loadedNotesData[index];
+function openNoteById(id) {
+    const note = loadedNotesData.find(n => String(n.id) === String(id));
     if (!note) return;
 
-    currentNoteData = { id: note[4], type: note[2], color: note[3], index: index };
+    currentNoteData = { ...note }; // Copia della nota corrente
     
-    const modal = document.getElementById('note-detail');
-    const colorBtn = document.querySelector('.color-selector-container');
-    const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
-    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
-    const detailType = document.getElementById('detail-type');
-    const detailText = document.getElementById('detail-text');
-    const detailExtraList = document.getElementById('detail-extra-list');
-    const backdrop = document.getElementById('modal-backdrop');
-
-    if (!modal || !detailType || !detailText || !detailExtraList) return;
-
-    if(colorBtn) colorBtn.style.display = "block";
-    if(pinTool) pinTool.style.display = "flex";
+    document.getElementById('detailType').innerText = note.title || "NOTA";
+    document.getElementById('detailText').value = note.content;
+    document.getElementById('noteDetailModal').style.display = 'flex';
     
-    detailType.innerText = note[5] || "NOTA";
-    detailText.value = note[1];
-    detailText.style.display = "block";
-    detailExtraList.style.display = "none";
-    
-    if(pinIcon) pinIcon.style.color = (note[2] === "PINNED") ? "var(--accent)" : "var(--dim)";
-
-    modal.className = `note-overlay bg-${note[3]}`;
-    modal.style.display = 'flex';
-    if (backdrop) backdrop.style.display = 'block';
+    // Imposta colore attivo nel modal
+    setupColorPicker(note.color);
 }
 
 function openExtraDetail() {
@@ -1531,5 +1511,22 @@ async function requestAnalystUpdate() {
     } catch (e) {
         evalBox.innerText = "ERRORE_DI_COLLEGAMENTO_CORE. RIPROVA.";
         console.error(e);
+    }
+}
+
+function updateUI(data) {
+    // Aggiorna le Note
+    loadedNotesData = data.notes; 
+    renderGrid();
+
+    // AGGIORNA LE ORE (Se questa riga manca, la sezione sparisce!)
+    if (data.extraTotal) {
+        document.getElementById('extra-hours-val').innerText = data.extraTotal + "h";
+    }
+    
+    // Aggiorna Finanze
+    if (data.finance) {
+        document.getElementById('bank-val').innerText = "€ " + data.finance.bank;
+        // ... ecc
     }
 }
