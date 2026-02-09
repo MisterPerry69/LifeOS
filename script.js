@@ -140,6 +140,25 @@ async function loadStats() {
         
         // Render griglia note
         renderGrid(data);
+
+        // --- FIX: AGGIORNA EXTRA HOURS E RECORDS ---
+        // 1. Widget Ore Extra (quello che vedi in Home)
+        const widgetExtra = document.getElementById('widget-extra'); 
+        if (widgetExtra) {
+            widgetExtra.innerText = (data.extraTotal || "0") + "h";
+        }
+
+        // 2. Contatore Records (quello che diceva 0)
+        const recordCount = document.getElementById('notes-count');
+        if (recordCount) {
+            recordCount.innerText = (loadedNotesData.length) + " records";
+        }
+
+        // 3. Titolo del Mese (se hai un elemento per il mese corrente)
+        const monthLabel = document.getElementById('current-month-display');
+        if (monthLabel) {
+            monthLabel.innerText = data.monthLabel || "FEBBRAIO 2026";
+        }
         
         // Render agenda se attiva
         if (document.getElementById('agenda')?.classList.contains('active')) {
@@ -201,40 +220,36 @@ async function loadStats() {
 // Aggiungi queste variabili globali in cima
 
 // Funzione Render (Aggiornata per oggetto)
+// IL RENDERING CHE NON DA ERRORI
 function renderGrid() {
     const container = document.getElementById('notes-grid');
+    if (!container) return;
+    
     const searchQ = document.getElementById('searchNote')?.value.toLowerCase() || "";
     container.innerHTML = '';
 
-    // 1. Filtra e Ordina (Pinnate sempre su)
+    // Filtriamo e ordiniamo per PINNED
     const filtered = loadedNotesData.filter(note => {
-        const matchesSearch = (note.title + note.content).toLowerCase().includes(searchQ);
-        const matchesFilter = (currentFilter === 'ALL') || 
-                              (currentFilter === 'PINNED' && note.type === 'PINNED') ||
-                              (currentFilter === note.type);
-        return matchesSearch && matchesFilter;
+        const title = String(note.title || "").toLowerCase();
+        const content = String(note.content || "").toLowerCase();
+        return title.includes(searchQ) || content.includes(searchQ);
     }).sort((a, b) => (b.type === 'PINNED') - (a.type === 'PINNED'));
 
-    // 2. Genera Card
-    filtered.forEach((note) => {
+    filtered.forEach(note => {
         const card = document.createElement('div');
         const isPinned = note.type === "PINNED";
         
         card.className = `keep-card bg-${note.color || 'default'} ${isPinned ? 'pinnato' : ''}`;
         card.id = `card-${note.id}`;
-        card.draggable = true; // Per drag & drop
-
+        
         card.innerHTML = `
-            <div class="pin-icon" onclick="event.stopPropagation(); togglePin('${note.id}')">
-                ${isPinned ? '📌' : '📍'}
-            </div>
+            <div class="pin-btn" onclick="togglePin('${note.id}', event)">${isPinned ? '📌' : '📍'}</div>
             <div onclick="openNoteById('${note.id}')">
                 <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
                 <div class="content-preview">${note.content || ""}</div>
             </div>
             <div class="card-footer">
-                <small>${formattaData(note.date)}</small>
-                <span class="delete-btn" onclick="event.stopPropagation(); deleteNote('${note.id}')">🗑️</span>
+                <span onclick="deleteNote('${note.id}', event)">🗑️</span>
             </div>
         `;
         container.appendChild(card);
@@ -248,34 +263,6 @@ function formattaData(d) {
     return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
 }
 
-// Funzione Toggle Pin (Nuova e Robusta)
-async function togglePin(id, newType, event) {
-    event.stopPropagation(); // Evita di aprire la nota se clicchi il bottone
-    
-    // Feedback immediato visivo (Optimistic UI)
-    const card = document.getElementById(`card-${id}`);
-    if(card) {
-        card.style.opacity = '0.5'; // "Sto lavorando..."
-    }
-
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                service: "update_note_type",
-                id: id,
-                type: newType
-            })
-        });
-        
-        // Ricarichiamo tutto per confermare
-        loadStats(); 
-    } catch (e) {
-        console.error("Errore Pinning:", e);
-        if(card) card.style.opacity = '1'; // Torna normale se fallisce
-    }
-}
 
 // Funzione Delete (Aggiornata per ID)
 function confirmDelete(id, type, event) {
@@ -568,22 +555,29 @@ function changeNoteColor(color) {
     }
 }
 
-async function togglePin() {
-    if (!currentNoteData || currentNoteData.type === "EXTRA") return;
-
-    const nuovoStato = (currentNoteData.type === "PINNED") ? "NOTE" : "PINNED";
-    currentNoteData.type = nuovoStato;
+// IL PIN CHE FUNZIONA
+async function togglePin(id, event) {
+    if (event) event.stopPropagation();
     
-    const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
-    if (pinIcon) pinIcon.style.color = (nuovoStato === "PINNED") ? "var(--accent)" : "var(--dim)";
+    const note = loadedNotesData.find(n => String(n.id) === String(id));
+    if (!note) return;
+    
+    const newType = note.type === "PINNED" ? "NOTE" : "PINNED";
 
-    await fetch(SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
-        body: JSON.stringify({ service: "update_note_type", id: currentNoteData.id, type: nuovoStato })
-    });
-    loadStats();
+    // Ottimista: lo cambiamo subito in locale
+    note.type = newType;
+    renderGrid();
+
+    google.script.run
+        .withSuccessHandler(() => {
+            console.log("Server sincronizzato");
+        })
+        .doPost({
+            action: "update_note_type",
+            id: id,
+            type: newType
+        });
 }
-
 
 function confirmDelete(id, type) {
     deleteTarget = { id, type };
