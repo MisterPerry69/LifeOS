@@ -140,25 +140,6 @@ async function loadStats() {
         
         // Render griglia note
         renderGrid(data);
-
-        // --- FIX: AGGIORNA EXTRA HOURS E RECORDS ---
-        // 1. Widget Ore Extra (quello che vedi in Home)
-        const widgetExtra = document.getElementById('widget-extra'); 
-        if (widgetExtra) {
-            widgetExtra.innerText = (data.extraTotal || "0") + "h";
-        }
-
-        // 2. Contatore Records (quello che diceva 0)
-        const recordCount = document.getElementById('notes-count');
-        if (recordCount) {
-            recordCount.innerText = (loadedNotesData.length) + " records";
-        }
-
-        // 3. Titolo del Mese (se hai un elemento per il mese corrente)
-        const monthLabel = document.getElementById('current-month-display');
-        if (monthLabel) {
-            monthLabel.innerText = data.monthLabel || "FEBBRAIO 2026";
-        }
         
         // Render agenda se attiva
         if (document.getElementById('agenda')?.classList.contains('active')) {
@@ -217,43 +198,136 @@ async function loadStats() {
     }
 }
 
-// Aggiungi queste variabili globali in cima
-
-// Funzione Render (Aggiornata per oggetto)
-// IL RENDERING CHE NON DA ERRORI
-function renderGrid() {
-    const container = document.getElementById('notes-grid');
-    if (!container) return;
+function renderGrid(data) {
+    const grid = document.getElementById('keep-grid');
+    if (!grid) return;
     
-    const searchQ = document.getElementById('searchNote')?.value.toLowerCase() || "";
-    container.innerHTML = '';
+    lastStatsData = data;
+    loadedNotesData = data.notes || [];
 
-    // Filtriamo e ordiniamo per PINNED
-    const filtered = loadedNotesData.filter(note => {
-        const title = String(note.title || "").toLowerCase();
-        const content = String(note.content || "").toLowerCase();
-        return title.includes(searchQ) || content.includes(searchQ);
-    }).sort((a, b) => (b.type === 'PINNED') - (a.type === 'PINNED'));
+    // FIX: Controlli null prima di aggiornare
+    const widgetNotes = document.getElementById('widget-notes');
+    const widgetWeight = document.getElementById('widget-weight');
+    
+    if (widgetNotes) widgetNotes.innerText = (loadedNotesData.length + 1);
+    if (widgetWeight) widgetWeight.innerText = data.weight || "94.5";
 
-    filtered.forEach(note => {
+    const fragment = document.createDocumentFragment();
+    const isSearching = searchQuery.length > 0;
+    
+    // Card EXTRA pinnata
+    if ((currentFilter === 'ALL' || currentFilter === 'EXTRA') && !isSearching) {
+        const extraCard = document.createElement('div');
+        extraCard.className = "keep-card bg-default extra-card pinnato";
+        extraCard.innerHTML = `
+            <div class="pin-indicator" style="color:var(--accent)"><i class="fas fa-thumbtack"></i></div>
+            <div class="title-row" style="color:var(--accent)">TOTAL_EXTRA</div>
+            <div style="font-size: 28px; color: var(--accent); margin: 5px 0;">${data.extraTotal || 0}h</div>
+            <div class="label" style="opacity:0.5">${data.monthLabel || ''}</div>
+        `;
+        extraCard.onclick = () => openExtraDetail();
+        fragment.appendChild(extraCard);
+    }
+
+    // Filtraggio e ordinamento note
+    const filteredNotes = loadedNotesData
+        .map((note, originalIndex) => ({ note, originalIndex }))
+        .filter(item => {
+            const title = String(item.note[5] || "").toLowerCase();
+            const content = String(item.note[1] || "").toLowerCase();
+            const type = item.note[2];
+            const searchLower = searchQuery.toLowerCase();
+            
+            const matchesSearch = !isSearching || title.includes(searchLower) || content.includes(searchLower);
+            if (!matchesSearch) return false;
+
+            if (currentFilter === 'ALL') return true;
+            if (currentFilter === 'PINNED') return type === 'PINNED';
+            if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
+            if (currentFilter === 'LINK') return content.includes('http');
+            if (currentFilter === 'EXTRA') return false;
+            return true;
+        })
+        .sort((a, b) => {
+            if (currentFilter === 'ALL' && !isSearching) {
+                if (a.note[2] === "PINNED" && b.note[2] !== "PINNED") return -1;
+                if (a.note[2] !== "PINNED" && b.note[2] === "PINNED") return 1;
+            }
+            return 0;
+        });
+
+    // Generazione card
+    filteredNotes.forEach((item) => {
+        const note = item.note;
+        const index = item.originalIndex;
+        const isPinned = note[2] === "PINNED";
+        
         const card = document.createElement('div');
-        const isPinned = note.type === "PINNED";
+        card.className = `keep-card bg-${note[3]} ${isPinned ? 'pinnato' : ''}`;
+        card.id = `card-${note[4]}`;
+        card.dataset.type = note[2];
         
-        card.className = `keep-card bg-${note.color || 'default'} ${isPinned ? 'pinnato' : ''}`;
-        card.id = `card-${note.id}`;
-        
+        const isDraggable = (currentFilter === 'ALL' && !isSearching);
+        card.draggable = isDraggable;
+
         card.innerHTML = `
-            <div class="pin-btn" onclick="togglePin('${note.id}', event)">${isPinned ? '📌' : '📍'}</div>
-            <div onclick="openNoteById('${note.id}')">
-                <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
-                <div class="content-preview">${note.content || ""}</div>
-            </div>
-            <div class="card-footer">
-                <span onclick="deleteNote('${note.id}', event)">🗑️</span>
+            ${isPinned ? '<div class="pin-indicator"><i class="fas fa-thumbtack"></i></div>' : ''}
+            <div class="title-row">${(note[5] || "NOTA").toUpperCase()}</div>
+            <div class="content-preview">${note[1]}</div>
+            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
+                ${new Date(note[0]).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
             </div>
         `;
-        container.appendChild(card);
+
+        // Eventi Drag & Drop
+        card.ondragstart = (e) => {
+            if (!isDraggable) {
+                e.preventDefault();
+                return;
+            }
+            draggedItem = card;
+            card.classList.add('dragging');
+        };
+
+        card.ondragend = () => {
+            card.classList.remove('dragging');
+            document.querySelectorAll('.keep-card').forEach(c => c.classList.remove('drag-over'));
+            if (isDraggable) saveNewOrder();
+        };
+
+        card.ondragover = (e) => e.preventDefault();
+
+        card.ondragenter = () => {
+            if (isDraggable && draggedItem && draggedItem.dataset.type === card.dataset.type && card !== draggedItem) {
+                card.classList.add('drag-over');
+            }
+        };
+
+        card.ondragleave = () => card.classList.remove('drag-over');
+
+        card.ondrop = (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            if (!isDraggable || !draggedItem || draggedItem === card) return;
+
+            if (!card.classList.contains('extra-card') && draggedItem.dataset.type === card.dataset.type) {
+                const allCards = [...grid.querySelectorAll('.keep-card')];
+                const draggedIdx = allCards.indexOf(draggedItem);
+                const targetIdx = allCards.indexOf(card);
+                if (draggedIdx < targetIdx) card.after(draggedItem);
+                else card.before(draggedItem);
+            }
+        };
+
+        card.onclick = () => {
+            if (!card.classList.contains('dragging')) openNoteByIndex(index);
+        };
+
+        fragment.appendChild(card);
     });
+
+    grid.innerHTML = "";
+    grid.appendChild(fragment);
 }
 
 // Funzione di supporto per la data
@@ -377,6 +451,7 @@ async function sendCmd(event) {
         input.focus();
     }, 1500);
 }
+
 
 // FIX: Rinominata per evitare conflitti
 function handleFinanceCommand(rawText) {
