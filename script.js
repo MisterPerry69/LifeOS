@@ -22,6 +22,8 @@ let currentMonthOffset = 0;
 let detailMonthOffset = 0;
 let draggedItem = null;
 let charts = {};
+let deleteTarget = null;
+
 
 // ============================================
 // 2. CORE & NAVIGATION
@@ -197,8 +199,6 @@ async function loadStats() {
 }
 
 // Aggiungi queste variabili globali in cima
-let loadedNotesData = [];
-let deleteTarget = null;
 
 // Funzione Render (Aggiornata per oggetto)
 function renderGrid(data) {
