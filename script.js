@@ -1889,7 +1889,7 @@ function renderReviews(data) {
                         <span class="rating-stars">${getStarRating(item.rating)}</span>
                     </div>
                     
-                    <div class="review-comment">${item.commento || ''}</div>
+                    <div class="review-comment">${item.riassunto_ai || ''}</div>
                     
                     <div class="review-meta">
                         <span style="opacity:0.7">${item.categoria}</span>
@@ -1914,27 +1914,27 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-    const review = mockReviews.find(r => String(r.id) === String(id)); 
-    if (!review) return;
+    // Cerchiamo nell'array globale che carichiamo con loadStats
+    const review = allReviews.find(r => String(r.id) === String(id)); 
+    if (!review) {
+        console.error("Review non trovata per ID:", id);
+        return;
+    }
 
-    // Colori categorie
     const colors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' };
     const activeColor = colors[review.categoria?.toUpperCase()] || 'var(--accent)';
 
-    // Popolamento Testi
     document.getElementById('detail-review-title').innerText = review.titolo.toUpperCase();
     document.getElementById('detail-review-stars').innerText = getStarRating(review.rating);
     document.getElementById('detail-review-meta').innerText = `${review.categoria} // ${review.data}`;
     document.getElementById('detail-review-comment').innerText = review.commento;
     
-    // Fix Bordo Colorato (Standard Brain-style)
     const modalContainer = document.querySelector('.review-modal-container');
     modalContainer.style.borderLeft = `4px solid ${activeColor}`;
     document.getElementById('detail-review-title').style.color = activeColor;
 
-    // Fix Poster
     const posterDiv = document.getElementById('detail-review-poster');
-    if (review.image_url) {
+    if (review.image_url && review.image_url.startsWith('http')) {
         posterDiv.style.backgroundImage = `url('${review.image_url}')`;
         posterDiv.style.display = 'block';
     } else {
