@@ -1829,17 +1829,14 @@ function renderStars(rating) {
 
 let allReviews = []; 
 
-async function loadReviews() { // <--- Ho aggiunto 'async' qui
-    try {
-        const response = await fetch(SCRIPT_URL + "?action=getStats"); 
-        const result = await response.json();
-        
-        if (result.reviews) {
-            allReviews = result.reviews;
-            renderReviews(allReviews);
-        }
-    } catch (e) {
-        console.error("Errore caricamento reviews:", e);
+function loadReviews() {
+    if (lastStatsData && lastStatsData.reviews) {
+        allReviews = lastStatsData.reviews;
+        renderReviews(allReviews);
+    } else {
+        // Dati non ancora caricati, aspetta loadStats
+        const list = document.getElementById('reviews-list');
+        if (list) list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ SYNCING... ]</div>`;
     }
 }
 
@@ -1970,43 +1967,49 @@ async function processReviewWithAI() {
     loadingCard.id = tempId;
     loadingCard.className = "review-card";
     loadingCard.innerHTML = `
-        <div class="review-poster" style="background: #111; display:flex; align-items:center; justify-content:center;"><div class="blink-dot"></div></div>
+        <div class="review-poster" style="background:#111; display:flex; align-items:center; justify-content:center;">
+            <div class="blink-dot"></div>
+        </div>
         <div class="review-info">
             <div class="review-top"><span class="review-title" style="color:var(--dim)">SINCRONIZZAZIONE...</span></div>
-            <div class="review-comment">L'intelligenza artificiale sta elaborando i dati...</div>
+            <div class="review-comment">Neural processing...</div>
         </div>
     `;
     list.prepend(loadingCard);
 
     try {
+        // FIX: rimuovi mode:'no-cors' per poter leggere la risposta
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'processReviewAI', text: input })
+            body: JSON.stringify({ service: 'processReviewAI', text: input }) // FIX: 'service' non 'action'
         });
-        const result = await response.json();
+        
+        const responseText = await response.text();
+        const result = JSON.parse(responseText);
         
         if (result.status === "SUCCESS") {
-            // Invece di rimuovere e ricaricare tutto, iniettiamo i dati AI direttamente nella card che sta già lì!
             const ai = result.data;
-            loadingCard.style.opacity = "1";
+            
+            // Aggiorna card visivamente
             loadingCard.innerHTML = `
-                <div class="review-poster" style="background-image: url('${ai.image_url || ''}'); background-size: cover;"></div>
+                <div class="poster-mini" style="background-image: url('${ai.image_url || ''}'); background-size:cover;"></div>
                 <div class="review-info">
                     <div class="review-top">
-                        <span class="review-title">${ai.titolo.toUpperCase()}</span>
-                        <span class="review-rating">${getStarRating(ai.rating)}</span>
+                        <span class="review-title">${(ai.titolo || "").toUpperCase()}</span>
+                        <span class="rating-stars">${getStarRating(ai.rating)}</span>
                     </div>
-                    <div class="review-comment">${ai.commento_breve || ai.titolo}</div>
+                    <div class="review-comment">${ai.commento_breve || ""}</div>
                 </div>
             `;
-            // Rendiamola cliccabile subito
-            loadingCard.onclick = () => openReviewDetail(ai.id);
-            
-            // Poi con calma aggiorniamo loadStats in background per allineare tutto il sistema
-            loadStats();
+
+            // Ricarica in background per aggiornare allReviews
+            setTimeout(() => loadStats(), 2000);
+        } else {
+            loadingCard.innerHTML = `<div style="padding:10px; color:#ff4d4d;">ERRORE: ${result.message || 'SYNC_FAILED'}</div>`;
         }
     } catch (error) {
-        loadingCard.innerHTML = `<div style="padding:10px; color:red;">ERRORE_SYNC</div>`;
+        console.error("Review error:", error);
+        loadingCard.innerHTML = `<div style="padding:10px; color:#ff4d4d;">ERRORE_CONNESSIONE</div>`;
     }
 }
 
