@@ -1831,9 +1831,9 @@ function renderStars(rating) {
 
 // Dati di esempio (simulano quello che arriverà dallo Sheets)
 const mockReviews = [
-    { id: 1, data: '2025-02-10', titolo: 'Marty Supreme', categoria: 'FILM', rating: 3.5, commento: 'Safdie non delude, regia frenetica e interpretazione solida.', image_url: 'https://via.placeholder.com/60x90/111/00d4ff?text=MARTY' },
-    { id: 2, data: '2025-02-08', titolo: 'The Last of Us Part II', categoria: 'GAME', rating: 5, commento: 'Un capolavoro tecnico ed emotivo. Impatto devastante.', image_url: '' },
-    { id: 3, data: '2025-02-05', titolo: 'Batman: Anno Uno', categoria: 'COMIC', rating: 4.5, commento: 'Le origini definitive. Disegni pazzeschi.', image_url: '' }
+    { id: 1, data: '2025-02-10', titolo: 'Marty Supreme', categoria: 'FILM', rating: 3.5, commento: 'Safdie non delude, regia frenetica e interpretazione solida.', image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAzr7UvAeE8s3xgs9UZOaZYdxvv3zq2cq_QA&s' },
+    { id: 2, data: '2025-02-08', titolo: 'The Last of Us Part II', categoria: 'GAME', rating: 5, commento: 'Un capolavoro tecnico ed emotivo. Impatto devastante.', image_url: 'https://cdn.shopify.com/s/files/1/0747/3829/products/mL4518_1024x1024.jpg' },
+    { id: 3, data: '2025-02-05', titolo: 'Batman: Anno Uno', categoria: 'COMIC', rating: 4.5, commento: 'Le origini definitive. Disegni pazzeschi.', image_url: 'https://www.lafeltrinelli.it/images/9788828731382_0_0_536_0_75.jpg' }
 ];
 
 function loadReviews() {
