@@ -1802,3 +1802,25 @@ async function handleGhostInput(event) {
         `;
     }, 1000);
 }
+
+//REVIEWS SECTION//
+
+
+function renderStars(rating) {
+    let stars = '';
+    const fullStars = Math.floor(rating);
+    const hasHalf = rating % 1 !== 0;
+
+    for (let i = 0; i < fullStars; i++) {
+        stars += '★'; // Stella piena
+    }
+    if (hasHalf) {
+        stars += '½'; // Mezza stella
+    }
+    // Riempi fino a 5 con stelle vuote se vuoi
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+        stars += '☆';
+    }
+    return stars;
+}

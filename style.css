@@ -1409,3 +1409,73 @@ CSS
     padding: 10px 20px; color: #fff; font-size: 12px; cursor: pointer;
 }
 .quick-option:hover { background: rgba(0,212,255,0.1); border-radius: 8px; }
+
+/* REVIEWs */
+
+.reviews-scroll-area {
+    padding: 20px;
+    padding-bottom: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.review-card {
+    display: flex;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid #222;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 100px;
+    position: relative;
+}
+
+.poster-area {
+    width: 70px;
+    background-size: cover;
+    background-position: center;
+    border-right: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.review-content {
+    flex-grow: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.review-top { display: flex; justify-content: space-between; align-items: flex-start; }
+
+.review-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--accent);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.rating-stars { color: #ffcc00; font-size: 12px; letter-spacing: 2px; }
+
+.review-comment {
+    font-size: 11px;
+    color: #ccc;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 5px;
+    line-height: 1.3;
+}
+
+.review-meta {
+    font-size: 9px;
+    color: var(--dim);
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+}

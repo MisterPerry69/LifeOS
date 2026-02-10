@@ -454,6 +454,28 @@
     </div>
 </div>
 
+<div id="reviews-module" class="module-container">
+    <div class="reviews-header">
+        <div class="stat-pill">TOTAL: <span id="stat-total">0</span></div>
+        <div class="stat-pill">MONTH: <span id="stat-month">0</span></div>
+        <div id="active-filter-label" class="filter-status">TUTTO</div>
+    </div>
+
+    <div id="reviews-list" class="reviews-scroll-area">
+        </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="toggleCriticAI()"><i data-lucide="sparkles"></i><div class="nav-label">AI</div></div>
+        <div class="nav-item" onclick="cycleReviewFilter()"><i data-lucide="filter"></i><div class="nav-label">FILTRI</div></div>
+        <div class="nav-item" onclick="nav('home')" style="flex:1.2; transform: translateY(-10px);">
+            <div class="nav-home-btn"><i data-lucide="home" style="color:#000"></i></div>
+        </div>
+        <div class="nav-item" onclick="toggleWishlist()"><i data-lucide="list-plus"></i><div class="nav-label">WISH</div></div>
+        <div class="nav-item" onclick="openReviewEntry()"><i data-lucide="plus-square"></i><div class="nav-label">ENTRY</div></div>
+    </div>
+</div>
+
+
   <!-- ============================================ -->
   <!-- MODAL: NOTE DETAIL -->
   <!-- ============================================ -->
