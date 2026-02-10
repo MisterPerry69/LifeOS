@@ -1956,27 +1956,55 @@ function closeReviewEntry() {
 }
 
 async function processReviewWithAI() {
-    const input = document.getElementById('ai-review-input').value;
+    const inputField = document.getElementById('ai-review-input');
+    const input = inputField.value.trim();
     if (!input) return;
 
-    const status = document.getElementById('ai-process-status');
-    const btn = document.getElementById('btn-save-review');
+    // 1. Chiudi subito il modal
+    closeReviewEntry();
 
-    status.style.display = 'block';
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
+    // 2. Crea una card "LOADING" temporanea in cima alla lista
+    const list = document.getElementById('reviews-list');
+    const tempId = "temp_" + Date.now();
+    const loadingCard = document.createElement('div');
+    loadingCard.id = tempId;
+    loadingCard.className = "review-card";
+    loadingCard.style.opacity = "0.5";
+    loadingCard.style.borderLeft = "3px solid var(--dim)";
+    loadingCard.innerHTML = `
+        <div class="poster-mini" style="background: #111; display: flex; align-items: center; justify-content: center;">
+            <div class="blink-dot"></div>
+        </div>
+        <div class="review-info">
+            <div class="review-top">
+                <span class="review-title" style="color:var(--dim)">ANALISI_IN_CORSO...</span>
+            </div>
+            <div class="review-comment">${input.substring(0, 50)}...</div>
+        </div>
+    `;
+    list.prepend(loadingCard);
 
-    // QUI chiameremo il tuo server Apps Script
-    // Per ora simuliamo un'attesa
-    console.log("Inviando all'AI:", input);
-    
-    /* Esempio di quello che manderemo:
-    const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            action: 'processReview',
-            text: input
-        })
-    });
-    */
+    // 3. Invia i dati realmente
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'processReviewAI',
+                text: input
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === "SUCCESS") {
+            // 4. Se successo, rimuovi la card finta e ricarica i dati veri
+            loadingCard.remove();
+            // Qui dovresti chiamare la funzione che scarica i dati dallo Sheets
+            if (typeof initReviews === "function") initReviews(); 
+            else location.reload(); // Fallback brutale ma efficace
+        }
+    } catch (error) {
+        console.error("Errore:", error);
+        loadingCard.innerHTML = `<div style="padding:10px; color:red; font-size:10px;">ERRORE_SYNC_FALLITO</div>`;
+    }
 }

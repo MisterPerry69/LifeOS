@@ -617,25 +617,27 @@
   </div>
 </div>
 
-<div id="review-entry-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
-    <div class="review-detail-card" style="border-left: 4px solid #fff; padding:25px;">
-        <h2 style="font-family:'Rajdhani'; color:#fff; margin-bottom:5px;">NEW_ENTRY</h2>
-        <p style="font-size:10px; color:var(--dim); margin-bottom:20px;">Scrivi titolo, voto (0-5) e commento. L'AI penserà al resto.</p>
-        
-        <textarea id="ai-review-input" placeholder="Es: Ho visto Marty Supreme, 4 stelle. Regia pazzesca..." 
-                  style="width:100%; height:150px; background:#111; border:1px solid #333; color:#fff; padding:15px; border-radius:8px; font-family:inherit;"></textarea>
-        
-        <div id="ai-process-status" style="display:none; margin-top:10px; font-size:11px; color:var(--accent);">
-            <span class="blink-dot"></span> ANALISI_NEURALE_IN_CORSO...
-        </div>
-
-        <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-            <button class="esc-btn" onclick="closeReviewEntry()">ANNULLA</button>
-            <button id="btn-save-review" onclick="processReviewWithAI()" 
-                    style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:4px; font-weight:700;">PUBBLICA</button>
-        </div>
+<div id="review-entry-modal" class="note-overlay" style="display:none;" onclick="if(event.target === this) closeReviewEntry()">
+  <div class="review-modal-container" style="height: auto !important; min-height: 300px;">
+    <div class="review-modal-header">
+      <h1 style="color: var(--accent);">NEW_ENTRY</h1>
+      <div class="review-close-btn" onclick="closeReviewEntry()">ANNULLA [X]</div>
     </div>
+    
+    <div class="review-modal-body">
+      <textarea id="ai-review-input" 
+                placeholder="Cosa hai guardato/giocato? Es: Inception, 5 stelle, pazzesco..." 
+                style="width:100%; height:120px; background:transparent; border:none; color:#fff; font-family:inherit; resize:none; outline:none; font-size:16px;"></textarea>
+      
+      <div style="margin-top: 20px; border-top: 1px solid #111; padding-top: 15px; display: flex; justify-content: flex-end;">
+        <div class="esc-btn" onclick="processReviewWithAI()" style="color: var(--accent); cursor: pointer; font-weight: bold;">
+          [ PUBBLICA_NEURAL_LINK ]
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
   <!-- ============================================ -->
   <!-- WEBPUSHR & LUCIDE INIT -->
   <!-- ============================================ -->
