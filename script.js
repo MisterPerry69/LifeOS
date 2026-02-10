@@ -1713,19 +1713,25 @@ function createNew(kind) {
 }
 
 function toggleGhostAI() {
-    // 1. Apri una nuova nota (se non ne hai già una aperta)
-    if (!document.getElementById('note-detail') || document.getElementById('note-detail').style.display === 'none') {
-        // Creiamo una nota fittizia o chiamiamo la tua funzione per nuova nota
-        // Se non hai una funzione 'newNote', la creiamo al volo
+    // 1. Se il modal è chiuso, lo apriamo in modalità "Nuova Nota"
+    const modal = document.getElementById('note-detail');
+    if (modal.style.display === 'none' || !modal.style.display) {
         createNewNote(); 
     }
 
-    const bubble = document.getElementById('analyst-bubble'); 
-    // Assicurati di avere un <div id="analyst-bubble"> nel modal della nota
+    // 2. Cerchiamo la bolla/input dell'AI
+    // Se su Credits avevi 'analyst-bubble', usiamo quello
+    const bubble = document.getElementById('analyst-bubble');
     
     if (bubble) {
-        bubble.innerText = "GHOST_READY: In attesa di input da espandere...";
+        bubble.innerText = "SISTEMA_GHOST: In attesa di input...";
         bubble.classList.toggle('active');
+        
+        // Se hai un input testuale per l'AI, dagli il focus
+        const aiInput = document.getElementById('ai-prompt-input'); 
+        if (aiInput) setTimeout(() => aiInput.focus(), 300);
+    } else {
+        console.error("ID 'analyst-bubble' non trovato nel DOM");
     }
 }
 
@@ -1737,4 +1743,16 @@ function createNewNote() {
     document.getElementById('note-detail').className = "note-overlay bg-default";
     document.getElementById('note-detail').style.display = "flex";
     document.getElementById('modal-backdrop').style.display = "block";
+}
+
+function filterArchive() {
+    // Se il filtro attuale è NOTE, torna a ALL, altrimenti imposta NOTE
+    const newFilter = (currentFilter === 'NOTE') ? 'ALL' : 'NOTE';
+    setFilter(newFilter);
+    
+    // Feedback visivo sul tasto
+    const navArchive = document.getElementById('nav-stats');
+    if (navArchive) {
+        navArchive.style.color = (newFilter === 'NOTE') ? 'var(--accent)' : 'var(--dim)';
+    }
 }
