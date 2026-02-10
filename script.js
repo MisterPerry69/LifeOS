@@ -130,13 +130,17 @@ async function loadStats() {
             console.warn("Server non online:", data);
             return;
         }
-        
-        // Aggiorna variabili globali
+
+        // --- AGGIORNA VARIABILI GLOBALI (Aggiungi qui sotto) ---
         historyData = data.history || [];
         extraItemsGlobal = data.extraDetails || [];
         window.agendaData = data.agenda || [];
         loadedNotesData = data.notes || [];
         lastStatsData = data;
+
+        // AGGIUNGI QUESTE DUE RIGHE:
+        allReviews = data.reviews || []; // Salva le review dal server
+        renderReviews(allReviews);
         
         // Render griglia note
         renderGrid(data);
@@ -1831,13 +1835,11 @@ function renderStars(rating) {
 
 let allReviews = []; 
 
-function loadReviews() {
-try {
-        const response = await fetch(SCRIPT_URL + "?action=getStats"); // Usiamo getStats che già restituisce i dati
+async function loadReviews() { // <--- Ho aggiunto 'async' qui
+    try {
+        const response = await fetch(SCRIPT_URL + "?action=getStats"); 
         const result = await response.json();
         
-        // Supponendo che nel tuo getStats tu aggiunga i dati delle reviews
-        // Se non l'hai fatto, dobbiamo mappare la colonna del foglio
         if (result.reviews) {
             allReviews = result.reviews;
             renderReviews(allReviews);
@@ -2002,22 +2004,16 @@ async function processReviewWithAI() {
         
         const result = await response.json();
         
-if (result.status === "SUCCESS") {
+        if (result.status === "SUCCESS") {
             // Rimuoviamo la card che blinka
             loadingCard.remove();
             
-            // Invece di riavviare tutto il sistema (reboot), 
-            // chiamiamo la funzione che già usi per caricare le review.
-            // Se la tua funzione si chiama renderReviews o loadReviews, usa quella.
-            // Supponendo tu abbia una funzione 'initReviews' o 'getStats':
-            if (typeof initReviews === "function") {
-                initReviews(); // Questa ricarica i dati dai fogli e li renderizza
-            } else {
-                // Se non hai una funzione specifica, forziamo il refresh del componente reviews
-                fetchStats(); // O come si chiama la tua funzione che scarica i dati
-            }
+            // AGGIORNAMENTO: Usiamo la tua funzione loadStats() per ricaricare i dati
+            await loadStats(); 
             
             console.log("Neural Entry salvata con successo.");
+        } else {
+            loadingCard.innerHTML = `<div style="padding:10px; color:red; font-size:10px;">ERRORE_SERVER: ${result.message}</div>`;
         }
     } catch (error) {
         console.error("Errore:", error);
