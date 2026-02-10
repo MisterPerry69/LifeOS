@@ -7,7 +7,7 @@
 // 1. CONFIGURAZIONE E STATO GLOBALE
 // ============================================
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQPQYYG6qBHwPcZRUFnNYILkm1xgiwWlFZWofg8M2u12xsOBgJDeB8HJmH2JIM0csI/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo10TaL8bjFh-qDTURMniGM0jHzWr4D5MeAJpyXlvqcDq7oietjxGpIhFZAoN8TMLP/exec";
 
 // Stato applicazione centralizzato
 let historyData = [];
