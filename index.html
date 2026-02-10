@@ -100,25 +100,24 @@
         
     </div>
 
-<div id="review-detail-modal" class="note-overlay" style="display:none;">
-    <div class="review-detail-card">
-        <div id="detail-poster-bg" class="detail-header-bg"></div>
-        <div class="detail-body">
-            <div class="detail-header-content">
-                <h2 id="detail-review-title">TITOLO_FILM</h2>
-                <div id="detail-review-stars" class="rating-stars"></div>
-                <div id="detail-review-meta" class="review-meta-detail">CATEGORIA • DATA</div>
+<div id="review-detail-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
+    <div id="review-detail-card" class="review-detail-card" style="border-left: 4px solid var(--accent); background: #0a0a0a; width: 90%; max-width: 400px; padding: 25px; border-radius: 8px;">
+        <div class="detail-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2 id="detail-review-title" style="font-family:'Rajdhani'; color:var(--accent); margin:0; text-transform:uppercase;">TITOLO</h2>
+                <span id="detail-review-stars" style="color:#ffd700; font-size:18px;"></span>
             </div>
-            
-            <div class="detail-scroll-content">
-                <label>IL MIO PENSIERO:</label>
-                <p id="detail-review-comment">Il commento completo apparirà qui...</p>
-            </div>
+            <div id="detail-review-meta" style="font-size:10px; color:var(--dim); margin-top:5px; letter-spacing:1px;"></div>
+        </div>
 
-            <div class="detail-footer">
-                <button class="esc-btn" onclick="closeReviewDetail()" style="background:none; border:1px solid #333; padding:10px 20px;">CHIUDI</button>
-                <button class="delete-btn" onclick="deleteCurrentReview()" style="color:var(--dim); font-size:10px;">ELIMINA</button>
-            </div>
+        <div style="margin-top:25px;">
+            <label style="font-size:9px; color:var(--accent); opacity:0.6; text-transform:uppercase;">Recensione integrale:</label>
+            <div id="detail-review-comment" style="font-size:14px; line-height:1.6; color:#eee; margin-top:10px; max-height:300px; overflow-y:auto;"></div>
+        </div>
+
+        <div style="margin-top:30px; display:flex; justify-content:space-between;">
+            <button class="esc-btn" onclick="closeReviewDetail()">[ CHIUDI ]</button>
+            <i data-lucide="trash-2" onclick="deleteCurrentReview()" style="width:18px; color:var(--dim); cursor:pointer;"></i>
         </div>
     </div>
 </div>

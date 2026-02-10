@@ -1849,22 +1849,24 @@ function renderReviews(data) {
         list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ NESSUN_DATO ]</div>`;
         return;
     }
+    const color = catColors[item.categoria] || 'var(--accent)';
 
-    list.innerHTML = data.map(item => `
-        <div class="review-card" onclick="openReviewDetail(${item.id})">
-            <div class="poster-mini" style="background-image: url('${item.image_url || 'https://via.placeholder.com/60x90/050505/333?text=NO_IMG'}')"></div>
-            <div class="review-info">
-                <div class="review-top">
-                    <span class="review-title">${item.titolo}</span>
-                    <span class="rating-stars">${getStarRating(item.rating)}</span>
-                </div>
-                <div class="review-comment">${item.commento}</div>
-                <div class="review-meta">
-                    <span>${item.categoria}</span>
-                    <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}</span>
-                </div>
+    list.innerHTML = data.map(item => 
+        `
+        <div class="review-card" onclick="openReviewDetail(${item.id})" style="border-left: 3px solid ${color}">
+        <div class="poster-mini" style="background-image: url('${item.image_url || ''}'); border-right: 1px solid #1a1a1a;"></div>
+        <div class="review-info">
+            <div class="review-top">
+                <span class="review-title" style="color:${color}">${item.titolo}</span>
+                <span class="rating-stars">${getStarRating(item.rating)}</span>
+            </div>
+            <div class="review-comment">${item.commento}</div>
+            <div class="review-meta">
+                <span>${item.categoria}</span>
+                <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}</span>
             </div>
         </div>
+    </div>
     `).join('');
 }
 
@@ -1878,25 +1880,39 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-    // Per ora cerchiamo nei mockData, poi cercheremo nei dati scaricati dallo Sheets
     const review = mockReviews.find(r => r.id === id); 
     if (!review) return;
 
     currentReviewId = id;
-    
+    const color = catColors[review.categoria] || 'var(--accent)';
+
+    // Popoliamo i campi
     document.getElementById('detail-review-title').innerText = review.titolo;
     document.getElementById('detail-review-stars').innerText = getStarRating(review.rating);
-    document.getElementById('detail-review-meta').innerText = `${review.categoria} • ${new Date(review.data).toLocaleDateString('it-IT')}`;
+    document.getElementById('detail-review-meta').innerText = `${review.categoria} // ${new Date(review.data).toLocaleDateString('it-IT')}`;
     document.getElementById('detail-review-comment').innerText = review.commento;
     
-    const poster = review.image_url || 'https://via.placeholder.com/400x200/050505/333?text=NO_POSTER';
-    document.getElementById('detail-poster-bg').style.backgroundImage = `url('${poster}')`;
+    // Applichiamo il colore al bordo della card dettaglio
+    document.getElementById('review-detail-card').style.borderColor = color;
+    document.getElementById('detail-review-title').style.color = color;
 
+    // Mostriamo il modal
     document.getElementById('review-detail-modal').style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
+    
+    if(window.lucide) lucide.createIcons();
 }
 
 function closeReviewDetail() {
     document.getElementById('review-detail-modal').style.display = 'none';
     document.getElementById('modal-backdrop').style.display = 'none';
 }
+
+
+const catColors = {
+    'FILM': '#00d4ff',    // Ciano
+    'SERIE': '#ff0055',   // Rosso/Rosa
+    'GAME': '#00ff44',    // Verde
+    'COMIC': '#ffcc00',   // Giallo
+    'WISH': '#888888'     // Grigio
+};
