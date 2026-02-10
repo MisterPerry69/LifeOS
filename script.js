@@ -246,6 +246,7 @@ function renderGrid(data) {
             if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
             if (currentFilter === 'LINK') return content.includes('http');
             if (currentFilter === 'EXTRA') return false;
+            if (currentFilter === 'ARCHIVE') return note.type === 'NOTE';
             return true;
         })
         .sort((a, b) => {
@@ -1706,33 +1707,18 @@ function toggleQuickMenu() {
 
 // Funzione chiamata dalle opzioni del menu
 function createNew(kind) {
-    createNewNote(); // Apre il modal
-    if (kind === 'LINK') document.getElementById('detail-text').value = "http://";
-    if (kind === 'LIST') document.getElementById('detail-text').value = "- ";
-    toggleQuickMenu(); // Chiude il menu
-}
-
-function toggleGhostAI() {
-    // 1. Se il modal è chiuso, lo apriamo in modalità "Nuova Nota"
-    const modal = document.getElementById('note-detail');
-    if (modal.style.display === 'none' || !modal.style.display) {
-        createNewNote(); 
-    }
-
-    // 2. Cerchiamo la bolla/input dell'AI
-    // Se su Credits avevi 'analyst-bubble', usiamo quello
-    const bubble = document.getElementById('analyst-bubble');
+    createNewNote();
     
-    if (bubble) {
-        bubble.innerText = "SISTEMA_GHOST: In attesa di input...";
-        bubble.classList.toggle('active');
-        
-        // Se hai un input testuale per l'AI, dagli il focus
-        const aiInput = document.getElementById('ai-prompt-input'); 
-        if (aiInput) setTimeout(() => aiInput.focus(), 300);
-    } else {
-        console.error("ID 'analyst-bubble' non trovato nel DOM");
+    if (kind === 'LINK') {
+        document.getElementById('detail-text').value = "https://";
+        document.getElementById('detail-type').innerText = "NUOVO_LINK";
     }
+    if (kind === 'LIST') {
+        document.getElementById('detail-text').value = "☐ \n☐ \n☐ ";
+        document.getElementById('detail-type').innerText = "NUOVA_LISTA";
+    }
+    
+    toggleQuickMenu();
 }
 
 // Funzione di supporto per aprire il modal vuoto
@@ -1746,13 +1732,73 @@ function createNewNote() {
 }
 
 function filterArchive() {
-    // Se il filtro attuale è NOTE, torna a ALL, altrimenti imposta NOTE
-    const newFilter = (currentFilter === 'NOTE') ? 'ALL' : 'NOTE';
-    setFilter(newFilter);
-    
-    // Feedback visivo sul tasto
     const navArchive = document.getElementById('nav-stats');
-    if (navArchive) {
-        navArchive.style.color = (newFilter === 'NOTE') ? 'var(--accent)' : 'var(--dim)';
+    
+    if (currentFilter === 'ARCHIVE') {
+        // Torna a tutto
+        currentFilter = 'ALL';
+        if (navArchive) navArchive.style.color = 'var(--dim)';
+    } else {
+        currentFilter = 'ARCHIVE';
+        if (navArchive) navArchive.style.color = 'var(--accent)';
     }
+    
+    renderGrid(lastStatsData);
+}
+
+function toggleGhostAI() {
+    // Chiude quick menu se aperto
+    const qMenu = document.getElementById('quick-menu');
+    if (qMenu && !qMenu.classList.contains('quick-menu-hidden')) {
+        qMenu.classList.add('quick-menu-hidden');
+    }
+
+    // Usa la stessa bubble di finance (già esiste nel DOM)
+    const bubble = document.getElementById('analyst-bubble');
+    const text = document.getElementById('analyst-text');
+    
+    if (!bubble || !text) return;
+
+    bubble.classList.remove('active');
+    void bubble.offsetWidth; // Force reflow
+    
+    text.innerHTML = `
+        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px;">GHOST_AI // BRAIN_MODULE</div>
+        <div style="color: var(--accent); font-size: 0.85rem; margin-bottom: 12px;">In attesa di input...</div>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <input type="text" id="ghost-input" placeholder="Descrivi cosa vuoi fare..." 
+                style="flex:1; background:#111; border:1px solid #333; color:#fff; padding:8px; 
+                       font-family:'JetBrains Mono'; font-size:0.8rem; outline:none; border-radius:4px;"
+                onkeypress="handleGhostInput(event)">
+        </div>
+        <div style="font-size: 0.65rem; color:#333; margin-top:8px;">
+            es: "espandi questa idea", "correggi grammatica", "crea lista da questo testo"
+        </div>
+    `;
+    
+    bubble.classList.add('active');
+    setTimeout(() => {
+        const ghostInput = document.getElementById('ghost-input');
+        if (ghostInput) ghostInput.focus();
+    }, 200);
+}
+
+async function handleGhostInput(event) {
+    if (event.key !== 'Enter') return;
+    
+    const input = document.getElementById('ghost-input');
+    const query = input.value.trim();
+    if (!query) return;
+    
+    const text = document.getElementById('analyst-text');
+    text.innerHTML = `<div style="color:var(--accent);" class="blink">NEURAL_PROCESSING...</div>`;
+    
+    // Placeholder - qui collegherai Gemini
+    setTimeout(() => {
+        text.innerHTML = `
+            <div style="font-size:0.7rem; color:var(--dim);">GHOST_RESPONSE:</div>
+            <div style="color:#fff; margin-top:8px;">Gemini non ancora collegato.<br>
+            <span style="color:var(--accent);">Query ricevuta: "${query}"</span></div>
+        `;
+    }, 1000);
 }
