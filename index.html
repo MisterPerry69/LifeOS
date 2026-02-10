@@ -591,27 +591,30 @@
   </div>
 
 
-<div id="review-detail-modal" class="note-overlay" onclick="if(event.target === this) closeReviewDetail()">
-    <div id="review-detail-card" class="review-detail-card" onclick="event.stopPropagation()">
-        <div class="detail-main-row">
-            <div class="detail-text-side">
-                <h2 id="detail-review-title">TITOLO</h2>
-                <div id="detail-review-stars" style="color:#ffd700; font-size:22px; margin: 5px 0;"></div>
-                <div id="detail-review-meta" class="review-meta-detail"></div>
-            </div>
-            <div id="detail-poster-large" class="detail-poster-large"></div>
-        </div>
-
-        <div style="margin-top:25px;">
-            <label style="font-size:9px; color:var(--accent); opacity:0.6;">LA MIA RECENSIONE</label>
-            <div id="detail-review-comment" style="margin-top:10px; font-size:15px; color:#ddd;"></div>
-        </div>
-
-        <div class="detail-footer" style="margin-top:40px; display:flex; justify-content:space-between; align-items:center;">
-            <button class="esc-btn" onclick="closeReviewDetail()">[ CHIUDI ]</button>
-            <span onclick="deleteReview()" style="opacity:0.3; font-size:10px;"><i data-lucide="trash-2"></i> ELIMINA</span>
-        </div>
+<div id="review-detail-modal" class="note-overlay" style="display:none;" onclick="if(event.target === this) closeReviewDetail()">
+  <div class="review-modal-container">
+    
+    <div class="review-modal-header">
+      <h1 id="detail-review-title">TITOLO_RECENSIONE</h1>
+      <div class="review-close-btn" onclick="closeReviewDetail()">CHIUDI [X]</div>
     </div>
+
+    <div class="review-modal-body">
+      <div class="review-main-content">
+        <div id="detail-review-poster" class="review-poster-frame"></div>
+        <div class="review-info-side">
+           <div id="detail-review-stars" class="rating-stars" style="font-size: 22px;"></div>
+           <div id="detail-review-meta" class="review-meta-text"></div>
+        </div>
+      </div>
+      
+      <div class="review-full-comment">
+        <label>RECENSIONE_INTEGRALE</label>
+        <div id="detail-review-comment"></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <div id="review-entry-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">

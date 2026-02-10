@@ -1591,3 +1591,89 @@ CSS
     gap: 20px;
     align-items: flex-start;
 }
+
+
+.review-modal-container {
+    width: 600px !important;
+    height: 70vh !important;
+    max-width: 95vw;
+    background: #050505;
+    border: 1px solid #222;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+.review-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.review-close-btn {
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    font-weight: 700;
+}
+
+.review-modal-body {
+    padding: 25px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.review-main-content {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.review-poster-frame {
+    width: 120px;
+    height: 180px;
+    background-size: cover;
+    background-position: center;
+    background-color: #111;
+    border: 1px solid #333;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.review-meta-text {
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 10px;
+}
+
+.review-full-comment label {
+    font-size: 9px;
+    color: var(--accent);
+    opacity: 0.6;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.review-full-comment div {
+    color: #eee;
+    line-height: 1.6;
+    font-size: 15px;
+    white-space: pre-wrap;
+}
+
+/* Mobile Fullscreen */
+@media (max-width: 600px) {
+    .review-modal-container {
+        width: 100vw !important;
+        height: 100vh !important;
+        border: none;
+        border-radius: 0;
+    }
+}
