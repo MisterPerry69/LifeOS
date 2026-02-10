@@ -1953,3 +1953,41 @@ function closeReviewDetail() {
     const backdrop = document.getElementById('modal-backdrop');
     if (backdrop) backdrop.style.display = 'none';
 }
+
+function openReviewEntry() {
+    document.getElementById('review-entry-modal').style.display = 'flex';
+    document.getElementById('modal-backdrop').style.display = 'block';
+    setTimeout(() => document.getElementById('ai-review-input').focus(), 300);
+}
+
+function closeReviewEntry() {
+    document.getElementById('review-entry-modal').style.display = 'none';
+    document.getElementById('modal-backdrop').style.display = 'none';
+    document.getElementById('ai-review-input').value = '';
+}
+
+async function processReviewWithAI() {
+    const input = document.getElementById('ai-review-input').value;
+    if (!input) return;
+
+    const status = document.getElementById('ai-process-status');
+    const btn = document.getElementById('btn-save-review');
+
+    status.style.display = 'block';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+
+    // QUI chiameremo il tuo server Apps Script
+    // Per ora simuliamo un'attesa
+    console.log("Inviando all'AI:", input);
+    
+    /* Esempio di quello che manderemo:
+    const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'processReview',
+            text: input
+        })
+    });
+    */
+}

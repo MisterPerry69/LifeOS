@@ -1564,3 +1564,36 @@ CSS
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* Modal fullscreen su mobile */
+@media (max-width: 600px) {
+    #review-detail-modal { align-items: flex-start !important; }
+    .review-detail-card { 
+        width: 100% !important; 
+        height: 100% !important; 
+        max-width: none !important; 
+        max-height: none !important; 
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-top: 4px solid var(--accent); /* Bordo in alto su mobile */
+    }
+}
+
+.detail-main-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.detail-text-side { flex: 1; }
+
+.detail-poster-large {
+    width: 100px;
+    height: 150px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    border: 1px solid #333;
+    flex-shrink: 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
