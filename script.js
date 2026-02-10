@@ -1906,41 +1906,50 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-    console.log("Tentativo apertura review ID:", id);
+    console.log("ID ricevuto:", id);
     
-    // Cerchiamo nei mockReviews (o dove hai salvato i dati)
-    const review = mockReviews.find(r => String(r.id) === String(id)); 
+    // Trova la review nei tuoi dati mock
+    const review = mockReviews.find(r => String(r.id) === String(id));
     
     if (!review) {
-        console.error("Review non trovata!");
+        console.error("Review non trovata per ID:", id);
         return;
     }
 
+    // Riferimenti agli elementi
     const modal = document.getElementById('review-detail-modal');
+    const title = document.getElementById('detail-review-title');
+    const stars = document.getElementById('detail-review-stars');
+    const meta = document.getElementById('detail-review-meta');
+    const comment = document.getElementById('detail-review-comment');
+    const card = document.getElementById('review-detail-card');
+
+    // Riempimento dati
+    if (title) title.innerText = review.titolo.toUpperCase();
+    if (stars) stars.innerText = getStarRating(review.rating);
+    if (meta) meta.innerText = `${review.categoria} // ${review.data}`;
+    if (comment) comment.innerText = review.commento;
+
+    // Colore bordo
+    const colors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' };
+    const activeColor = colors[review.categoria] || 'var(--accent)';
+    if (card) {
+        card.style.borderLeft = `4px solid ${activeColor}`;
+        title.style.color = activeColor;
+    }
+
+    // MOSTRA IL MODAL
+    modal.style.setProperty('display', 'flex', 'important');
+    
+    // Mostra il backdrop se esiste
     const backdrop = document.getElementById('modal-backdrop');
-
-    // Popolamento campi (assicurati che gli ID esistano nell'HTML)
-    document.getElementById('detail-review-title').innerText = review.titolo.toUpperCase();
-    document.getElementById('detail-review-stars').innerText = getStarRating(review.rating);
-    document.getElementById('detail-review-meta').innerText = `${review.categoria} // ${review.data}`;
-    document.getElementById('detail-review-comment').innerText = review.commento;
-    
-    // Colore dinamico
-    const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
-    const color = catColors[review.categoria] || 'var(--accent)';
-    
-    const cardDetail = document.getElementById('review-detail-card');
-    cardDetail.style.borderLeft = `4px solid ${color}`;
-    document.getElementById('detail-review-title').style.color = color;
-
-    // APERTURA FORZATA
-    modal.style.display = 'flex';
     if (backdrop) backdrop.style.display = 'block';
-    
-    console.log("Modal aperto con successo");
+
+    console.log("Modal visualizzato correttamente");
 }
 
 function closeReviewDetail() {
     document.getElementById('review-detail-modal').style.display = 'none';
-    document.getElementById('modal-backdrop').style.display = 'none';
+    const backdrop = document.getElementById('modal-backdrop');
+    if (backdrop) backdrop.style.display = 'none';
 }
