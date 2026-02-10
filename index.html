@@ -100,28 +100,6 @@
         
     </div>
 
-<div id="review-detail-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
-    <div id="review-detail-card" class="review-detail-card" style="border-left: 4px solid var(--accent); background: #0a0a0a; width: 90%; max-width: 400px; padding: 25px; border-radius: 8px;">
-        <div class="detail-header">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <h2 id="detail-review-title" style="font-family:'Rajdhani'; color:var(--accent); margin:0; text-transform:uppercase;">TITOLO</h2>
-                <span id="detail-review-stars" style="color:#ffd700; font-size:18px;"></span>
-            </div>
-            <div id="detail-review-meta" style="font-size:10px; color:var(--dim); margin-top:5px; letter-spacing:1px;"></div>
-        </div>
-
-        <div style="margin-top:25px;">
-            <label style="font-size:9px; color:var(--accent); opacity:0.6; text-transform:uppercase;">Recensione integrale:</label>
-            <div id="detail-review-comment" style="font-size:14px; line-height:1.6; color:#eee; margin-top:10px; max-height:300px; overflow-y:auto;"></div>
-        </div>
-
-        <div style="margin-top:30px; display:flex; justify-content:space-between;">
-            <button class="esc-btn" onclick="closeReviewDetail()">[ CHIUDI ]</button>
-            <i data-lucide="trash-2" onclick="deleteCurrentReview()" style="width:18px; color:var(--dim); cursor:pointer;"></i>
-        </div>
-    </div>
-</div>
-
   </div>
 
   <!-- ============================================ -->
@@ -611,6 +589,29 @@
       </div>
     </div>
   </div>
+
+
+  <div id="review-detail-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
+    <div id="review-detail-card" class="review-detail-card" style="border-left: 4px solid var(--accent); background: #0a0a0a; width: 90%; max-width: 400px; padding: 25px; border-radius: 8px;">
+        <div class="detail-header">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2 id="detail-review-title" style="font-family:'Rajdhani'; color:var(--accent); margin:0; text-transform:uppercase;">TITOLO</h2>
+                <span id="detail-review-stars" style="color:#ffd700; font-size:18px;"></span>
+            </div>
+            <div id="detail-review-meta" style="font-size:10px; color:var(--dim); margin-top:5px; letter-spacing:1px;"></div>
+        </div>
+
+        <div style="margin-top:25px;">
+            <label style="font-size:9px; color:var(--accent); opacity:0.6; text-transform:uppercase;">Recensione integrale:</label>
+            <div id="detail-review-comment" style="font-size:14px; line-height:1.6; color:#eee; margin-top:10px; max-height:300px; overflow-y:auto;"></div>
+        </div>
+
+        <div style="margin-top:30px; display:flex; justify-content:space-between;">
+            <button class="esc-btn" onclick="closeReviewDetail()">[ CHIUDI ]</button>
+            <i data-lucide="trash-2" onclick="deleteCurrentReview()" style="width:18px; color:var(--dim); cursor:pointer;"></i>
+        </div>
+    </div>
+</div>
 
   <!-- ============================================ -->
   <!-- WEBPUSHR & LUCIDE INIT -->

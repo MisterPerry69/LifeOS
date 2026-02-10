@@ -1906,27 +1906,38 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-    const review = mockReviews.find(r => r.id === id); 
-    if (!review) return;
+    console.log("Tentativo apertura review ID:", id);
+    
+    // Cerchiamo nei mockReviews (o dove hai salvato i dati)
+    const review = mockReviews.find(r => String(r.id) === String(id)); 
+    
+    if (!review) {
+        console.error("Review non trovata!");
+        return;
+    }
 
-    currentReviewId = id;
-    const color = catColors[review.categoria] || 'var(--accent)';
+    const modal = document.getElementById('review-detail-modal');
+    const backdrop = document.getElementById('modal-backdrop');
 
-    // Popoliamo i campi
-    document.getElementById('detail-review-title').innerText = review.titolo;
+    // Popolamento campi (assicurati che gli ID esistano nell'HTML)
+    document.getElementById('detail-review-title').innerText = review.titolo.toUpperCase();
     document.getElementById('detail-review-stars').innerText = getStarRating(review.rating);
-    document.getElementById('detail-review-meta').innerText = `${review.categoria} // ${new Date(review.data).toLocaleDateString('it-IT')}`;
+    document.getElementById('detail-review-meta').innerText = `${review.categoria} // ${review.data}`;
     document.getElementById('detail-review-comment').innerText = review.commento;
     
-    // Applichiamo il colore al bordo della card dettaglio
-    document.getElementById('review-detail-card').style.borderColor = color;
+    // Colore dinamico
+    const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
+    const color = catColors[review.categoria] || 'var(--accent)';
+    
+    const cardDetail = document.getElementById('review-detail-card');
+    cardDetail.style.borderLeft = `4px solid ${color}`;
     document.getElementById('detail-review-title').style.color = color;
 
-    // Mostriamo il modal
-    document.getElementById('review-detail-modal').style.display = 'flex';
-    document.getElementById('modal-backdrop').style.display = 'block';
+    // APERTURA FORZATA
+    modal.style.display = 'flex';
+    if (backdrop) backdrop.style.display = 'block';
     
-    if(window.lucide) lucide.createIcons();
+    console.log("Modal aperto con successo");
 }
 
 function closeReviewDetail() {
