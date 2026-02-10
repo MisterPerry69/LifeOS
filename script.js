@@ -1906,46 +1906,35 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-    console.log("ID ricevuto:", id);
-    
-    // Trova la review nei tuoi dati mock
-    const review = mockReviews.find(r => String(r.id) === String(id));
-    
-    if (!review) {
-        console.error("Review non trovata per ID:", id);
-        return;
-    }
+    const review = mockReviews.find(r => String(r.id) === String(id)); 
+    if (!review) return;
 
-    // Riferimenti agli elementi
-    const modal = document.getElementById('review-detail-modal');
-    const title = document.getElementById('detail-review-title');
-    const stars = document.getElementById('detail-review-stars');
-    const meta = document.getElementById('detail-review-meta');
-    const comment = document.getElementById('detail-review-comment');
-    const card = document.getElementById('review-detail-card');
-
-    // Riempimento dati
-    if (title) title.innerText = review.titolo.toUpperCase();
-    if (stars) stars.innerText = getStarRating(review.rating);
-    if (meta) meta.innerText = `${review.categoria} // ${review.data}`;
-    if (comment) comment.innerText = review.commento;
-
-    // Colore bordo
+    // Colori categorie
     const colors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' };
-    const activeColor = colors[review.categoria] || 'var(--accent)';
-    if (card) {
-        card.style.borderLeft = `4px solid ${activeColor}`;
-        title.style.color = activeColor;
+    const activeColor = colors[review.categoria?.toUpperCase()] || 'var(--accent)';
+
+    // Popolamento Testi
+    document.getElementById('detail-review-title').innerText = review.titolo.toUpperCase();
+    document.getElementById('detail-review-stars').innerText = getStarRating(review.rating);
+    document.getElementById('detail-review-meta').innerText = `${review.categoria} // ${review.data}`;
+    document.getElementById('detail-review-comment').innerText = review.commento;
+    
+    // Fix Bordo Colorato (Standard Brain-style)
+    const modalContainer = document.querySelector('.review-modal-container');
+    modalContainer.style.borderLeft = `4px solid ${activeColor}`;
+    document.getElementById('detail-review-title').style.color = activeColor;
+
+    // Fix Poster
+    const posterDiv = document.getElementById('detail-review-poster');
+    if (review.image_url) {
+        posterDiv.style.backgroundImage = `url('${review.image_url}')`;
+        posterDiv.style.display = 'block';
+    } else {
+        posterDiv.style.display = 'none';
     }
 
-    // MOSTRA IL MODAL
-    modal.style.setProperty('display', 'flex', 'important');
-    
-    // Mostra il backdrop se esiste
-    const backdrop = document.getElementById('modal-backdrop');
-    if (backdrop) backdrop.style.display = 'block';
-
-    console.log("Modal visualizzato correttamente");
+    document.getElementById('review-detail-modal').style.display = 'flex';
+    document.getElementById('modal-backdrop').style.display = 'block';
 }
 
 function closeReviewDetail() {
