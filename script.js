@@ -597,31 +597,25 @@ function closeNoteDetail(forceSave = true) {
     if (forceSave && currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
         const newText = textArea.value.trim();
         const oldNote = loadedNotesData[currentNoteData.index];
-        
-        // FIX: Usa proprietà oggetto
-        const oldText = oldNote ? oldNote.content : "";
-        const oldColor = oldNote ? oldNote.color : "default";
 
-        if (newText !== oldText || currentNoteData.color !== oldColor) {
-            // FIX: Aggiorna OGGETTO locale (UI ottimistica)
-            if (currentNoteData.index !== undefined && oldNote) {
-                oldNote.content = newText;
-                oldNote.color = currentNoteData.color;
-                renderGrid(lastStatsData); // Aggiorna griglia subito
-            }
-
-            // Salva su server in background
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({
-                    service: "update_note",
-                    id: currentNoteData.id,
-                    text: newText,
-                    color: currentNoteData.color
-                })
-            });
+        // FIX: Salva SEMPRE se c'è un id valido, senza confrontare
+        if (oldNote) {
+            oldNote.content = newText;
+            oldNote.color = currentNoteData.color;
+            renderGrid(lastStatsData);
         }
+
+        // FIX: Manda SEMPRE la fetch (il server farà il confronto se vuoi)
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                service: "update_note",
+                id: currentNoteData.id,
+                text: newText,
+                color: currentNoteData.color
+            })
+        });
     }
 
     modal.style.display = 'none';
