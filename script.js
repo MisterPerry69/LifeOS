@@ -1968,55 +1968,50 @@ async function processReviewWithAI() {
     const input = inputField.value.trim();
     if (!input) return;
 
-    // 1. Chiudi subito il modal
     closeReviewEntry();
 
-    // 2. Crea una card "LOADING" temporanea in cima alla lista
     const list = document.getElementById('reviews-list');
     const tempId = "temp_" + Date.now();
     const loadingCard = document.createElement('div');
     loadingCard.id = tempId;
     loadingCard.className = "review-card";
-    loadingCard.style.opacity = "0.5";
-    loadingCard.style.borderLeft = "3px solid var(--dim)";
     loadingCard.innerHTML = `
-        <div class="poster-mini" style="background: #111; display: flex; align-items: center; justify-content: center;">
-            <div class="blink-dot"></div>
-        </div>
+        <div class="review-poster" style="background: #111; display:flex; align-items:center; justify-content:center;"><div class="blink-dot"></div></div>
         <div class="review-info">
-            <div class="review-top">
-                <span class="review-title" style="color:var(--dim)">ANALISI_IN_CORSO...</span>
-            </div>
-            <div class="review-comment">${input.substring(0, 50)}...</div>
+            <div class="review-top"><span class="review-title" style="color:var(--dim)">SINCRONIZZAZIONE...</span></div>
+            <div class="review-comment">L'intelligenza artificiale sta elaborando i dati...</div>
         </div>
     `;
     list.prepend(loadingCard);
 
-    // 3. Invia i dati realmente
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: 'processReviewAI',
-                text: input
-            })
+            body: JSON.stringify({ action: 'processReviewAI', text: input })
         });
-        
         const result = await response.json();
         
         if (result.status === "SUCCESS") {
-            // Rimuoviamo la card che blinka
-            loadingCard.remove();
+            // Invece di rimuovere e ricaricare tutto, iniettiamo i dati AI direttamente nella card che sta già lì!
+            const ai = result.data;
+            loadingCard.style.opacity = "1";
+            loadingCard.innerHTML = `
+                <div class="review-poster" style="background-image: url('${ai.image_url || ''}'); background-size: cover;"></div>
+                <div class="review-info">
+                    <div class="review-top">
+                        <span class="review-title">${ai.titolo.toUpperCase()}</span>
+                        <span class="review-rating">${getStarRating(ai.rating)}</span>
+                    </div>
+                    <div class="review-comment">${ai.commento_breve || ai.titolo}</div>
+                </div>
+            `;
+            // Rendiamola cliccabile subito
+            loadingCard.onclick = () => openReviewDetail(ai.id);
             
-            // AGGIORNAMENTO: Usiamo la tua funzione loadStats() per ricaricare i dati
-            await loadStats(); 
-            
-            console.log("Neural Entry salvata con successo.");
-        } else {
-            loadingCard.innerHTML = `<div style="padding:10px; color:red; font-size:10px;">ERRORE_SERVER: ${result.message}</div>`;
+            // Poi con calma aggiorniamo loadStats in background per allineare tutto il sistema
+            loadStats();
         }
     } catch (error) {
-        console.error("Errore:", error);
-        loadingCard.innerHTML = `<div style="padding:10px; color:red; font-size:10px;">ERRORE_SYNC_FALLITO</div>`;
+        loadingCard.innerHTML = `<div style="padding:10px; color:red;">ERRORE_SYNC</div>`;
     }
 }
