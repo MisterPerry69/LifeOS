@@ -594,10 +594,13 @@
 <div id="review-detail-modal" class="note-overlay" style="display:none;" onclick="if(event.target === this) closeReviewDetail()">
   <div class="review-modal-container">
     
-    <div class="review-modal-header">
-      <h1 id="detail-review-title">TITOLO_RECENSIONE</h1>
-      <div class="review-close-btn" onclick="closeReviewDetail()">CHIUDI [X]</div>
+<div class="review-modal-header">
+    <h1 id="detail-review-title">TITOLO</h1>
+    <div style="display:flex; gap:15px; align-items:center;">
+        <div onclick="editPosterLink()" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid; padding:2px 5px; opacity:0.6;">EDIT_IMG</div>
+        <div class="review-close-btn" onclick="closeReviewDetail()">CHIUDI [X]</div>
     </div>
+</div>
 
     <div class="review-modal-body">
       <div class="review-main-content">

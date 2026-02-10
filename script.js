@@ -2009,3 +2009,30 @@ async function processReviewWithAI() {
         loadingCard.innerHTML = `<div style="padding:10px; color:red;">ERRORE_SYNC</div>`;
     }
 }
+
+async function editPosterLink() {
+    // Recuperiamo l'ID della review che è attualmente aperta nel modal
+    const currentId = document.getElementById('review-detail-modal').getAttribute('data-current-id');
+    const newUrl = prompt("Incolla l'URL della nuova immagine:");
+    
+    if (newUrl && newUrl.startsWith('http')) {
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'updateReviewPoster',
+                    id: currentId,
+                    url: newUrl
+                })
+            });
+            const res = await response.json();
+            if (res.status === "SUCCESS") {
+                alert("Poster aggiornato!");
+                loadStats(); // Ricarica tutto così vedi la nuova immagine
+                closeReviewDetail();
+            }
+        } catch (e) {
+            alert("Errore durante il salvataggio.");
+        }
+    }
+}
