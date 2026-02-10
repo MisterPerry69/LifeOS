@@ -1874,3 +1874,29 @@ function getStarRating(rating) {
     const halfStar = (rating % 1 !== 0) ? '½' : '';
     return '★'.repeat(fullStars) + halfStar;
 }
+
+let currentReviewId = null;
+
+function openReviewDetail(id) {
+    // Per ora cerchiamo nei mockData, poi cercheremo nei dati scaricati dallo Sheets
+    const review = mockReviews.find(r => r.id === id); 
+    if (!review) return;
+
+    currentReviewId = id;
+    
+    document.getElementById('detail-review-title').innerText = review.titolo;
+    document.getElementById('detail-review-stars').innerText = getStarRating(review.rating);
+    document.getElementById('detail-review-meta').innerText = `${review.categoria} • ${new Date(review.data).toLocaleDateString('it-IT')}`;
+    document.getElementById('detail-review-comment').innerText = review.commento;
+    
+    const poster = review.image_url || 'https://via.placeholder.com/400x200/050505/333?text=NO_POSTER';
+    document.getElementById('detail-poster-bg').style.backgroundImage = `url('${poster}')`;
+
+    document.getElementById('review-detail-modal').style.display = 'flex';
+    document.getElementById('modal-backdrop').style.display = 'block';
+}
+
+function closeReviewDetail() {
+    document.getElementById('review-detail-modal').style.display = 'none';
+    document.getElementById('modal-backdrop').style.display = 'none';
+}

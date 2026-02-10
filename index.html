@@ -99,6 +99,30 @@
         </div>
         
     </div>
+
+<div id="review-detail-modal" class="note-overlay" style="display:none;">
+    <div class="review-detail-card">
+        <div id="detail-poster-bg" class="detail-header-bg"></div>
+        <div class="detail-body">
+            <div class="detail-header-content">
+                <h2 id="detail-review-title">TITOLO_FILM</h2>
+                <div id="detail-review-stars" class="rating-stars"></div>
+                <div id="detail-review-meta" class="review-meta-detail">CATEGORIA • DATA</div>
+            </div>
+            
+            <div class="detail-scroll-content">
+                <label>IL MIO PENSIERO:</label>
+                <p id="detail-review-comment">Il commento completo apparirà qui...</p>
+            </div>
+
+            <div class="detail-footer">
+                <button class="esc-btn" onclick="closeReviewDetail()" style="background:none; border:1px solid #333; padding:10px 20px;">CHIUDI</button>
+                <button class="delete-btn" onclick="deleteCurrentReview()" style="color:var(--dim); font-size:10px;">ELIMINA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
   </div>
 
   <!-- ============================================ -->

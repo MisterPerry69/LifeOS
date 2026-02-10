@@ -1511,3 +1511,39 @@ CSS
     color: var(--dim);
     letter-spacing: 1px;
 }
+
+.review-detail-card {
+    width: 90%;
+    max-width: 400px;
+    background: #050505;
+    border: 1px solid #222;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.detail-header-bg {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.6);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+}
+
+.detail-body { padding: 20px; margin-top: -80px; position: relative; }
+
+.detail-header-content h2 { 
+    font-family: 'Rajdhani'; 
+    color: var(--accent); 
+    text-transform: uppercase; 
+    margin-bottom: 5px; 
+}
+
+.review-meta-detail { font-size: 10px; color: var(--dim); margin-top: 5px; letter-spacing: 2px; }
+
+.detail-scroll-content { margin-top: 25px; max-height: 200px; overflow-y: auto; }
+.detail-scroll-content label { font-size: 9px; color: var(--accent); display: block; margin-bottom: 10px; opacity: 0.6; }
+.detail-scroll-content p { font-size: 13px; line-height: 1.5; color: #eee; }
+
+.detail-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid #111; padding-top: 15px; }
