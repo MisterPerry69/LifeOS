@@ -1829,16 +1829,22 @@ function renderStars(rating) {
     return stars;
 }
 
-// Dati di esempio (simulano quello che arriverà dallo Sheets)
-const mockReviews = [
-    { id: 1, data: '2025-02-10', titolo: 'Marty Supreme', categoria: 'FILM', rating: 3.5, commento: 'Safdie non delude, regia frenetica e interpretazione solida.', image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAzr7UvAeE8s3xgs9UZOaZYdxvv3zq2cq_QA&s' },
-    { id: 2, data: '2025-02-08', titolo: 'The Last of Us Part II', categoria: 'GAME', rating: 5, commento: 'Un capolavoro tecnico ed emotivo. Impatto devastante.', image_url: 'https://cdn.shopify.com/s/files/1/0747/3829/products/mL4518_1024x1024.jpg' },
-    { id: 3, data: '2025-02-05', titolo: 'Batman: Anno Uno', categoria: 'COMIC', rating: 4.5, commento: 'Le origini definitive. Disegni pazzeschi.', image_url: 'https://www.lafeltrinelli.it/images/9788828731382_0_0_536_0_75.jpg' }
-];
+let allReviews = []; 
 
 function loadReviews() {
-    // Per ora usiamo i mock, poi useremo fetch(SCRIPT_URL)
-    renderReviews(mockReviews);
+try {
+        const response = await fetch(SCRIPT_URL + "?action=getStats"); // Usiamo getStats che già restituisce i dati
+        const result = await response.json();
+        
+        // Supponendo che nel tuo getStats tu aggiunga i dati delle reviews
+        // Se non l'hai fatto, dobbiamo mappare la colonna del foglio
+        if (result.reviews) {
+            allReviews = result.reviews;
+            renderReviews(allReviews);
+        }
+    } catch (e) {
+        console.error("Errore caricamento reviews:", e);
+    }
 }
 
 function renderReviews(data) {
@@ -1996,12 +2002,22 @@ async function processReviewWithAI() {
         
         const result = await response.json();
         
-        if (result.status === "SUCCESS") {
-            // 4. Se successo, rimuovi la card finta e ricarica i dati veri
+if (result.status === "SUCCESS") {
+            // Rimuoviamo la card che blinka
             loadingCard.remove();
-            // Qui dovresti chiamare la funzione che scarica i dati dallo Sheets
-            if (typeof initReviews === "function") initReviews(); 
-            else location.reload(); // Fallback brutale ma efficace
+            
+            // Invece di riavviare tutto il sistema (reboot), 
+            // chiamiamo la funzione che già usi per caricare le review.
+            // Se la tua funzione si chiama renderReviews o loadReviews, usa quella.
+            // Supponendo tu abbia una funzione 'initReviews' o 'getStats':
+            if (typeof initReviews === "function") {
+                initReviews(); // Questa ricarica i dati dai fogli e li renderizza
+            } else {
+                // Se non hai una funzione specifica, forziamo il refresh del componente reviews
+                fetchStats(); // O come si chiama la tua funzione che scarica i dati
+            }
+            
+            console.log("Neural Entry salvata con successo.");
         }
     } catch (error) {
         console.error("Errore:", error);
