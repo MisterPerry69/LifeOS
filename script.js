@@ -1462,6 +1462,10 @@ function nav(page) {
     if (page === 'home') {
         switchFinanceTab('dashboard');
     }
+
+    if (page === 'reviews') {
+    loadReviews();
+    }
 }
 
 async function initStats() {
@@ -1823,4 +1827,50 @@ function renderStars(rating) {
         stars += '☆';
     }
     return stars;
+}
+
+// Dati di esempio (simulano quello che arriverà dallo Sheets)
+const mockReviews = [
+    { id: 1, data: '2025-02-10', titolo: 'Marty Supreme', categoria: 'FILM', rating: 3.5, commento: 'Safdie non delude, regia frenetica e interpretazione solida.', image_url: 'https://via.placeholder.com/60x90/111/00d4ff?text=MARTY' },
+    { id: 2, data: '2025-02-08', titolo: 'The Last of Us Part II', categoria: 'GAME', rating: 5, commento: 'Un capolavoro tecnico ed emotivo. Impatto devastante.', image_url: '' },
+    { id: 3, data: '2025-02-05', titolo: 'Batman: Anno Uno', categoria: 'COMIC', rating: 4.5, commento: 'Le origini definitive. Disegni pazzeschi.', image_url: '' }
+];
+
+function loadReviews() {
+    // Per ora usiamo i mock, poi useremo fetch(SCRIPT_URL)
+    renderReviews(mockReviews);
+}
+
+function renderReviews(data) {
+    const list = document.getElementById('reviews-list');
+    if (!list) return;
+
+    if (data.length === 0) {
+        list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ NESSUN_DATO ]</div>`;
+        return;
+    }
+
+    list.innerHTML = data.map(item => `
+        <div class="review-card" onclick="openReviewDetail(${item.id})">
+            <div class="poster-mini" style="background-image: url('${item.image_url || 'https://via.placeholder.com/60x90/050505/333?text=NO_IMG'}')"></div>
+            <div class="review-info">
+                <div class="review-top">
+                    <span class="review-title">${item.titolo}</span>
+                    <span class="rating-stars">${getStarRating(item.rating)}</span>
+                </div>
+                <div class="review-comment">${item.commento}</div>
+                <div class="review-meta">
+                    <span>${item.categoria}</span>
+                    <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Funzione per generare le stelle (★ e ½)
+function getStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const halfStar = (rating % 1 !== 0) ? '½' : '';
+    return '★'.repeat(fullStars) + halfStar;
 }
