@@ -1845,29 +1845,55 @@ function renderReviews(data) {
     const list = document.getElementById('reviews-list');
     if (!list) return;
 
-    if (data.length === 0) {
-        list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ NESSUN_DATO ]</div>`;
+    if (!data || data.length === 0) {
+        list.innerHTML = `<div style="text-align:center; opacity:0.1; padding:40px; letter-spacing:2px;">[ NESSUN_DATO_RILEVATO ]</div>`;
         return;
     }
-    const color = catColors[item.categoria] || 'var(--accent)';
 
-    list.innerHTML = data.map(item => 
-        `
-        <div class="review-card" onclick="openReviewDetail(${item.id})" style="border-left: 3px solid ${color}">
-        <div class="poster-mini" style="background-image: url('${item.image_url || ''}'); border-right: 1px solid #1a1a1a;"></div>
-        <div class="review-info">
-            <div class="review-top">
-                <span class="review-title" style="color:${color}">${item.titolo}</span>
-                <span class="rating-stars">${getStarRating(item.rating)}</span>
+    // Tabella colori interna (se non l'hai messa globale)
+    const catColors = {
+        'FILM': '#00d4ff',
+        'SERIE': '#ff0055',
+        'GAME': '#00ff44',
+        'COMIC': '#ffcc00',
+        'WISH': '#888888'
+    };
+
+    list.innerHTML = data.map(item => {
+        // Recupero colore categoria
+        const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
+        
+        // Formattazione data
+        const dateStr = item.data ? new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}) : '--';
+
+        return `
+            <div class="review-card" 
+                 onclick="openReviewDetail('${item.id}')" 
+                 style="border-left: 3px solid ${color}; cursor:pointer;">
+                
+                <div class="poster-mini" 
+                     style="background-image: url('${item.image_url || 'https://via.placeholder.com/60x90/050505/333?text=NO_IMG'}');">
+                </div>
+
+                <div class="review-info">
+                    <div class="review-top">
+                        <span class="review-title" style="color:${color}">${item.titolo}</span>
+                        <span class="rating-stars">${getStarRating(item.rating)}</span>
+                    </div>
+                    
+                    <div class="review-comment">${item.commento || ''}</div>
+                    
+                    <div class="review-meta">
+                        <span style="opacity:0.7">${item.categoria}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                </div>
             </div>
-            <div class="review-comment">${item.commento}</div>
-            <div class="review-meta">
-                <span>${item.categoria}</span>
-                <span>${new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}</span>
-            </div>
-        </div>
-    </div>
-    `).join('');
+        `;
+    }).join('');
+
+    // Rinfresco icone se necessario
+    if(window.lucide) lucide.createIcons();
 }
 
 // Funzione per generare le stelle (★ e ½)
@@ -1907,12 +1933,3 @@ function closeReviewDetail() {
     document.getElementById('review-detail-modal').style.display = 'none';
     document.getElementById('modal-backdrop').style.display = 'none';
 }
-
-
-const catColors = {
-    'FILM': '#00d4ff',    // Ciano
-    'SERIE': '#ff0055',   // Rosso/Rosa
-    'GAME': '#00ff44',    // Verde
-    'COMIC': '#ffcc00',   // Giallo
-    'WISH': '#888888'     // Grigio
-};
