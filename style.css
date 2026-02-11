@@ -1442,7 +1442,7 @@ CSS
     background: rgba(15, 15, 15, 0.6);
     border: 1px solid #222;
     border-radius: 6px;
-    height: 95px;
+    height: 120px;
     overflow: hidden;
     transition: 0.2s;
 }
@@ -1453,7 +1453,7 @@ CSS
 }
 
 .poster-mini {
-    width: 65px;
+    width: 100px;
     height: 100%;
     background-size: cover;
     background-position: center;
@@ -1468,6 +1468,7 @@ CSS
     flex-direction: column;
     gap: 4px;
     min-width: 0; /* Fix per il truncate del testo */
+    margin-left: 5px;
 }
 
 .review-top {
