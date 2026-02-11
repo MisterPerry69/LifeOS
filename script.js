@@ -1949,48 +1949,30 @@ function openReviewDetail(id) {
     if (!modal) return;
 
     modal.innerHTML = `
-        <div class="review-detail-card" style="border-top: 4px solid ${color}">
-            
-            <div class="detail-backdrop" style="background-image: url('${item.image_url}');"></div>
-            
-            <button class="close-detail-btn" onclick="closeReviewDetail()">
-                <i data-lucide="x" style="width:18px; height:18px;"></i>
-            </button>
+        <div class="review-detail-card" style="border-top: 4px solid ${accent}">
+            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
 
-            <div class="detail-content">
-                
-                <div class="detail-left">
-                    <div class="poster-wrapper" onclick="window.open('${item.image_url}', '_blank')" title="Clicca per aprire immagine originale">
-                        <img src="${item.image_url}" onerror="this.src='https://via.placeholder.com/400x600/111/333?text=ERR'">
-                        <div class="poster-overlay">
-                            <i data-lucide="maximize-2" style="color:#fff; width:24px; height:24px;"></i>
-                        </div>
-                    </div>
+            <div class="review-detail-header">
+                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin:0; color:${accent}; text-transform:uppercase;">${item.titolo}</h1>
+                <div style="font-family:'JetBrains Mono'; font-size:11px; color:#666; margin-top:5px; letter-spacing:1px;">
+                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'N/D'}
+                </div>
+            </div>
+
+            <div class="review-detail-body">
+                <div class="review-detail-left">
+                    <img src="${item.image_url}" class="detail-poster-img" onclick="window.open('${item.image_url}', '_blank')">
                     
-                    <div style="background:rgba(0,0,0,0.6); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
-                        <div style="display:flex; justify-content:center; gap:5px; margin-bottom:5px;">
-                            ${renderStars(item.rating, color)}
+                    <div style="background:#0a0a0a; padding:15px; border-radius:4px; border:1px solid #1a1a1a; text-align:center;">
+                        <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">
+                            ${renderStars(item.rating, accent)}
                         </div>
-                        <span style="font-family:'Rajdhani'; font-size:1.2rem; font-weight:bold; color:${color}">
-                            ${item.rating} / 5
-                        </span>
+                        <div style="font-family:'Rajdhani'; font-size:1.4rem; color:${accent}; font-weight:bold;">${item.rating} / 5</div>
                     </div>
                 </div>
 
-                <div class="detail-right">
-                    <div class="detail-header">
-                        <h1 style="color:${color}">${item.titolo}</h1>
-                    </div>
-
-                    <div class="detail-meta-badges">
-                        <span class="meta-badge" style="border-color:${color}; color:${color}">${item.categoria}</span>
-                        <span class="meta-badge">${dateStr}</span>
-                        <span class="meta-badge" style="opacity:0.8">${item.metadata}</span>
-                    </div>
-
-                    <div class="detail-scroll-area">
-                        ${item.commento || 'Nessuna recensione disponibile.'}
-                    </div>
+                <div class="review-detail-right">
+                    ${item.commento_full || item.commento || 'Nessun testo.'}
                 </div>
             </div>
         </div>
