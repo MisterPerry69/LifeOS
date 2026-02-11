@@ -1914,8 +1914,7 @@ let currentReviewId = null;
 
 function openReviewDetail(id) {
     // 1. Trova l'item nei dati caricati
-    const item = currentReviews.find(r => r.id === id);
-    if (!item) {
+    const item = currentReviews.find(r => String(r.id).trim() === String(id).trim());    if (!item) {
         console.error("Item non trovato per ID:", id);
         return;
     }
