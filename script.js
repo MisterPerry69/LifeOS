@@ -1832,12 +1832,24 @@ function formatItalianDate(dateStr) {
 let allReviews = []; 
 
 function loadReviews() {
+    // FIX: usa i dati già caricati da loadStats
     if (lastStatsData && lastStatsData.reviews) {
-        allReviews = lastStatsData.reviews; // ← cambia qui
+        allReviews = lastStatsData.reviews;
         renderReviews(allReviews);
+    } else {
+        // Se non ci sono ancora dati, mostra loading
+        const list = document.getElementById('reviews-list');
+        if (list) list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">SYNCING...</div>`;
+        
+        // E aspetta che loadStats finisca
+        setTimeout(() => {
+            if (lastStatsData && lastStatsData.reviews) {
+                allReviews = lastStatsData.reviews;
+                renderReviews(allReviews);
+            }
+        }, 2000);
     }
 }
-
 function renderReviews(data) {
     const list = document.getElementById('reviews-list');
     if (!list) return;
@@ -1914,11 +1926,11 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-        console.log("Click ricevuto, ID:", id);
-    console.log("currentReviews disponibili:", currentReviews);
+    console.log("Click ricevuto, ID:", id);
+    console.log("allReviews disponibili:", allReviews);
     
-    if (!currentReviews || currentReviews.length === 0) {
-        console.error("currentReviews è vuoto!");
+    if (!allReviews || allReviews.length === 0) {
+        console.error("allReviews è vuoto, attendi il caricamento");
         return;
     }
     
@@ -1926,7 +1938,7 @@ function openReviewDetail(id) {
     console.log("Item trovato:", item);
     
     if (!item) {
-        console.error("Review non trovata:", id, currentReviews);
+        console.error("Review non trovata:", id, allReviews);
         return;
     }
 
