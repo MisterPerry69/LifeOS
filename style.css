@@ -1637,10 +1637,34 @@ CSS
     border-color: #444;
 }
 
-/* --- OTTIMIZZAZIONE MOBILE (Sotto i 600px) --- */
+/* RESPONSIVE MOBILE */
 @media (max-width: 600px) {
-    
-    /* 1. Sblocchiamo l'altezza fissa */
+    .review-detail-card {
+        padding: 40px 20px 20px 20px !important; /* Più spazio per il tasto ESC */
+    }
+
+    .review-main-content {
+        display: flex;
+        flex-direction: column; /* Tutto in verticale */
+        gap: 20px;
+        align-items: center; /* Poster centrato */
+    }
+
+    .detail-poster-zone {
+        width: 180px; /* Poster più piccolo e leggibile su mobile */
+    }
+
+    .review-text-zone {
+        text-align: left;
+        width: 100%;
+    }
+
+    #reviews.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+}
+/* 1. Sblocchiamo l'altezza fissa */
     .review-card {
         height: auto !important; /* Lascia che la card si allunghi se serve */
         min-height: 125px; /* Altezza minima dignitosa */
@@ -1650,7 +1674,7 @@ CSS
 
     /* 2. Il Poster si adatta in altezza */
     .poster-mini {
-        width: 85px; /* Un pelino più largo per vederlo meglio */
+        width: 100px; /* Un pelino più largo per vederlo meglio */
         height: auto !important; /* Si adatta all'altezza della card */
         min-height: 125px;
         align-self: stretch; /* Occupa tutta l'altezza verticale */
@@ -1693,11 +1717,12 @@ CSS
 
     /* 7. Commento: Più righe visibili */
     .review-comment {
-        font-size: 0.85rem !important;
-        line-height: 1.4;
-        -webkit-line-clamp: 3 !important; /* Mostra fino a 3 righe di testo! */
+        font-size: 0.75rem !important;
+        line-height: 1.2;
+        -webkit-line-clamp: 4 !important; /* Mostra fino a 3 righe di testo! */
         margin-bottom: 8px; /* Spinge via i metadati */
         flex: 1; /* Prende lo spazio disponibile */
+        hyphens: auto;
     }
 
     /* 8. Meta (Data e Categoria) in fondo */
@@ -1709,13 +1734,8 @@ CSS
         justify-content: space-between;
         opacity: 0.6;
     }
-
-    #reviews.page {
-    height: 100vh;
-    padding: 0;
-    overflow: hidden;
-    }
 }
+
 /* Scrollbar minimale per la card */
 .review-detail-card::-webkit-scrollbar { width: 4px; }
 .review-detail-card::-webkit-scrollbar-thumb { background: #222; }
