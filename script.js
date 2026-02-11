@@ -1948,6 +1948,13 @@ function openReviewDetail(id) {
     const modal = document.getElementById('review-detail-modal');
     if (!modal) return;
 
+    let fullDate = "--";
+    if (item.data) {
+        const d = item.data.split('-');
+        const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
+        fullDate = `${d[2]} ${mesi[parseInt(d[1])-1]} ${d[0]}`;
+    }
+
     modal.innerHTML = `
 <div class="review-detail-card" style="border-top: 3px solid ${color}">
             <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
