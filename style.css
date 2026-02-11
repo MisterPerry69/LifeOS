@@ -1534,18 +1534,15 @@ CSS
 }
 
 .review-detail-card {
-    width: 90%;
-    max-width: 400px;
-    background: #050505;
-    border: 1px solid #222;
-    border-radius: 12px;
-    overflow: hidden;
     position: relative;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    background: #0a0a0a !important;
-    border: 1px solid #222;
-    box-shadow: 0 0 30px rgba(0,0,0,1);
-    animation: slideIn 0.3s ease-out;
+    width: 90%;
+    max-width: 850px;
+    background: #050505; /* Nero profondo */
+    border: 1px solid #1a1a1a;
+    display: flex; /* Layout orizzontale */
+    padding: 0; 
+    overflow: hidden;
+    max-height: 85vh;
 }
 
 
@@ -1579,145 +1576,106 @@ CSS
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Modal fullscreen su mobile */
-@media (max-width: 600px) {
-    #review-detail-modal { align-items: flex-start !important; }
-    .review-detail-card { 
-        width: 100% !important; 
-        height: 100% !important; 
-        max-width: none !important; 
-        max-height: none !important; 
-        border-radius: 0 !important;
-        border-left: none !important;
-        border-top: 4px solid var(--accent); /* Bordo in alto su mobile */
-    }
-}
-
-.detail-main-row {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-}
-
-
-.review-modal-container {
-    width: 600px !important;
-    height: 70vh !important;
-    max-width: 95vw;
-    background: #050505;
-    border: 1px solid #222;
+/* --- IL CUORE DEL DETTAGLIO --- */
+.review-detail-card {
+    position: relative;
+    width: 95%;
+    max-width: 850px;
+    background: #050505 !important; /* Forza il nero */
+    border: 1px solid #1a1a1a !important;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
-    border-radius: 4px;
-    position: relative;
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    max-height: 90vh; /* Non deve uscire dallo schermo */
+    overflow: hidden; /* Evita che il contenuto sbordi dai bordi arrotondati */
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
 }
 
-.review-modal-header {
+/* La testata con Titolo e Metadati */
+.review-detail-header {
+    padding: 25px 30px 15px 30px;
+    border-bottom: 1px solid #111;
+}
+
+/* IL WRAPPER CHE TIENE POSTER (SX) E TESTO (DX) */
+.review-detail-body {
+    display: flex; /* Mette poster e testo affiancati */
+    gap: 30px;
+    padding: 20px 30px 30px 30px;
+    overflow-y: auto; /* Se il contenuto è troppo alto, scrolla solo qui */
+    flex: 1; /* Prende tutto lo spazio rimanente */
+}
+
+/* COLONNA SINISTRA: Poster e Voto */
+.review-detail-left {
+    width: 220px;
+    flex-shrink: 0; /* Impedisce al poster di rimpicciolirsi */
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    border-bottom: 1px solid #1a1a1a;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.review-close-btn {
+.detail-poster-img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid #222;
+    transition: 0.3s;
     cursor: pointer;
-    font-size: 11px;
-    letter-spacing: 1px;
-    color: var(--dim);
-    font-weight: 700;
 }
 
-.review-modal-body {
-    padding: 25px;
-    overflow-y: auto;
-    flex: 1;
+.detail-poster-img:hover {
+    border-color: var(--accent);
+    filter: brightness(1.2);
 }
 
-.review-main-content {
-    display: flex;
-    gap: 25px;
-    margin-bottom: 25px;
+/* COLONNA DESTRA: Testo scrollabile */
+.review-detail-right {
+    flex: 1; /* Si prende tutto lo spazio che resta */
+    font-family: 'JetBrains Mono', monospace;
+    color: #ccc;
+    line-height: 1.7;
+    font-size: 0.95rem;
+    padding-right: 10px;
 }
 
-.review-poster-frame {
-    width: 120px;
-    height: 180px;
-    background-size: cover;
-    background-position: center;
-    background-color: #111;
-    border: 1px solid #333;
-    border-radius: 4px;
-    flex-shrink: 0;
-}
-
-.review-meta-text {
-    font-size: 11px;
-    color: var(--dim);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-top: 10px;
-}
-
-.review-full-comment label {
-    font-size: 9px;
-    color: var(--accent);
-    opacity: 0.6;
-    display: block;
-    margin-bottom: 12px;
-}
-
-.review-full-comment div {
-    color: #eee;
-    line-height: 1.6;
-    font-size: 15px;
-    white-space: pre-wrap;
-}
-
-/* Mobile Fullscreen */
-@media (max-width: 600px) {
-    .review-modal-container {
-        width: 100vw !important;
-        height: 100vh !important;
-        border: none;
-        border-radius: 0;
-    }
-}
-
-/* Effetto neon al poster nel dettaglio */
-.detail-poster {
-    position: relative;
-    overflow: hidden;
-}
-.detail-poster::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
-    pointer-events: none;
-}
-
-/* Scrollbar stilizzata per la recensione lunga */
-.review-detail-card {
-    max-height: 85vh;
-    overflow-y: auto;
-}
-
-.review-detail-card::-webkit-scrollbar {
+/* Scrollbar per il testo a destra */
+.review-detail-right::-webkit-scrollbar {
     width: 4px;
 }
-.review-detail-card::-webkit-scrollbar-thumb {
-    background: #333;
+.review-detail-right::-webkit-scrollbar-thumb {
+    background: #222;
+    border-radius: 10px;
 }
-/* Nel tuo CSS */
-@media (max-width: 600px) {
-    .review-detail-card > div {
-        flex-direction: column !important; /* Poster sopra, testo sotto su smartphone */
-        align-items: center !important;
+
+/* IL TASTO ESC (Nero, non bianco!) */
+.esc-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #111 !important;
+    border: 1px solid #333 !important;
+    color: #888 !important;
+    padding: 5px 12px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 100;
+    transition: 0.2s;
+}
+
+.esc-btn:hover {
+    color: #fff !important;
+    border-color: #555 !important;
+}
+
+/* MOBILE FIX: Uno sotto l'altro solo se lo schermo è piccolo */
+@media (max-width: 650px) {
+    .review-detail-body {
+        flex-direction: column;
+        align-items: center;
     }
-    .detail-poster {
-        width: 180px !important; /* Un po' più piccolo su mobile */
-        margin-bottom: 20px;
+    .review-detail-left {
+        width: 180px;
     }
-}   
+}
