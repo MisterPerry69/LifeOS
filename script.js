@@ -1989,7 +1989,7 @@ function openReviewDetail(id) {
                     </div>
 
                     <div class="detail-scroll-area">
-                        ${textContent}
+                        ${item.commento || 'Nessuna recensione disponibile.'}
                     </div>
                 </div>
             </div>
