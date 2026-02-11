@@ -1862,12 +1862,8 @@ function renderReviews(data) {
         // Recupero colore categoria
         const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
         
-        let dateDisplay = "--";
-        if (rev.data) {
-            const d = new Date(rev.data);
-            dateDisplay = d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }).toUpperCase();
-            // Risultato: "11 FEB"
-        }
+        // Formattazione data
+        const dateStr = item.data ? new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}) : '--';
 
         return `
             <div class="review-card" 
