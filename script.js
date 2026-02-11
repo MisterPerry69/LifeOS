@@ -1849,7 +1849,6 @@ function renderReviews(data) {
         return;
     }
 
-    // Tabella colori interna (se non l'hai messa globale)
     const catColors = {
         'FILM': '#00d4ff',
         'SERIE': '#ff0055',
@@ -1859,11 +1858,31 @@ function renderReviews(data) {
     };
 
     list.innerHTML = data.map(item => {
-        // Recupero colore categoria
         const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
         
-        // Formattazione data
-        const dateStr = item.data ? new Date(item.data).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}) : '--';
+        // --- FIX DATA (Giorno e Mese abbreviato) ---
+        // Se il server manda YYYY-MM-DD, questo non sbaglia mai
+        let dateStr = '--';
+        if (item.data) {
+            const d = new Date(item.data);
+            dateStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'}).toUpperCase().replace('.', '');
+        }
+
+        // --- LOGICA STELLE LUCIDE (Piena, Mezza, Vuota) ---
+        const rating = parseFloat(item.rating) || 0;
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            if (rating >= i) {
+                // Stella Piena
+                starsHtml += `<i data-lucide="star" style="fill:${color}; color:${color}; width:12px; height:12px;"></i>`;
+            } else if (rating >= i - 0.5) {
+                // Stella Mezza
+                starsHtml += `<i data-lucide="star-half" style="fill:${color}; color:${color}; width:12px; height:12px;"></i>`;
+            } else {
+                // Stella Vuota
+                starsHtml += `<i data-lucide="star" style="color:#333; width:12px; height:12px;"></i>`;
+            }
+        }
 
         return `
             <div class="review-card" 
@@ -1871,18 +1890,23 @@ function renderReviews(data) {
                  style="border-left: 3px solid ${color}; cursor:pointer;">
                 
                 <div class="poster-mini" 
-                     style="background-image: url('${item.image_url || 'https://via.placeholder.com/60x90/050505/333?text=NO_IMG'}');">
+                     style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
+                     ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
                 </div>
 
                 <div class="review-info">
                     <div class="review-top">
-                        <span class="review-title" style="color:${color}">${item.titolo}</span>
-                        <span class="rating-stars">${getStarRating(item.rating)}</span>
+                        <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
+                        <div class="rating-stars" style="display:flex; gap:2px;">
+                            ${starsHtml}
+                        </div>
                     </div>
                     
-                    <div class="review-comment">${item.riassunto_ai || ''}</div>
+                    <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
+                        ${item.commento_breve || item.riassunto_ai || ''}
+                    </div>
                     
-                    <div class="review-meta">
+                    <div class="review-meta" style="font-family:'JetBrains Mono';">
                         <span style="opacity:0.7">${item.categoria}</span>
                         <span>${dateStr}</span>
                     </div>
@@ -1891,7 +1915,7 @@ function renderReviews(data) {
         `;
     }).join('');
 
-    // Rinfresco icone se necessario
+    // Fondamentale: dice a Lucide di disegnare le icone che abbiamo appena iniettato
     if(window.lucide) lucide.createIcons();
 }
 

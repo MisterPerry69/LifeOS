@@ -1443,7 +1443,6 @@ CSS
     border: 1px solid #222;
     border-radius: 6px;
     height: 140px; /* Altezza fissa per ordine visivo */    
-    overflow: hidden;
     transition: 0.2s;
 }
 
@@ -1469,6 +1468,7 @@ CSS
     gap: 4px;
     min-width: 0; /* Fix per il truncate del testo */
     margin-left: 5px;
+    justify-content: space-between;
 }
 
 .review-top {
