@@ -1949,26 +1949,31 @@ function openReviewDetail(id) {
     if (!modal) return;
 
     modal.innerHTML = `
-       <div class="review-detail-card" style="border-top: 3px solid ${color}">
+<div class="review-detail-card" style="border-top: 3px solid ${accent}">
             <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
 
-            <div style="margin-bottom: 5px;">
-                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; text-transform: uppercase;">${item.titolo}</h1>
-                <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 5px 0 0 0;">
-                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'INFO_NON_DISP'}
+            <div style="margin-bottom: 5px; text-align: left;">
+                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${accent}; text-transform: uppercase; line-height:1.1;">
+                    ${item.titolo}
+                </h1>
+                <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 8px 0 0 0; letter-spacing:0.5px;">
+                    <span style="color:#888">${fullDate}</span> • 
+                    <span style="color:${accent}">${item.categoria}</span> • 
+                    ${item.metadata || 'NO_INFO'}
                 </p>
             </div>
 
             <div class="review-main-content">
                 
                 <div class="detail-poster-zone">
-                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')">
+                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')" 
+                         style="box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
                     
-                    <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center;">
+                    <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center; border-radius:2px;">
                         <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">
-                            ${renderStars(item.rating, color)}
+                            ${renderStars(item.rating, accent)}
                         </div>
-                        <div style="font-family:'Rajdhani'; font-size: 1.2rem; color:${color}; font-weight:bold;">${item.rating} / 5</div>
+                        <div style="font-family:'Rajdhani'; font-size: 1.3rem; color:${accent}; font-weight:bold;">${item.rating} / 5</div>
                     </div>
                 </div>
 

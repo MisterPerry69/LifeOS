@@ -1581,12 +1581,16 @@ CSS
 .review-detail-card {
     background: #050505 !important;
     border: 1px solid #1a1a1a !important;
-    padding: 30px !important; /* Margine interno generoso */
+    padding: 30px !important;
     width: 90%;
     max-width: 800px;
     border-radius: 4px;
     position: relative;
-    display: block; /* Torniamo al block semplice per sicurezza */
+    /* FIX MOBILE: La card intera può scrollare se il contenuto eccede */
+    max-height: 90vh;
+    overflow-y: auto; 
+    display: block;
+
 }
 
 /* Griglia interna per affiancare le cose */
@@ -1610,9 +1614,7 @@ CSS
     font-size: 0.95rem;
     line-height: 1.6;
     color: #ccc;
-    max-height: 500px;
-    overflow-y: auto;
-    padding-right: 15px;
+    white-space: pre-wrap;
 }
 
 /* Il tasto ESC (Piccolo, a destra, scuro) */
@@ -1635,8 +1637,29 @@ CSS
     border-color: #444;
 }
 
-/* Fix per mobile */
+/* RESPONSIVE MOBILE */
 @media (max-width: 600px) {
-    .review-main-content { grid-template-columns: 1fr; }
-    .detail-poster-zone { width: 150px; margin: 0 auto; }
+    .review-detail-card {
+        padding: 40px 20px 20px 20px !important; /* Più spazio per il tasto ESC */
+    }
+
+    .review-main-content {
+        display: flex;
+        flex-direction: column; /* Tutto in verticale */
+        gap: 20px;
+        align-items: center; /* Poster centrato */
+    }
+
+    .detail-poster-zone {
+        width: 180px; /* Poster più piccolo e leggibile su mobile */
+    }
+
+    .review-text-zone {
+        text-align: left;
+        width: 100%;
+    }
 }
+
+/* Scrollbar minimale per la card */
+.review-detail-card::-webkit-scrollbar { width: 4px; }
+.review-detail-card::-webkit-scrollbar-thumb { background: #222; }
