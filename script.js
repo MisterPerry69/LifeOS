@@ -1808,23 +1808,24 @@ async function handleGhostInput(event) {
 //REVIEWS SECTION//
 
 
-function renderStars(rating) {
-    let stars = '';
-    const fullStars = Math.floor(rating);
-    const hasHalf = rating % 1 !== 0;
+function renderStars(rating, color) {
+    let starsHtml = '';
+    const r = parseFloat(rating) || 0;
+    for (let i = 1; i <= 5; i++) {
+        if (r >= i) starsHtml += `<i data-lucide="star" style="fill:${color}; color:${color}; width:16px; height:16px;"></i>`;
+        else if (r >= i - 0.5) starsHtml += `<i data-lucide="star-half" style="fill:${color}; color:${color}; width:16px; height:16px;"></i>`;
+        else starsHtml += `<i data-lucide="star" style="color:#333; width:16px; height:16px;"></i>`;
+    }
+    return starsHtml;
+}
 
-    for (let i = 0; i < fullStars; i++) {
-        stars += '★'; // Stella piena
-    }
-    if (hasHalf) {
-        stars += '½'; // Mezza stella
-    }
-    // Riempi fino a 5 con stelle vuote se vuoi
-    const emptyStars = 5 - Math.ceil(rating);
-    for (let i = 0; i < emptyStars; i++) {
-        stars += '☆';
-    }
-    return stars;
+function formatItalianDate(dateStr) {
+    if (!dateStr) return "--";
+    // Splittiamo YYYY-MM-DD per evitare inversioni del browser
+    const parts = dateStr.split('-');
+    if (parts.length < 3) return dateStr;
+    const months = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
+    return `${parts[2]} ${months[parseInt(parts[1]) - 1]}`;
 }
 
 let allReviews = []; 
@@ -1869,20 +1870,8 @@ function renderReviews(data) {
         }
 
         // --- LOGICA STELLE LUCIDE (Piena, Mezza, Vuota) ---
-        const rating = parseFloat(item.rating) || 0;
-        let starsHtml = '';
-        for (let i = 1; i <= 5; i++) {
-            if (rating >= i) {
-                // Stella Piena
-                starsHtml += `<i data-lucide="star" style="fill:${color}; color:${color}; width:12px; height:12px;"></i>`;
-            } else if (rating >= i - 0.5) {
-                // Stella Mezza
-                starsHtml += `<i data-lucide="star-half" style="fill:${color}; color:${color}; width:12px; height:12px;"></i>`;
-            } else {
-                // Stella Vuota
-                starsHtml += `<i data-lucide="star" style="color:#333; width:12px; height:12px;"></i>`;
-            }
-        }
+        const dateStr = formatItalianDate(item.data);
+        const starsHtml = renderStars(item.rating, color);
 
         return `
             <div class="review-card" 
@@ -1929,35 +1918,42 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-    // Cerchiamo nell'array globale che carichiamo con loadStats
-    const review = allReviews.find(r => String(r.id) === String(id)); 
-    if (!review) {
-        console.error("Review non trovata per ID:", id);
-        return;
-    }
+    const item = currentReviews.find(r => r.id === id);
+    if (!item) return;
 
-    const colors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' };
-    const activeColor = colors[review.categoria?.toUpperCase()] || 'var(--accent)';
-
-    document.getElementById('detail-review-title').innerText = review.titolo.toUpperCase();
-    document.getElementById('detail-review-stars').innerText = getStarRating(review.rating);
-    document.getElementById('detail-review-meta').innerText = `${review.categoria} // ${review.data}`;
-    document.getElementById('detail-review-comment').innerText = review.commento;
+    const color = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' }[item.categoria] || '#fff';
+    const modal = document.getElementById('review-detail-modal');
     
-    const modalContainer = document.querySelector('.review-modal-container');
-    modalContainer.style.borderLeft = `4px solid ${activeColor}`;
-    document.getElementById('detail-review-title').style.color = activeColor;
+    modal.innerHTML = `
+        <div class="review-detail-card" style="border-top: 4px solid ${color}; width: 90%; max-width: 800px; background: #050505; color: #fff; position: relative; padding: 30px;">
+            <button class="esc-btn" onclick="closeReviewDetail()" style="position: absolute; top: 15px; right: 15px;">ESC</button>
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 1px solid #1a1a1a; padding-bottom: 15px;">
+                <div>
+                    <h1 style="font-family:'Rajdhani'; font-size: 2.5rem; margin: 0; color: ${color}; line-height: 1;">${item.titolo.toUpperCase()}</h1>
+                    <div style="font-family:'JetBrains Mono'; font-size: 12px; color: var(--dim); margin-top: 5px;">
+                        ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'N/D'}
+                    </div>
+                </div>
+                <div style="display: flex; gap: 4px; background: #111; padding: 10px; border-radius: 4px;">
+                    ${renderStars(item.rating, color)}
+                </div>
+            </div>
 
-    const posterDiv = document.getElementById('detail-review-poster');
-    if (review.image_url && review.image_url.startsWith('http')) {
-        posterDiv.style.backgroundImage = `url('${review.image_url}')`;
-        posterDiv.style.display = 'block';
-    } else {
-        posterDiv.style.display = 'none';
-    }
-
-    document.getElementById('review-detail-modal').style.display = 'flex';
-    document.getElementById('modal-backdrop').style.display = 'block';
+            <div style="display: flex; gap: 30px; align-items: flex-start;">
+                <div class="detail-poster" style="width: 250px; flex-shrink: 0; border: 1px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <img src="${item.image_url}" style="width: 100%; display: block;" onerror="this.style.display='none'">
+                </div>
+                
+                <div style="flex: 1; font-family: 'JetBrains Mono'; line-height: 1.6; color: #ddd; font-size: 1rem; white-space: pre-wrap;">
+                    ${item.commento_full || item.commento}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    if(window.lucide) lucide.createIcons();
 }
 
 function closeReviewDetail() {
