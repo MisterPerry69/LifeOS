@@ -1863,44 +1863,52 @@ function renderReviews(data) {
     };
 
     list.innerHTML = data.map(item => {
-        const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
-        
-        // Usiamo le funzioni esterne dichiarate sopra
-        const dateStr = formatItalianDate(item.data);
-        const starsHtml = renderStars(item.rating, color);
+    const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
+    const dateStr = formatItalianDate(item.data);
+    const starsHtml = renderStars(item.rating, color);
 
-        return `
-            <div class="review-card" 
-                 onclick="openReviewDetail('${item.id}')" 
-                 style="border-left: 3px solid ${color}; cursor:pointer;">
-                
-                <div class="poster-mini" 
-                     style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
-                     ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
+    return `
+        <div class="review-card" 
+             data-review-id="${item.id}"
+             style="border-left: 3px solid ${color}; cursor:pointer;">
+            
+            <div class="poster-mini" 
+                 style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
+                 ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
+            </div>
+
+            <div class="review-info">
+                <div class="review-top">
+                    <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
+                    <div class="rating-stars" style="display:flex; gap:2px;">
+                        ${starsHtml}
+                    </div>
                 </div>
-
-                <div class="review-info">
-                    <div class="review-top">
-                        <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
-                        <div class="rating-stars" style="display:flex; gap:2px;">
-                            ${starsHtml}
-                        </div>
-                    </div>
-                    
-                    <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
-                        ${item.commento_breve || ''}
-                    </div>
-                    
-                    <div class="review-meta" style="font-family:'JetBrains Mono';">
-                        <span style="opacity:0.7">${item.categoria}</span>
-                        <span>${dateStr}</span>
-                    </div>
+                
+                <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
+                    ${item.commento_breve || item.riassunto_ai || ''}
+                </div>
+                
+                <div class="review-meta" style="font-family:'JetBrains Mono';">
+                    <span style="opacity:0.7">${item.categoria}</span>
+                    <span>${dateStr}</span>
                 </div>
             </div>
-        `;
-    }).join('');
+        </div>
+    `;
+}).join('');
 
-    if(window.lucide) lucide.createIcons();
+// AGGIUNGI QUESTO DOPO aver generato l'HTML:
+// Event delegation - un solo listener per tutte le card
+list.querySelectorAll('.review-card').forEach(card => {
+    card.onclick = () => {
+        const id = card.getAttribute('data-review-id');
+        if (id) openReviewDetail(id);
+    };
+});
+
+if(window.lucide) lucide.createIcons();
+
 }
 
 // Funzione per generare le stelle (★ e ½)
@@ -1913,20 +1921,20 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
-    // 1. Trova l'item nei dati caricati
-    const item = currentReviews.find(r => String(r.id).trim() === String(id).trim());    if (!item) {
-        console.error("Item non trovato per ID:", id);
+    // FIX: usa currentReviews che è l'array globale caricato
+    const item = currentReviews.find(r => String(r.id) === String(id));
+    
+    if (!item) {
+        console.error("Review non trovata:", id, currentReviews);
         return;
     }
 
-    // 2. Definizione colori
-    const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
+    const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' };
     const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
     
     const modal = document.getElementById('review-detail-modal');
     if (!modal) return;
 
-    // 3. Generazione HTML Dettaglio (Layout Poster Sinistra | Testo Destra)
     modal.innerHTML = `
         <div class="review-detail-card" style="border-top: 4px solid ${color};">
             <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
@@ -1936,7 +1944,7 @@ function openReviewDetail(id) {
                     ${item.titolo.toUpperCase()}
                 </h1>
                 <div style="font-family:'JetBrains Mono'; font-size: 11px; color: var(--dim); margin-top: 8px; letter-spacing: 1px;">
-                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'DATI_NON_DISPONIBILI'}
+                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || ''}
                 </div>
             </div>
 
@@ -1944,7 +1952,8 @@ function openReviewDetail(id) {
                 
                 <div style="width: 200px; flex-shrink: 0;">
                     <div class="detail-poster" style="border: 1px solid #222; background: #111; margin-bottom: 15px;">
-                        <img src="${item.image_url}" style="width: 100%; display: block;" onerror="this.src='https://via.placeholder.com/200x300/050505/333?text=NO_POSTER'">
+                        <img src="${item.image_url}" style="width: 100%; display: block;" 
+                             onerror="this.src='https://via.placeholder.com/200x300/050505/333?text=NO_POSTER'">
                     </div>
                     <div style="display: flex; justify-content: center; gap: 4px; background: #0a0a0a; padding: 10px; border: 1px solid #1a1a1a;">
                         ${renderStars(item.rating, color)}
@@ -1952,15 +1961,15 @@ function openReviewDetail(id) {
                 </div>
                 
                 <div class="detail-text" style="flex: 1; font-family: 'JetBrains Mono'; line-height: 1.6; color: #eee; font-size: 0.95rem; white-space: pre-wrap; max-height: 450px; overflow-y: auto; padding-right: 10px;">
-${item.commento_full || item.commento || 'Nessuna recensione dettagliata disponibile.'}
+${item.commento || 'Nessuna recensione disponibile.'}
                 </div>
             </div>
         </div>
     `;
     
     modal.style.display = 'flex';
+    document.getElementById('modal-backdrop').style.display = 'block';
     
-    // 4. Ricarica le icone Lucide per le stelle nel dettaglio
     if(window.lucide) lucide.createIcons();
 }
 
