@@ -23,6 +23,7 @@ let detailMonthOffset = 0;
 let draggedItem = null;
 let charts = {};
 let deleteTarget = null;
+let currentReviews = [];
 
 
 // ============================================
@@ -1830,14 +1831,17 @@ function formatItalianDate(dateStr) {
 
 let allReviews = []; 
 
-function loadReviews() {
-    if (lastStatsData && lastStatsData.reviews) {
-        allReviews = lastStatsData.reviews;
-        renderReviews(allReviews);
-    } else {
-        // Dati non ancora caricati, aspetta loadStats
-        const list = document.getElementById('reviews-list');
-        if (list) list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">[ SYNCING... ]</div>`;
+async function loadReviews() {
+    try {
+        const response = await fetch(SCRIPT_URL + "?action=getStats");
+        const data = await response.json();
+        
+        // IL PASSAGGIO CHIAVE:
+        currentReviews = data.reviews; // Salviamo i dati globalmente
+        
+        renderReviews(currentReviews); // Poi disegniamo la lista
+    } catch (err) {
+        console.error("Errore caricamento reviews:", err);
     }
 }
 
