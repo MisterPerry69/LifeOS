@@ -74,7 +74,7 @@
           <span style="font-size: 10px; opacity: 0.4; margin-left: 5px;">SPENT_MONTH</span>
         </div>
       </div>
-      
+
 
       <div class="widget" onclick="nav('habit')">
         <i data-lucide="activity"></i>
@@ -624,35 +624,24 @@
   </div>
 </div>
 
-<div id="review-entry-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;" onclick="if(event.target === this) closeReviewEntry()">
-  <div class="review-modal-container">
-    
-    <div class="review-modal-header">
-      <h1 style="color: var(--accent);">NEW_NEURAL_ENTRY</h1>
-      <div class="review-close-btn" onclick="closeReviewEntry()">ANNULLA [X]</div>
-    </div>
+<div id="review-entry-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
+    <div class="review-detail-card" style="border-left: 4px solid #fff; padding:25px;">
+        <h2 style="font-family:'Rajdhani'; color:#fff; margin-bottom:5px;">NEW_ENTRY</h2>
+        <p style="font-size:10px; color:var(--dim); margin-bottom:20px;">Scrivi titolo, voto (0-5) e commento. L'AI penserà al resto.</p>
+        
+        <textarea id="ai-review-input" placeholder="Es: Ho visto Marty Supreme, 4 stelle. Regia pazzesca..." 
+                  style="width:100%; height:150px; background:#111; border:1px solid #333; color:#fff; padding:15px; border-radius:8px; font-family:inherit;"></textarea>
+        
+        <div id="ai-process-status" style="display:none; margin-top:10px; font-size:11px; color:var(--accent);">
+            <span class="blink-dot"></span> ANALISI_NEURALE_IN_CORSO...
+        </div>
 
-    <div class="review-modal-body">
-      <div class="review-main-content">
-        <div class="review-poster-frame" style="display: flex; align-items: center; justify-content: center; background: #111; border: 1px dashed #333;">
-           <span style="font-size: 9px; color: #444; text-align: center;">AI_POSTER_SEARCH</span>
+        <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+            <button class="esc-btn" onclick="closeReviewEntry()">ANNULLA</button>
+            <button id="btn-save-review" onclick="processReviewWithAI()" 
+                    style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:4px; font-weight:700;">PUBBLICA</button>
         </div>
-        <div class="review-info-side" style="flex: 1;">
-           <label style="font-size: 9px; color: var(--accent); opacity: 0.6; display: block; margin-bottom: 5px;">INPUT_TESTUALE</label>
-           <textarea id="ai-review-input" 
-                placeholder="Titolo, stelle, commento..." 
-                style="width:100%; height:140px; background:transparent; border:none; color:#fff; font-family:inherit; resize:none; outline:none; font-size:15px; line-height:1.5;"></textarea>
-        </div>
-      </div>
-      
-      <div style="border-top: 1px solid #1a1a1a; padding-top: 20px; display: flex; justify-content: flex-end;">
-        <div class="esc-btn" onclick="processReviewWithAI()" style="color: var(--accent); cursor: pointer; font-weight: bold; letter-spacing: 1px;">
-          [ AVVIA_SINCRONIZZAZIONE_NEURALE ]
-        </div>
-      </div>
     </div>
-
-  </div>
 </div>
 
   <!-- ============================================ -->

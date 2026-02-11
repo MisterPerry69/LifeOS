@@ -1961,18 +1961,23 @@ async function processReviewWithAI() {
 
     closeReviewEntry();
 
+// 2. Crea una card "LOADING" temporanea in cima alla lista
     const list = document.getElementById('reviews-list');
     const tempId = "temp_" + Date.now();
     const loadingCard = document.createElement('div');
     loadingCard.id = tempId;
     loadingCard.className = "review-card";
+    loadingCard.style.opacity = "0.5";
+    loadingCard.style.borderLeft = "3px solid var(--dim)";
     loadingCard.innerHTML = `
-        <div class="review-poster" style="background:#111; display:flex; align-items:center; justify-content:center;">
+        <div class="poster-mini" style="background: #111; display: flex; align-items: center; justify-content: center;">
             <div class="blink-dot"></div>
         </div>
         <div class="review-info">
-            <div class="review-top"><span class="review-title" style="color:var(--dim)">SINCRONIZZAZIONE...</span></div>
-            <div class="review-comment">Neural processing...</div>
+            <div class="review-top">
+                <span class="review-title" style="color:var(--dim)">ANALISI_IN_CORSO...</span>
+            </div>
+            <div class="review-comment">${input.substring(0, 50)}...</div>
         </div>
     `;
     list.prepend(loadingCard);
