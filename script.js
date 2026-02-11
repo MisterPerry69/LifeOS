@@ -1949,16 +1949,16 @@ function openReviewDetail(id) {
     if (!modal) return;
 
     modal.innerHTML = `
-<div class="review-detail-card" style="border-top: 3px solid ${accent}">
+<div class="review-detail-card" style="border-top: 3px solid ${color}">
             <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
 
             <div style="margin-bottom: 5px; text-align: left;">
-                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${accent}; text-transform: uppercase; line-height:1.1;">
+                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; text-transform: uppercase; line-height:1.1;">
                     ${item.titolo}
                 </h1>
                 <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 8px 0 0 0; letter-spacing:0.5px;">
                     <span style="color:#888">${fullDate}</span> • 
-                    <span style="color:${accent}">${item.categoria}</span> • 
+                    <span style="color:${color}">${item.categoria}</span> • 
                     ${item.metadata || 'NO_INFO'}
                 </p>
             </div>
@@ -1971,9 +1971,9 @@ function openReviewDetail(id) {
                     
                     <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center; border-radius:2px;">
                         <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">
-                            ${renderStars(item.rating, accent)}
+                            ${renderStars(item.rating, color)}
                         </div>
-                        <div style="font-family:'Rajdhani'; font-size: 1.3rem; color:${accent}; font-weight:bold;">${item.rating} / 5</div>
+                        <div style="font-family:'Rajdhani'; font-size: 1.3rem; color:${color}; font-weight:bold;">${item.rating} / 5</div>
                     </div>
                 </div>
 
