@@ -1442,7 +1442,7 @@ CSS
     background: rgba(15, 15, 15, 0.6);
     border: 1px solid #222;
     border-radius: 6px;
-    height: 120px;
+    height: 140px; /* Altezza fissa per ordine visivo */    
     overflow: hidden;
     transition: 0.2s;
 }
@@ -1494,15 +1494,21 @@ CSS
 }
 
 .review-comment {
-    font-size: 11px;
-    color: #aaa;
-    line-height: 1.2;
+    font-size: 0.85rem; /* Un pelo più grande per leggibilità */
+    color: #bbb; /* Grigio chiaro per contrasto su nero */
+    line-height: 1.4; /* Interlinea per respirare */
+    
+    /* Questo blocco fa la magia dei tre puntini */
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3; /* Mostra max 3 righe */
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
+    
+    margin-top: 5px;
+    margin-bottom: auto; /* Spinge la data in fondo alla card */
+    font-style: italic; /* Dà quel tocco di "citazione" */
 }
-
 .review-meta {
     margin-top: auto;
     display: flex;
