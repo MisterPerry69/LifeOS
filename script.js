@@ -1965,7 +1965,7 @@ function openReviewDetail(id) {
                 </h1>
                 <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 8px 0 0 0; letter-spacing:0.5px;">
                     <span style="color:#888">${fullDate}</span> • 
-                    <span style="color:${color}">${item.categoria}</span> • 
+                    <span style="color:${color}">${item.categoria}</span> </br> 
                     ${item.metadata || 'NO_INFO'}
                 </p>
             </div>
@@ -1984,9 +1984,7 @@ function openReviewDetail(id) {
                     </div>
                 </div>
 
-                <div class="review-text-zone">
-                    ${item.commento_full || item.commento || 'Nessun testo presente.'}
-                </div>
+                <div class="review-text-zone">${(item.commento_full || item.commento || 'Nessun testo.').trim()}</div>
 
             </div>
         </div>
