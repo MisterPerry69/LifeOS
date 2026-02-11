@@ -1951,7 +1951,7 @@ function openReviewDetail(id) {
     modal.innerHTML = `
         <div class="review-detail-card" style="border-top: 4px solid ${color}">
             
-            <div class="detail-backdrop" style="background-image: url('${imgUrl}');"></div>
+            <div class="detail-backdrop" style="background-image: url('${item.image_url}');"></div>
             
             <button class="close-detail-btn" onclick="closeReviewDetail()">
                 <i data-lucide="x" style="width:18px; height:18px;"></i>
@@ -1960,8 +1960,8 @@ function openReviewDetail(id) {
             <div class="detail-content">
                 
                 <div class="detail-left">
-                    <div class="poster-wrapper" onclick="window.open('${imgUrl}', '_blank')" title="Clicca per aprire immagine originale">
-                        <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/400x600/111/333?text=ERR'">
+                    <div class="poster-wrapper" onclick="window.open('${item.image_url}', '_blank')" title="Clicca per aprire immagine originale">
+                        <img src="${item.image_url}" onerror="this.src='https://via.placeholder.com/400x600/111/333?text=ERR'">
                         <div class="poster-overlay">
                             <i data-lucide="maximize-2" style="color:#fff; width:24px; height:24px;"></i>
                         </div>
