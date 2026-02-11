@@ -1577,105 +1577,66 @@ CSS
 }
 
 /* --- IL CUORE DEL DETTAGLIO --- */
+/* RESET SCHEDA DETTAGLIO - STILE BRAIN */
 .review-detail-card {
-    position: relative;
-    width: 95%;
-    max-width: 850px;
-    background: #050505 !important; /* Forza il nero */
+    background: #050505 !important;
     border: 1px solid #1a1a1a !important;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh; /* Non deve uscire dallo schermo */
-    overflow: hidden; /* Evita che il contenuto sbordi dai bordi arrotondati */
-    box-shadow: 0 0 40px rgba(0,0,0,0.8);
-}
-
-/* La testata con Titolo e Metadati */
-.review-detail-header {
-    padding: 25px 30px 15px 30px;
-    border-bottom: 1px solid #111;
-}
-
-/* IL WRAPPER CHE TIENE POSTER (SX) E TESTO (DX) */
-.review-detail-body {
-    display: flex; /* Mette poster e testo affiancati */
-    gap: 30px;
-    padding: 20px 30px 30px 30px;
-    overflow-y: auto; /* Se il contenuto è troppo alto, scrolla solo qui */
-    flex: 1; /* Prende tutto lo spazio rimanente */
-}
-
-/* COLONNA SINISTRA: Poster e Voto */
-.review-detail-left {
-    width: 220px;
-    flex-shrink: 0; /* Impedisce al poster di rimpicciolirsi */
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.detail-poster-img {
-    width: 100%;
-    height: auto;
+    padding: 30px !important; /* Margine interno generoso */
+    width: 90%;
+    max-width: 800px;
     border-radius: 4px;
+    position: relative;
+    display: block; /* Torniamo al block semplice per sicurezza */
+}
+
+/* Griglia interna per affiancare le cose */
+.review-main-content {
+    display: grid;
+    grid-template-columns: 220px 1fr; /* Colonna fissa per poster, il resto al testo */
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.detail-poster-zone img {
+    width: 100%;
+    border-radius: 2px;
     border: 1px solid #222;
-    transition: 0.3s;
     cursor: pointer;
 }
 
-.detail-poster-img:hover {
-    border-color: var(--accent);
-    filter: brightness(1.2);
-}
-
-/* COLONNA DESTRA: Testo scrollabile */
-.review-detail-right {
-    flex: 1; /* Si prende tutto lo spazio che resta */
+/* Testo della recensione */
+.review-text-zone {
     font-family: 'JetBrains Mono', monospace;
-    color: #ccc;
-    line-height: 1.7;
     font-size: 0.95rem;
-    padding-right: 10px;
+    line-height: 1.6;
+    color: #ccc;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 15px;
 }
 
-/* Scrollbar per il testo a destra */
-.review-detail-right::-webkit-scrollbar {
-    width: 4px;
-}
-.review-detail-right::-webkit-scrollbar-thumb {
-    background: #222;
-    border-radius: 10px;
-}
-
-/* IL TASTO ESC (Nero, non bianco!) */
+/* Il tasto ESC (Piccolo, a destra, scuro) */
 .esc-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #111 !important;
-    border: 1px solid #333 !important;
-    color: #888 !important;
-    padding: 5px 12px;
-    font-family: 'Rajdhani', sans-serif;
+    top: 20px;
+    right: 20px;
+    background: #111;
+    border: 1px solid #333;
+    color: #666;
+    padding: 4px 10px;
+    font-family: 'Rajdhani';
     font-size: 12px;
     cursor: pointer;
-    z-index: 100;
-    transition: 0.2s;
+    text-transform: uppercase;
 }
 
 .esc-btn:hover {
-    color: #fff !important;
-    border-color: #555 !important;
+    color: #fff;
+    border-color: #444;
 }
 
-/* MOBILE FIX: Uno sotto l'altro solo se lo schermo è piccolo */
-@media (max-width: 650px) {
-    .review-detail-body {
-        flex-direction: column;
-        align-items: center;
-    }
-    .review-detail-left {
-        width: 180px;
-    }
+/* Fix per mobile */
+@media (max-width: 600px) {
+    .review-main-content { grid-template-columns: 1fr; }
+    .detail-poster-zone { width: 150px; margin: 0 auto; }
 }

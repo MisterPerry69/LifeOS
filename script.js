@@ -1949,31 +1949,33 @@ function openReviewDetail(id) {
     if (!modal) return;
 
     modal.innerHTML = `
-        <div class="review-detail-card" style="border-top: 4px solid ${accent}">
+       <div class="review-detail-card" style="border-top: 3px solid ${color}">
             <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
 
-            <div class="review-detail-header">
-                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin:0; color:${accent}; text-transform:uppercase;">${item.titolo}</h1>
-                <div style="font-family:'JetBrains Mono'; font-size:11px; color:#666; margin-top:5px; letter-spacing:1px;">
-                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'N/D'}
-                </div>
+            <div style="margin-bottom: 5px;">
+                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; text-transform: uppercase;">${item.titolo}</h1>
+                <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 5px 0 0 0;">
+                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'INFO_NON_DISP'}
+                </p>
             </div>
 
-            <div class="review-detail-body">
-                <div class="review-detail-left">
-                    <img src="${item.image_url}" class="detail-poster-img" onclick="window.open('${item.image_url}', '_blank')">
+            <div class="review-main-content">
+                
+                <div class="detail-poster-zone">
+                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')">
                     
-                    <div style="background:#0a0a0a; padding:15px; border-radius:4px; border:1px solid #1a1a1a; text-align:center;">
+                    <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center;">
                         <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">
-                            ${renderStars(item.rating, accent)}
+                            ${renderStars(item.rating, color)}
                         </div>
-                        <div style="font-family:'Rajdhani'; font-size:1.4rem; color:${accent}; font-weight:bold;">${item.rating} / 5</div>
+                        <div style="font-family:'Rajdhani'; font-size: 1.2rem; color:${color}; font-weight:bold;">${item.rating} / 5</div>
                     </div>
                 </div>
 
-                <div class="review-detail-right">
-                    ${item.commento_full || item.commento || 'Nessun testo.'}
+                <div class="review-text-zone">
+                    ${item.commento_full || item.commento || 'Nessun testo presente.'}
                 </div>
+
             </div>
         </div>
     `;
