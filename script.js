@@ -1949,32 +1949,48 @@ function openReviewDetail(id) {
     if (!modal) return;
 
     modal.innerHTML = `
-        <div class="review-detail-card" style="border-top: 4px solid ${color};">
-            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
+        <div class="review-detail-card" style="border-top: 4px solid ${color}">
             
-            <div class="detail-header" style="margin-bottom: 25px; border-bottom: 1px solid #1a1a1a; padding-bottom: 15px;">
-                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; line-height: 1.1;">
-                    ${item.titolo.toUpperCase()}
-                </h1>
-                <div style="font-family:'JetBrains Mono'; font-size: 11px; color: var(--dim); margin-top: 8px; letter-spacing: 1px;">
-                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || ''}
-                </div>
-            </div>
+            <div class="detail-backdrop" style="background-image: url('${imgUrl}');"></div>
+            
+            <button class="close-detail-btn" onclick="closeReviewDetail()">
+                <i data-lucide="x" style="width:18px; height:18px;"></i>
+            </button>
 
-            <div class="detail-body" style="display: flex; gap: 25px; align-items: flex-start;">
+            <div class="detail-content">
                 
-                <div style="width: 200px; flex-shrink: 0;">
-                    <div class="detail-poster" style="border: 1px solid #222; background: #111; margin-bottom: 15px;">
-                        <img src="${item.image_url}" style="width: 100%; display: block;" 
-                             onerror="this.src='https://via.placeholder.com/200x300/050505/333?text=NO_POSTER'">
+                <div class="detail-left">
+                    <div class="poster-wrapper" onclick="window.open('${imgUrl}', '_blank')" title="Clicca per aprire immagine originale">
+                        <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/400x600/111/333?text=ERR'">
+                        <div class="poster-overlay">
+                            <i data-lucide="maximize-2" style="color:#fff; width:24px; height:24px;"></i>
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: center; gap: 4px; background: #0a0a0a; padding: 10px; border: 1px solid #1a1a1a;">
-                        ${renderStars(item.rating, color)}
+                    
+                    <div style="background:rgba(0,0,0,0.6); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
+                        <div style="display:flex; justify-content:center; gap:5px; margin-bottom:5px;">
+                            ${renderStars(item.rating, color)}
+                        </div>
+                        <span style="font-family:'Rajdhani'; font-size:1.2rem; font-weight:bold; color:${color}">
+                            ${item.rating} / 5
+                        </span>
                     </div>
                 </div>
-                
-                <div class="detail-text" style="flex: 1; font-family: 'JetBrains Mono'; line-height: 1.6; color: #eee; font-size: 0.95rem; white-space: pre-wrap; max-height: 450px; overflow-y: auto; padding-right: 10px;">
-${item.commento || 'Nessuna recensione disponibile.'}
+
+                <div class="detail-right">
+                    <div class="detail-header">
+                        <h1 style="color:${color}">${item.titolo}</h1>
+                    </div>
+
+                    <div class="detail-meta-badges">
+                        <span class="meta-badge" style="border-color:${color}; color:${color}">${item.categoria}</span>
+                        <span class="meta-badge">${dateStr}</span>
+                        <span class="meta-badge" style="opacity:0.8">${metadata}</span>
+                    </div>
+
+                    <div class="detail-scroll-area">
+                        ${textContent}
+                    </div>
                 </div>
             </div>
         </div>
