@@ -1861,15 +1861,7 @@ function renderReviews(data) {
     list.innerHTML = data.map(item => {
         const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
         
-        // --- FIX DATA (Giorno e Mese abbreviato) ---
-        // Se il server manda YYYY-MM-DD, questo non sbaglia mai
-        let dateStr = '--';
-        if (item.data) {
-            const d = new Date(item.data);
-            dateStr = d.toLocaleDateString('it-IT', {day:'2-digit', month:'short'}).toUpperCase().replace('.', '');
-        }
-
-        // --- LOGICA STELLE LUCIDE (Piena, Mezza, Vuota) ---
+        // Usiamo le funzioni esterne dichiarate sopra
         const dateStr = formatItalianDate(item.data);
         const starsHtml = renderStars(item.rating, color);
 
@@ -1892,7 +1884,7 @@ function renderReviews(data) {
                     </div>
                     
                     <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
-                        ${item.commento_breve || item.riassunto_ai || ''}
+                        ${item.commento_breve || ''}
                     </div>
                     
                     <div class="review-meta" style="font-family:'JetBrains Mono';">
@@ -1904,7 +1896,6 @@ function renderReviews(data) {
         `;
     }).join('');
 
-    // Fondamentale: dice a Lucide di disegnare le icone che abbiamo appena iniettato
     if(window.lucide) lucide.createIcons();
 }
 
