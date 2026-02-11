@@ -1985,7 +1985,7 @@ function openReviewDetail(id) {
                     <div class="detail-meta-badges">
                         <span class="meta-badge" style="border-color:${color}; color:${color}">${item.categoria}</span>
                         <span class="meta-badge">${dateStr}</span>
-                        <span class="meta-badge" style="opacity:0.8">${metadata}</span>
+                        <span class="meta-badge" style="opacity:0.8">${item.metadata}</span>
                     </div>
 
                     <div class="detail-scroll-area">
