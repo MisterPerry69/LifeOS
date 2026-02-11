@@ -1637,29 +1637,85 @@ CSS
     border-color: #444;
 }
 
-/* RESPONSIVE MOBILE */
+/* --- OTTIMIZZAZIONE MOBILE (Sotto i 600px) --- */
 @media (max-width: 600px) {
-    .review-detail-card {
-        padding: 40px 20px 20px 20px !important; /* Più spazio per il tasto ESC */
+    
+    /* 1. Sblocchiamo l'altezza fissa */
+    .review-card {
+        height: auto !important; /* Lascia che la card si allunghi se serve */
+        min-height: 125px; /* Altezza minima dignitosa */
+        padding-right: 10px; /* Un po' di respiro a destra */
+        align-items: flex-start; /* Allinea tutto in alto */
     }
 
-    .review-main-content {
+    /* 2. Il Poster si adatta in altezza */
+    .poster-mini {
+        width: 85px; /* Un pelino più largo per vederlo meglio */
+        height: auto !important; /* Si adatta all'altezza della card */
+        min-height: 125px;
+        align-self: stretch; /* Occupa tutta l'altezza verticale */
+    }
+
+    /* 3. Info Container: Verticalizziamo l'intestazione */
+    .review-info {
+        padding: 12px 10px !important;
         display: flex;
-        flex-direction: column; /* Tutto in verticale */
-        gap: 20px;
-        align-items: center; /* Poster centrato */
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 6px; /* Spazio tra gli elementi */
     }
 
-    .detail-poster-zone {
-        width: 180px; /* Poster più piccolo e leggibile su mobile */
+    /* 4. Intestazione: Titolo sopra, Stelle sotto */
+    .review-top {
+        flex-direction: column !important; /* FONDAMENTALE: impila titolo e stelle */
+        align-items: flex-start !important;
+        gap: 4px;
+        margin-bottom: 2px;
     }
 
-    .review-text-zone {
-        text-align: left;
+    /* 5. Titolo: Più spazio e niente ... puntini subito */
+    .review-title {
+        white-space: normal !important; /* Permette di andare a capo */
+        font-size: 1.1rem !important;
+        line-height: 1.2;
+        max-width: 100%;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Max 2 righe per il titolo */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* 6. Stelle: Più piccole e compatte */
+    .rating-stars svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    /* 7. Commento: Più righe visibili */
+    .review-comment {
+        font-size: 0.85rem !important;
+        line-height: 1.4;
+        -webkit-line-clamp: 3 !important; /* Mostra fino a 3 righe di testo! */
+        margin-bottom: 8px; /* Spinge via i metadati */
+        flex: 1; /* Prende lo spazio disponibile */
+    }
+
+    /* 8. Meta (Data e Categoria) in fondo */
+    .review-meta {
+        margin-top: auto; /* Spinge tutto in basso */
+        font-size: 0.7rem !important;
         width: 100%;
+        display: flex;
+        justify-content: space-between;
+        opacity: 0.6;
+    }
+
+    #reviews.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
     }
 }
-
 /* Scrollbar minimale per la card */
 .review-detail-card::-webkit-scrollbar { width: 4px; }
 .review-detail-card::-webkit-scrollbar-thumb { background: #222; }
