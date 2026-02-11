@@ -1909,41 +1909,55 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
+    // 1. Trova l'item nei dati caricati
     const item = currentReviews.find(r => r.id === id);
-    if (!item) return;
+    if (!item) {
+        console.error("Item non trovato per ID:", id);
+        return;
+    }
 
-    const color = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' }[item.categoria] || '#fff';
-    const modal = document.getElementById('review-detail-modal');
+    // 2. Definizione colori
+    const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
+    const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
     
+    const modal = document.getElementById('review-detail-modal');
+    if (!modal) return;
+
+    // 3. Generazione HTML Dettaglio (Layout Poster Sinistra | Testo Destra)
     modal.innerHTML = `
-        <div class="review-detail-card" style="border-top: 4px solid ${color}; width: 90%; max-width: 800px; background: #050505; color: #fff; position: relative; padding: 30px;">
-            <button class="esc-btn" onclick="closeReviewDetail()" style="position: absolute; top: 15px; right: 15px;">ESC</button>
+        <div class="review-detail-card" style="border-top: 4px solid ${color};">
+            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
             
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 1px solid #1a1a1a; padding-bottom: 15px;">
-                <div>
-                    <h1 style="font-family:'Rajdhani'; font-size: 2.5rem; margin: 0; color: ${color}; line-height: 1;">${item.titolo.toUpperCase()}</h1>
-                    <div style="font-family:'JetBrains Mono'; font-size: 12px; color: var(--dim); margin-top: 5px;">
-                        ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'N/D'}
-                    </div>
-                </div>
-                <div style="display: flex; gap: 4px; background: #111; padding: 10px; border-radius: 4px;">
-                    ${renderStars(item.rating, color)}
+            <div class="detail-header" style="margin-bottom: 25px; border-bottom: 1px solid #1a1a1a; padding-bottom: 15px;">
+                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; line-height: 1.1;">
+                    ${item.titolo.toUpperCase()}
+                </h1>
+                <div style="font-family:'JetBrains Mono'; font-size: 11px; color: var(--dim); margin-top: 8px; letter-spacing: 1px;">
+                    ${item.categoria} • ${formatItalianDate(item.data)} • ${item.metadata || 'DATI_NON_DISPONIBILI'}
                 </div>
             </div>
 
-            <div style="display: flex; gap: 30px; align-items: flex-start;">
-                <div class="detail-poster" style="width: 250px; flex-shrink: 0; border: 1px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                    <img src="${item.image_url}" style="width: 100%; display: block;" onerror="this.style.display='none'">
+            <div class="detail-body" style="display: flex; gap: 25px; align-items: flex-start;">
+                
+                <div style="width: 200px; flex-shrink: 0;">
+                    <div class="detail-poster" style="border: 1px solid #222; background: #111; margin-bottom: 15px;">
+                        <img src="${item.image_url}" style="width: 100%; display: block;" onerror="this.src='https://via.placeholder.com/200x300/050505/333?text=NO_POSTER'">
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 4px; background: #0a0a0a; padding: 10px; border: 1px solid #1a1a1a;">
+                        ${renderStars(item.rating, color)}
+                    </div>
                 </div>
                 
-                <div style="flex: 1; font-family: 'JetBrains Mono'; line-height: 1.6; color: #ddd; font-size: 1rem; white-space: pre-wrap;">
-                    ${item.commento_full || item.commento}
+                <div class="detail-text" style="flex: 1; font-family: 'JetBrains Mono'; line-height: 1.6; color: #eee; font-size: 0.95rem; white-space: pre-wrap; max-height: 450px; overflow-y: auto; padding-right: 10px;">
+${item.commento_full || item.commento || 'Nessuna recensione dettagliata disponibile.'}
                 </div>
             </div>
         </div>
     `;
     
     modal.style.display = 'flex';
+    
+    // 4. Ricarica le icone Lucide per le stelle nel dettaglio
     if(window.lucide) lucide.createIcons();
 }
 
