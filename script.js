@@ -1924,9 +1924,6 @@ function openReviewDetail(id) {
     
     const item = allReviews.find(r => String(r.id) === String(id));
     console.log("Item trovato:", item);
-
-    // FIX: usa currentReviews che è l'array globale caricato
-    const item = currentReviews.find(r => String(r.id) === String(id));
     
     if (!item) {
         console.error("Review non trovata:", id, currentReviews);
