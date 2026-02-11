@@ -1831,17 +1831,10 @@ function formatItalianDate(dateStr) {
 
 let allReviews = []; 
 
-async function loadReviews() {
-    try {
-        const response = await fetch(SCRIPT_URL + "?action=getStats");
-        const data = await response.json();
-        
-        // IL PASSAGGIO CHIAVE:
-        currentReviews = data.reviews; // Salviamo i dati globalmente
-        
-        renderReviews(currentReviews); // Poi disegniamo la lista
-    } catch (err) {
-        console.error("Errore caricamento reviews:", err);
+function loadReviews() {
+    if (lastStatsData && lastStatsData.reviews) {
+        allReviews = lastStatsData.reviews; // ← cambia qui
+        renderReviews(allReviews);
     }
 }
 
@@ -1921,6 +1914,17 @@ function getStarRating(rating) {
 let currentReviewId = null;
 
 function openReviewDetail(id) {
+        console.log("Click ricevuto, ID:", id);
+    console.log("currentReviews disponibili:", currentReviews);
+    
+    if (!currentReviews || currentReviews.length === 0) {
+        console.error("currentReviews è vuoto!");
+        return;
+    }
+    
+    const item = allReviews.find(r => String(r.id) === String(id));
+    console.log("Item trovato:", item);
+
     // FIX: usa currentReviews che è l'array globale caricato
     const item = currentReviews.find(r => String(r.id) === String(id));
     
