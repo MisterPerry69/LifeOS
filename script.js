@@ -2278,45 +2278,68 @@ function generateStatsHTML(period = '6M') {
     const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
     const wishCount = allReviews.length - activeReviews.length;
     
+    // 1. CONTEGGI CATEGORIA
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     activeReviews.forEach(r => {
-        counts[r.categoria?.toUpperCase()]++;
+        const cat = r.categoria?.toUpperCase();
+        if(counts[cat] !== undefined) counts[cat]++;
         totalRating += parseFloat(r.rating || 0);
     });
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
 
-    // --- LOGICA TREND MIGLIORATA ---
-    let trendData = {};
-    const now = new Date();
+    // 2. LOGICA TREND (6M / 1Y / ALL)
+    let trendHTML = '';
+    const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
 
-    if (period === '6M' || period === '1Y') {
+    if (period === 'ALL') {
+        // Layout ALL: Griglia di riepilogo totale per categoria
+        trendHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 120px;">
+                ${Object.entries(counts).map(([cat, val]) => `
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a; padding: 10px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-size: 8px; color: ${colors[cat]}; letter-spacing: 1px;">${cat}_TOTAL</div>
+                        <div style="font-size: 20px; font-family: 'Rajdhani'; color: #fff;">${val}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        // Layout 6M / 1Y: Grafico a barre temporale
+        let trendData = {};
         const monthsToShow = period === '6M' ? 6 : 12;
+        const now = new Date();
         for(let i = monthsToShow - 1; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
             trendData[label] = 0;
         }
         activeReviews.forEach(r => {
-            const d = new Date(r.data); 
+            const d = new Date(r.data);
             if(!isNaN(d)) {
                 const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
                 if(trendData.hasOwnProperty(label)) trendData[label]++;
             }
         });
-    } else if (period === 'ALL') {
-        // Raggruppa per Anno
-        activeReviews.forEach(r => {
-            const d = new Date(r.data);
-            if(!isNaN(d)) {
-                const year = d.getFullYear();
-                trendData[year] = (trendData[year] || 0) + 1;
-            }
-        });
+        const maxVal = Math.max(...Object.values(trendData), 1);
+
+        trendHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; height:100px; gap:4px; padding-bottom:10px;">
+                ${Object.entries(trendData).map(([label, val]) => {
+                    const h = (val / maxVal) * 100;
+                    return `
+                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end;">
+                            <div style="font-size:7px; color:var(--accent);">${val > 0 ? val : ''}</div>
+                            <div style="width:100%; height:${h}%; background:var(--accent); opacity:${val > 0 ? 0.6 : 0.05}; border-radius:1px;"></div>
+                            <div style="font-size:7px; color:#333; transform:rotate(-45deg); margin-top:10px; white-space:nowrap;">${label}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
     }
 
-    const maxVal = Math.max(...Object.values(trendData), 1);
-
+    // 3. RENDER GENERALE
     container.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px;">
             <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
@@ -2335,36 +2358,24 @@ function generateStatsHTML(period = '6M') {
 
         <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px; margin-bottom:20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; letter-spacing:1px; margin:0;">ACTIVITY_TREND</h3>
+                <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; letter-spacing:1px; margin:0;">ACTIVITY_MONITOR</h3>
                 <div style="display:flex; gap:10px; font-size:9px; font-family:'JetBrains Mono';">
                     <span onclick="generateStatsHTML('6M')" style="cursor:pointer; color:${period==='6M'?'var(--accent)':'#444'}">6M</span>
                     <span onclick="generateStatsHTML('1Y')" style="cursor:pointer; color:${period==='1Y'?'var(--accent)':'#444'}">1Y</span>
                     <span onclick="generateStatsHTML('ALL')" style="cursor:pointer; color:${period==='ALL'?'var(--accent)':'#444'}">ALL</span>
                 </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; height:100px; gap:4px; padding-bottom:10px;">
-                ${Object.entries(trendData).map(([label, val]) => {
-                    const h = (val / maxVal) * 100;
-                    return `
-                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end;">
-                            <div style="font-size:7px; color:var(--accent);">${val > 0 ? val : ''}</div>
-                            <div style="width:100%; height:${h}%; background:var(--accent); opacity:${val > 0 ? 0.6 : 0.05}; border-radius:1px; min-height:${val > 0 ? '2px' : '0'}"></div>
-                            <div style="font-size:7px; color:#333; transform:rotate(-45deg); margin-top:10px; white-space:nowrap;">${label}</div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
+            ${trendHTML}
         </div>
 
         <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px;">
-            <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; margin-bottom:15px; letter-spacing:1px;">MEDIA_PROPORTIONS</h3>
+            <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; margin-bottom:15px; letter-spacing:1px;">MEDIA_DISTRIBUTION</h3>
             ${Object.entries(counts).map(([cat, count]) => {
-                const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
                 const p = activeReviews.length ? (count / activeReviews.length * 100) : 0;
                 return `
                     <div style="margin-bottom:12px;">
                         <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:4px; font-family:'JetBrains Mono'; color:#888;">
-                            <span>${cat}</span>
+                            <span style="color:${colors[cat]}">${cat}</span>
                             <span>${count}</span>
                         </div>
                         <div style="width:100%; height:3px; background:#111; border-radius:2px; overflow:hidden;">
