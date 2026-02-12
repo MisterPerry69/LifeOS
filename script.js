@@ -140,9 +140,17 @@ async function loadStats() {
         lastStatsData = data;
 
         // AGGIUNGI QUESTE DUE RIGHE:
-        allReviews = data.reviews || []; // Salva le review dal server
-        renderReviews(allReviews);
-        
+        allReviews = data.reviews || []; 
+
+        // Se la sezione Reviews è aperta, aggiorna la lista filtrando correttamente
+        if (document.getElementById('reviews')?.classList.contains('active')) {
+            // Cerchiamo il chip attivo per sapere se dobbiamo filtrare per FILM, GAME ecc. o ALL
+            const activeChip = document.querySelector('.filter-chip.active');
+            const currentCat = activeChip ? activeChip.innerText.split(' ')[0] : 'ALL';
+            
+            // Invece di renderReviews nudo, chiamiamo il filtro
+            filterByCategory(currentCat, activeChip || document.querySelector('.filter-chip'));
+        }        
         // Render griglia note
         renderGrid(data);
         
@@ -2022,23 +2030,34 @@ async function processReviewWithAI() {
         const responseText = await response.text();
         const result = JSON.parse(responseText);
         
-        if (result.status === "SUCCESS") {
+if (result.status === "SUCCESS") {
             const ai = result.data;
             
-            // Aggiorna card visivamente
+            // Aggiorna la card temporanea visivamente
             loadingCard.innerHTML = `
                 <div class="poster-mini" style="background-image: url('${ai.image_url || ''}'); background-size:cover;"></div>
                 <div class="review-info">
                     <div class="review-top">
                         <span class="review-title">${(ai.titolo || "").toUpperCase()}</span>
-                        <span class="rating-stars">${getStarRating(ai.rating)}</span>
+                        <span class="rating-stars">${generateStars(ai.rating)}</span>
                     </div>
                     <div class="review-comment">${ai.commento_breve || ""}</div>
                 </div>
             `;
 
-            // Ricarica in background per aggiornare allReviews
-            setTimeout(() => loadStats(), 2000);
+            // Ricarica i dati e FORZA il filtro corretto
+            setTimeout(async () => {
+                await loadStats(); // Aspetta che i dati siano caricati
+                // Trova il chip 'ALL' e scatena il filtro per pulire la lista dai wish
+                const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
+                if (allChip) {
+                    filterByCategory('ALL', allChip);
+                } else {
+                    // Fallback se non trova il chip
+                    const filtered = allReviews.filter(r => isWishlistView ? isWish(r) : !isWish(r));
+                    renderReviews(filtered, isWishlistView);
+                }
+            }, 2000);
         } else {
             loadingCard.innerHTML = `<div style="padding:10px; color:#ff4d4d;">ERRORE: ${result.message || 'SYNC_FAILED'}</div>`;
         }
