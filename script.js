@@ -2284,58 +2284,87 @@ function toggleStats() {
 
 function generateStatsHTML() {
     const container = document.getElementById('reviews-stats-container');
-    
-    // 1. FILTRIAMO I DATI (Escludiamo WISH dai calcoli di rating)
     const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
-    const totalWish = allReviews.length - activeReviews.length;
     
-    // 2. CONTEGGI PER CATEGORIA
+    // --- CALCOLO DISTRIBUZIONE ---
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
-    
     activeReviews.forEach(r => {
         const cat = r.categoria?.toUpperCase();
         if(counts[cat] !== undefined) counts[cat]++;
         totalRating += parseFloat(r.rating || 0);
     });
-
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
 
-    // 3. GENERAZIONE HTML
+    // --- CALCOLO TREND MENSILE (Ultimi 6 mesi) ---
+    const monthlyTrend = {};
+    const now = new Date();
+    for(let i=5; i>=0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
+        monthlyTrend[label] = 0;
+    }
+
+    activeReviews.forEach(r => {
+        const d = new Date(r.data);
+        const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
+        if(monthlyTrend[label] !== undefined) monthlyTrend[label]++;
+    });
+
+    const maxMonthly = Math.max(...Object.values(monthlyTrend), 1);
+
+    // --- RENDER HTML ---
     container.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
-            <div style="background:#111; padding:15px; border:1px solid #222; border-radius:4px;">
-                <div style="font-size:10px; color:#555;">TOTAL_REVIEWS</div>
-                <div style="font-size:24px; font-family:'Rajdhani'; color:var(--accent);">${activeReviews.length}</div>
+        <div style="margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid #1a1a1a;">
+            <h2 style="font-family:'Rajdhani'; color:var(--accent); font-size:14px; letter-spacing:2px;">[ CORE_DATA_ANALYSIS ]</h2>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+            <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px;">
+                <div style="font-size:9px; color:#555; letter-spacing:1px;">TOTAL_LOGS</div>
+                <div style="font-size:24px; font-family:'Rajdhani'; color:#fff;">${activeReviews.length}</div>
             </div>
-            <div style="background:#111; padding:15px; border:1px solid #222; border-radius:4px;">
-                <div style="font-size:10px; color:#555;">AVG_RATING</div>
-                <div style="font-size:24px; font-family:'Rajdhani'; color:#ffcc00;">${avgRating} <span style="font-size:12px;">/ 5</span></div>
+            <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px;">
+                <div style="font-size:9px; color:#555; letter-spacing:1px;">CRITIC_SCORE</div>
+                <div style="font-size:24px; font-family:'Rajdhani'; color:#ffcc00;">${avgRating}<span style="font-size:10px; color:#444;">/5</span></div>
             </div>
         </div>
 
-        <div style="margin-bottom: 30px;">
-            <h3 style="font-family:'Rajdhani'; font-size:14px; margin-bottom:15px; color:#888;">DISTRIBUZIONE_MEDIA</h3>
+        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:20px; border-radius:4px; margin-bottom:25px;">
+            <h3 style="font-family:'Rajdhani'; font-size:11px; color:#444; margin-bottom:20px; letter-spacing:1px;">ACTIVITY_TREND (6M)</h3>
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; height:80px; gap:8px;">
+                ${Object.entries(monthlyTrend).map(([month, val]) => {
+                    const height = (val / maxMonthly) * 100;
+                    return `
+                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                            <div style="font-size:8px; color:var(--accent);">${val}</div>
+                            <div style="width:100%; height:${height}%; background:linear-gradient(to top, var(--accent) 0%, transparent 100%); opacity:0.6; border-radius:2px 2px 0 0;"></div>
+                            <div style="font-size:8px; color:#333;">${month}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+
+        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:20px; border-radius:4px;">
+            <h3 style="font-family:'Rajdhani'; font-size:11px; color:#444; margin-bottom:15px; letter-spacing:1px;">MEDIA_DISTRIBUTION</h3>
             ${Object.entries(counts).map(([cat, count]) => {
                 const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
                 const perc = activeReviews.length ? (count / activeReviews.length * 100) : 0;
                 return `
-                    <div style="margin-bottom:12px;">
-                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; font-family:'JetBrains Mono';">
-                            <span>${cat}</span>
-                            <span>${count}</span>
+                    <div style="margin-bottom:15px;">
+                        <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px; font-family:'JetBrains Mono';">
+                            <span style="color:${colors[cat]}">${cat}</span>
+                            <span style="color:#555;">${count} UNITS</span>
                         </div>
-                        <div style="width:100%; height:6px; background:#1a1a1a; border-radius:10px; overflow:hidden;">
-                            <div style="width:${perc}%; height:100%; background:${colors[cat]}; box-shadow: 0 0 10px ${colors[cat]}55;"></div>
+                        <div style="width:100%; height:4px; background:#111; border-radius:2px;">
+                            <div style="width:${perc}%; height:100%; background:${colors[cat]}; box-shadow: 0 0 10px ${colors[cat]}33;"></div>
                         </div>
                     </div>
                 `;
             }).join('')}
         </div>
-
-        <div style="background:rgba(136,136,136,0.05); padding:15px; border-left: 3px solid #444; margin-bottom:30px;">
-            <div style="font-size:11px; color:#666; font-family:'JetBrains Mono';">PENDING_WISHLIST</div>
-            <div style="font-size:20px; font-family:'Rajdhani'; color:#888;">${totalWish} <span style="font-size:12px;">ELEMENTI</span></div>
-        </div>
     `;
+    
+    if(window.lucide) lucide.createIcons();
 }
