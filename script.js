@@ -209,13 +209,22 @@ function renderGrid(data) {
     
     lastStatsData = data;
     loadedNotesData = data.notes || [];
+    const loadedReviewsData = data.reviews || []; // Recuperiamo le reviews
 
     // FIX: Controlli null prima di aggiornare
     const widgetNotes = document.getElementById('widget-notes');
     const widgetWeight = document.getElementById('widget-weight');
+    const widgetReviews = document.getElementById('widget-reviews'); // <-- Nuovo widget
     
     if (widgetNotes) widgetNotes.innerText = (loadedNotesData.length + 1);
     if (widgetWeight) widgetWeight.innerText = data.weight || "94.5";
+    if (widgetReviews) {
+        const totalDone = loadedReviewsData.filter(r => {
+            const cat = r.categoria ? r.categoria.toUpperCase() : "";
+            return !cat.includes("WISH");
+        }).length;
+        widgetReviews.innerText = totalDone;
+    }
 
     const fragment = document.createDocumentFragment();
     const isSearching = searchQuery.length > 0;
@@ -2459,4 +2468,18 @@ function filterByCategory(cat, element) {
         renderReviews(filtered, false); // Non serve passare showOnlyWish, è già filtrato
     }
     if(window.lucide) lucide.createIcons();
+}
+
+function updateReviewsDashboardWidget() {
+    const reviewsWidget = document.querySelector('.card[onclick*="openReviews"] .card-value'); // Assicurati che il selettore sia corretto per la tua dashboard
+    
+    if (reviewsWidget && lastStatsData && lastStatsData.reviews) {
+        // Contiamo solo i log finiti (non i wish)
+        const totalDone = lastStatsData.reviews.filter(r => {
+            const cat = r.categoria ? r.categoria.toUpperCase() : "";
+            return !cat.includes("WISH");
+        }).length;
+
+        reviewsWidget.innerText = totalDone;
+    }
 }
