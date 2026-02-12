@@ -2410,47 +2410,53 @@ async function toggleCriticAI() {
         return;
     }
 
-    // Reset e attivazione
     bubble.style.display = 'block';
     bubble.classList.add('active');
     navItem.style.color = 'var(--accent)';
-    bubble.innerHTML = `<div class="typing-text" style="font-size:10px; color:var(--accent);">
-        <span class="blink-dot"></span> ANALIZZANDO_FLUSSO_DATI...
-    </div>`;
+    bubble.innerHTML = `<div style="font-size:10px; color:var(--accent); text-align:center;">[ CONNESSIONE_SATELLITARE... ]</div>`;
 
-    // Preparazione prompt
+    // Filtriamo e prendiamo i titoli recenti
     const history = allReviews
         .filter(r => r.categoria?.toUpperCase() !== 'WISH')
         .slice(0, 10)
         .map(r => `${r.titolo} (${r.rating}/5)`)
         .join(', ');
 
-            const prompt = `Sei l'algoritmo di analisi "CRITIC_ANALYZER v2.0". 
-            Dati utente: [${history || 'Nessun dato trovato'}].
-            
-        COMPITO:
-            Fai un'osservazione breve (max 30 parole) sui suoi gusti e suggerisci un genere/titolo che dovrebbe esplorare basato sui dati. 
-            Sii pungente, cyberpunk e usa un tono da terminale. Non usare introduzioni tipo "Ecco l'analisi".`;
+    const prompt = `Sei l'algoritmo di analisi "CRITIC_ANALYZER v2.0". 
+    Dati utente: [${history || 'Nessun dato trovato'}].
+    
+COMPITO:
+    Fai un'osservazione breve (max 30 parole) sui suoi gusti e suggerisci un genere/titolo che dovrebbe esplorare basato sui dati. 
+    Sii pungente, cyberpunk e usa un tono da terminale. Non usare introduzioni tipo "Ecco l'analisi".`;
 
-    // Gestione chiamata sicura
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-            .withSuccessHandler((response) => {
-                bubble.innerHTML = `<div style="color:#fff; letter-spacing:0.5px;">${response}</div>`;
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors", // Aggiungiamo no-cors se riscontri problemi di permessi, ma attenzione che non potrai leggere il body
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: 'askAnalyst', // Coerente con il doPost
+                prompt: prompt
             })
-            .withFailureHandler(() => {
-                bubble.innerHTML = `<div style="color:red;">LINK_NEURALE_INTERROTTO</div>`;
+        });
+
+        // NOTA: Se usi no-cors, non puoi leggere la risposta direttamente. 
+        // Se il tuo script è pubblicato come "Anyone", usa il fetch standard:
+        const standardResponse = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                action: 'askAnalyst',
+                prompt: prompt
             })
-            .callGeminiSimple(prompt);
-    } else {
-        // Fallback per test locale o errore caricamento librerie Google
-        console.warn("Google Apps Script non rilevato. Simulazione risposta.");
-        setTimeout(() => {
-            bubble.innerHTML = `<div>[MODALITÀ_DEMO]: I tuoi gusti sono un paradosso logico. Troppi media, troppa poca vita.</div>`;
-        }, 1500);
+        });
+
+        const text = await standardResponse.text();
+        bubble.innerHTML = `<div style="color:#fff;">${text}</div>`;
+        
+    } catch (e) {
+        bubble.innerHTML = `<div style="color:red; font-size:9px;">ERRORE_LINK_NEURALE: VERIFICA_PUBBLICAZIONE_WEBAPP</div>`;
     }
 }
-
 
 
 
