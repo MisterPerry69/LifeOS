@@ -516,6 +516,14 @@
     </div>
   </div>
 
+  <div id="category-filters" style="display: flex; gap: 8px; padding: 10px 15px; overflow-x: auto; background: #000; border-bottom: 1px solid #111; scrollbar-width: none;">
+    <div class="filter-chip active" onclick="filterByCategory('ALL', this)">ALL</div>
+    <div class="filter-chip" onclick="filterByCategory('FILM', this)">FILM</div>
+    <div class="filter-chip" onclick="filterByCategory('SERIE', this)">SERIE</div>
+    <div class="filter-chip" onclick="filterByCategory('GAME', this)">GAME</div>
+    <div class="filter-chip" onclick="filterByCategory('COMIC', this)">COMIC</div>
+  </div>
+
   <div id="reviews-list" class="reviews-scroll-area" style="padding: 20px; padding-bottom: 100px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; height: calc(100vh - 150px);">
     <div style="text-align:center; opacity:0.3; padding:40px;">[ IN_ATTESA_DI_MEDIA ]</div>
   </div>

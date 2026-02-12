@@ -2130,6 +2130,7 @@ let isWishlistView = false; // Stato globale del modulo
 
 function toggleWishlist() {
     // Se eravamo in stats, chiudile
+    
     if (isStatsView) toggleStats(); 
 
     isWishlistView = !isWishlistView;
@@ -2138,6 +2139,10 @@ function toggleWishlist() {
     const headerTitle = document.querySelector('#reviews .header h1');
     
     if (headerTitle) headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
+
+    document.querySelectorAll('.filter-chip').forEach(el => {
+        el.classList.toggle('active', el.innerText === 'ALL');
+    });
 
     if (wishBtn) {
         wishBtn.style.color = isWishlistView ? "var(--accent)" : "var(--dim)";
@@ -2271,6 +2276,12 @@ function toggleStats() {
         generateStatsHTML('6M'); 
     } else {
         if (headerTitle) headerTitle.innerText = 'REVIEWS';
+
+        // RESET VISIVO FILTRI (Qui!)
+        document.querySelectorAll('.filter-chip').forEach(el => {
+            el.classList.toggle('active', el.innerText === 'ALL');
+        });
+
         if (statsBtn) {
             statsBtn.style.setProperty('color', 'var(--dim)', 'important');
             statsBtn.style.opacity = "0.5";
@@ -2298,11 +2309,31 @@ function generateStatsHTML(period = '6M') {
     });
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
 
-    // 2. LOGICA TREND (6M / 1Y / ALL)
-    let trendHTML = '';
-    const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
+// --- LOGICA TREND (6M / 1Y / ALL) ---
+    let trendData = {};
+    const now = new Date();
 
-    if (period === 'ALL') {
+    if (period === '6M') {
+        // Ultimi 6 mesi mobili
+        for(let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
+            trendData[label] = 0;
+        }
+    } else if (period === '1Y') {
+        // ANNO SOLARE CORRENTE (Da GEN a DIC)
+        const currentYear = now.getFullYear();
+        const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
+        mesi.forEach(m => trendData[m] = 0);
+        
+        activeReviews.forEach(r => {
+            const d = new Date(r.data);
+            if(!isNaN(d) && d.getFullYear() === currentYear) {
+                const label = mesi[d.getMonth()];
+                trendData[label]++;
+            }
+        });
+    } else if (period === 'ALL') {
         // Layout ALL: Griglia di riepilogo totale per categoria
         trendHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 120px;">
@@ -2458,5 +2489,20 @@ COMPITO:
     }
 }
 
+function filterByCategory(cat, element) {
+    document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
+    element.classList.add('active');
 
+    let dataToRender;
+    if (cat === 'ALL') {
+        dataToRender = allReviews;
+    } else {
+        // Filtra per categoria (es. GAME)
+        dataToRender = allReviews.filter(r => r.categoria?.toUpperCase() === cat.toUpperCase());
+    }
+    
+    // Passiamo isWishlistView così renderReviews sa se deve mostrare 
+    // le stelline o il layout "Wish" per i risultati filtrati
+    renderReviews(dataToRender, isWishlistView);
+}
 
