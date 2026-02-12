@@ -1845,20 +1845,25 @@ function formatItalianDate(dateStr) {
 let allReviews = []; 
 
 function loadReviews() {
-    isWishlistView = false; // Reset sempre su Home
+    isWishlistView = false;
     const headerTitle = document.querySelector('#reviews .header h1');
     if (headerTitle) headerTitle.innerText = 'REVIEWS';
 
     if (lastStatsData && lastStatsData.reviews) {
         allReviews = lastStatsData.reviews;
-        renderReviews(allReviews, false); // Forza visualizzazione REVIEWS
+        
+        // FIX: Usa il filtro ALL che applica già la logica corretta
+        const allChip = document.querySelector('.filter-chip');
+        if (allChip) filterByCategory('ALL', allChip);
     } else {
+        const list = document.getElementById('reviews-list');
         if (list) list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">SYNCING...</div>`;
         
         setTimeout(() => {
             if (lastStatsData && lastStatsData.reviews) {
                 allReviews = lastStatsData.reviews;
-                renderReviews(allReviews, false);
+                const allChip = document.querySelector('.filter-chip');
+                if (allChip) filterByCategory('ALL', allChip);
             }
         }, 2000);
     }
