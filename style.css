@@ -1745,3 +1745,20 @@ CSS
     padding: 0;
     overflow: hidden;
 }
+
+#reviews-stats-container {
+    scrollbar-width: none; /* Nasconde scrollbar Firefox */
+}
+#reviews-stats-container::-webkit-scrollbar {
+    display: none; /* Nasconde scrollbar Chrome/Safari */
+}
+
+/* Animazione per far apparire le barre */
+@keyframes growBar {
+    from { width: 0; }
+    to { width: var(--target-width); }
+}
+
+.stats-bar-fill {
+    animation: growBar 1s ease-out forwards;
+}
