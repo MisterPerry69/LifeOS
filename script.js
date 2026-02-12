@@ -2299,7 +2299,7 @@ function generateStatsHTML(period = '6M') {
     const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
     const wishCount = allReviews.length - activeReviews.length;
     
-    // 1. CONTEGGI CATEGORIA
+    // 1. CONTEGGI CATEGORIA (Sempre utili)
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     activeReviews.forEach(r => {
@@ -2308,33 +2308,15 @@ function generateStatsHTML(period = '6M') {
         totalRating += parseFloat(r.rating || 0);
     });
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
+    const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
 
-// --- LOGICA TREND (6M / 1Y / ALL) ---
+    // 2. LOGICA TREND (Generazione trendData e trendHTML)
     let trendData = {};
+    let trendHTML = '';
     const now = new Date();
 
-    if (period === '6M') {
-        // Ultimi 6 mesi mobili
-        for(let i = 5; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
-            trendData[label] = 0;
-        }
-    } else if (period === '1Y') {
-        // ANNO SOLARE CORRENTE (Da GEN a DIC)
-        const currentYear = now.getFullYear();
-        const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
-        mesi.forEach(m => trendData[m] = 0);
-        
-        activeReviews.forEach(r => {
-            const d = new Date(r.data);
-            if(!isNaN(d) && d.getFullYear() === currentYear) {
-                const label = mesi[d.getMonth()];
-                trendData[label]++;
-            }
-        });
-    } else if (period === 'ALL') {
-        // Layout ALL: Griglia di riepilogo totale per categoria
+    if (period === 'ALL') {
+        // Layout ALL: Griglia totali
         trendHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 120px;">
                 ${Object.entries(counts).map(([cat, val]) => `
@@ -2343,27 +2325,35 @@ function generateStatsHTML(period = '6M') {
                         <div style="font-size: 20px; font-family: 'Rajdhani'; color: #fff;">${val}</div>
                     </div>
                 `).join('')}
-            </div>
-        `;
+            </div>`;
     } else {
-        // Layout 6M / 1Y: Grafico a barre temporale
-        let trendData = {};
-        const monthsToShow = period === '6M' ? 6 : 12;
-        const now = new Date();
-        for(let i = monthsToShow - 1; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
-            trendData[label] = 0;
-        }
-        activeReviews.forEach(r => {
-            const d = new Date(r.data);
-            if(!isNaN(d)) {
+        // Layout 6M o 1Y: Barre temporali
+        if (period === '1Y') {
+            const currentYear = now.getFullYear();
+            const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
+            mesi.forEach(m => trendData[m] = 0);
+            activeReviews.forEach(r => {
+                const d = new Date(r.data);
+                if(!isNaN(d) && d.getFullYear() === currentYear) {
+                    trendData[mesi[d.getMonth()]]++;
+                }
+            });
+        } else { // 6M Default
+            for(let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                 const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
-                if(trendData.hasOwnProperty(label)) trendData[label]++;
+                trendData[label] = 0;
             }
-        });
-        const maxVal = Math.max(...Object.values(trendData), 1);
+            activeReviews.forEach(r => {
+                const d = new Date(r.data);
+                if(!isNaN(d)) {
+                    const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
+                    if(trendData.hasOwnProperty(label)) trendData[label]++;
+                }
+            });
+        }
 
+        const maxVal = Math.max(...Object.values(trendData), 1);
         trendHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-end; height:100px; gap:4px; padding-bottom:10px;">
                 ${Object.entries(trendData).map(([label, val]) => {
@@ -2373,14 +2363,12 @@ function generateStatsHTML(period = '6M') {
                             <div style="font-size:7px; color:var(--accent);">${val > 0 ? val : ''}</div>
                             <div style="width:100%; height:${h}%; background:var(--accent); opacity:${val > 0 ? 0.6 : 0.05}; border-radius:1px;"></div>
                             <div style="font-size:7px; color:#333; transform:rotate(-45deg); margin-top:10px; white-space:nowrap;">${label}</div>
-                        </div>
-                    `;
+                        </div>`;
                 }).join('')}
-            </div>
-        `;
+            </div>`;
     }
 
-    // 3. RENDER GENERALE
+    // 3. RENDER FINALE
     container.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px;">
             <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
@@ -2422,11 +2410,10 @@ function generateStatsHTML(period = '6M') {
                         <div style="width:100%; height:3px; background:#111; border-radius:2px; overflow:hidden;">
                             <div style="width:${p}%; height:100%; background:${colors[cat]};"></div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('')}
-        </div>
-    `;
+        </div>`;
+    
     if(window.lucide) lucide.createIcons();
 }
 
