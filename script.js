@@ -1832,13 +1832,13 @@ function formatItalianDate(dateStr) {
 let allReviews = []; 
 
 function loadReviews() {
-    isWishlistView = false; // Reset dello stato all'avvio
-    const list = document.getElementById('reviews-list');
-    
+    isWishlistView = false; // Reset sempre su Home
+    const headerTitle = document.querySelector('#reviews .header h1');
+    if (headerTitle) headerTitle.innerText = 'REVIEWS';
+
     if (lastStatsData && lastStatsData.reviews) {
         allReviews = lastStatsData.reviews;
-        // Passiamo false come secondo parametro: mostra solo Recensioni
-        renderReviews(allReviews, false); 
+        renderReviews(allReviews, false); // Forza visualizzazione REVIEWS
     } else {
         if (list) list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">SYNCING...</div>`;
         
@@ -2127,35 +2127,42 @@ async function editPosterLink() {
 // Stato locale del modulo Reviews
 let isWishlistView = false;
 
-function toggleWishlist() {
+let isWishlistView = false; // Stato globale del modulo
 
-    const headerTitle = document.querySelector('#reviews h1');
-    headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
+function toggleWishlist() {
     // 1. Inverti lo stato
     isWishlistView = !isWishlistView;
     
-    // 2. Aggiorna l'interfaccia (Colori dei tasti)
+    // 2. Recupera gli elementi con cautela
     const wishBtn = document.getElementById('nav-wish');
-    const homeBtn = document.querySelector('.bottom-nav .nav-item[onclick="nav(\'home\')"] div'); // La pallina centrale
-    const criticBtn = document.getElementById('nav-critic');
-
-    if (isWishlistView) {
-        // Siamo in Wishlist
-        wishBtn.style.color = "var(--accent)";
-        wishBtn.querySelector('i').setAttribute('data-lucide', 'bookmark-check'); // Cambia icona se vuoi
-        // Spegniamo visivamente gli altri (opzionale)
-        criticBtn.style.color = "var(--dim)";
-    } else {
-        // Torniamo in Home Reviews
-        wishBtn.style.color = "var(--dim)";
-        wishBtn.querySelector('i').setAttribute('data-lucide', 'bookmark-plus');
+    const headerTitle = document.querySelector('#reviews .header h1');
+    
+    // Cambiamo il titolo della Header
+    if (headerTitle) {
+        headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
     }
 
-    // 3. Rendi la lista con il filtro corretto
-    // currentReviews è l'array globale dove tieni i dati caricati dal DB
-    renderReviews(currentReviews, isWishlistView);
-    
-    // Refresh icone Lucide
+    // 3. Gestione Icona e Colore Tasto
+    if (wishBtn) {
+        const icon = wishBtn.querySelector('i');
+        if (isWishlistView) {
+            wishBtn.style.color = "var(--accent)";
+            if (icon) icon.setAttribute('data-lucide', 'bookmark-check'); 
+        } else {
+            wishBtn.style.color = "var(--dim)";
+            if (icon) icon.setAttribute('data-lucide', 'bookmark-plus');
+        }
+    }
+
+    // 4. Rendering della lista filtrata
+    // Usiamo allReviews che è quella caricata da loadReviews()
+    if (typeof allReviews !== 'undefined' && allReviews.length > 0) {
+        renderReviews(allReviews, isWishlistView);
+    } else {
+        console.error("Dati reviews non pronti.");
+    }
+
+    // Refresh icone Lucide (indispensabile dopo setAttribute)
     if(window.lucide) lucide.createIcons();
 }
 
