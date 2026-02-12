@@ -2294,12 +2294,18 @@ function toggleStats() {
     if(window.lucide) lucide.createIcons();
 }
 
-function generateStatsHTML(period = '6M') {
+function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     const container = document.getElementById('reviews-stats-container');
-    const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
-    const wishCount = allReviews.length - activeReviews.length;
     
-    // 1. CONTEGGI CATEGORIA
+    // FILTRO ATTIVO: Solo recensioni (no wish) + Categoria scelta
+    let activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
+    if (filterCat !== 'ALL') {
+        activeReviews = activeReviews.filter(r => r.categoria?.toUpperCase() === filterCat.toUpperCase());
+    }
+
+    const wishCount = allReviews.length - allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH').length;
+    
+    // Ricalcolo medie basato sul filtro
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     activeReviews.forEach(r => {
@@ -2310,40 +2316,34 @@ function generateStatsHTML(period = '6M') {
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
     const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
 
-    // 2. LOGICA TREND (INIZIALIZZAZIONE VARIABILI)
+    // --- LOGICA TREND (Ricalcolata su activeReviews filtrata) ---
     let trendData = {};
-    let trendHTML = ''; // Dichiarata qui fuori per evitare ReferenceError
+    let trendHTML = '';
     const now = new Date();
 
     if (period === 'ALL') {
-        // Layout ALL: Griglia totali
         trendHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 120px;">
                 ${Object.entries(counts).map(([cat, val]) => `
-                    <div style="background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a; padding: 10px; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a; padding: 10px; display: flex; flex-direction: column; justify-content: center; opacity: ${filterCat === 'ALL' || filterCat === cat ? 1 : 0.2}">
                         <div style="font-size: 8px; color: ${colors[cat]}; letter-spacing: 1px;">${cat}_TOTAL</div>
                         <div style="font-size: 20px; font-family: 'Rajdhani'; color: #fff;">${val}</div>
                     </div>
                 `).join('')}
             </div>`;
     } else {
-        // Layout 6M o 1Y: Barre temporali
+        // Barre temporali (6M o 1Y)
+        const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
         if (period === '1Y') {
-            const currentYear = now.getFullYear();
-            const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
             mesi.forEach(m => trendData[m] = 0);
             activeReviews.forEach(r => {
                 const d = new Date(r.data);
-                if(!isNaN(d) && d.getFullYear() === currentYear) {
-                    const label = mesi[d.getMonth()];
-                    if(trendData.hasOwnProperty(label)) trendData[label]++;
-                }
+                if(!isNaN(d) && d.getFullYear() === now.getFullYear()) trendData[mesi[d.getMonth()]]++;
             });
-        } else { // 6M Default
+        } else {
             for(let i = 5; i >= 0; i--) {
                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
-                trendData[label] = 0;
+                trendData[d.toLocaleString('it-IT', { month: 'short' }).toUpperCase()] = 0;
             }
             activeReviews.forEach(r => {
                 const d = new Date(r.data);
@@ -2369,15 +2369,15 @@ function generateStatsHTML(period = '6M') {
             </div>`;
     }
 
-    // 3. RENDER FINALE
+    // Costruiamo il template finale (uguale a prima ma con i dati filtrati)
     container.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px;">
             <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
-                <div style="font-size:8px; color:#444; margin-bottom:5px;">LOGS</div>
+                <div style="font-size:8px; color:#444; margin-bottom:5px;">LOGS [${filterCat}]</div>
                 <div style="font-size:18px; font-family:'Rajdhani'; color:#fff;">${activeReviews.length}</div>
             </div>
             <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
-                <div style="font-size:8px; color:#444; margin-bottom:5px;">SCORE</div>
+                <div style="font-size:8px; color:#444; margin-bottom:5px;">SCORE AVG</div>
                 <div style="font-size:18px; font-family:'Rajdhani'; color:#ffcc00;">${avgRating}</div>
             </div>
             <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
@@ -2388,17 +2388,17 @@ function generateStatsHTML(period = '6M') {
 
         <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px; margin-bottom:20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; letter-spacing:1px; margin:0;">ACTIVITY_MONITOR</h3>
+                <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; letter-spacing:1px; margin:0;">${filterCat}_ACTIVITY</h3>
                 <div style="display:flex; gap:10px; font-size:9px; font-family:'JetBrains Mono';">
-                    <span onclick="generateStatsHTML('6M')" style="cursor:pointer; color:${period==='6M'?'var(--accent)':'#444'}">6M</span>
-                    <span onclick="generateStatsHTML('1Y')" style="cursor:pointer; color:${period==='1Y'?'var(--accent)':'#444'}">1Y</span>
-                    <span onclick="generateStatsHTML('ALL')" style="cursor:pointer; color:${period==='ALL'?'var(--accent)':'#444'}">ALL</span>
+                    <span onclick="generateStatsHTML('6M', '${filterCat}')" style="cursor:pointer; color:${period==='6M'?'var(--accent)':'#444'}">6M</span>
+                    <span onclick="generateStatsHTML('1Y', '${filterCat}')" style="cursor:pointer; color:${period==='1Y'?'var(--accent)':'#444'}">1Y</span>
+                    <span onclick="generateStatsHTML('ALL', '${filterCat}')" style="cursor:pointer; color:${period==='ALL'?'var(--accent)':'#444'}">ALL</span>
                 </div>
             </div>
             ${trendHTML}
         </div>
 
-        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px;">
+        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px; display: ${filterCat === 'ALL' ? 'block' : 'none'}">
             <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; margin-bottom:15px; letter-spacing:1px;">MEDIA_DISTRIBUTION</h3>
             ${Object.entries(counts).map(([cat, count]) => {
                 const p = activeReviews.length ? (count / activeReviews.length * 100) : 0;
@@ -2481,16 +2481,15 @@ function filterByCategory(cat, element) {
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
     element.classList.add('active');
 
-    let dataToRender;
-    if (cat === 'ALL') {
-        dataToRender = allReviews;
+    if (isStatsView) {
+        // Se siamo in Stats, ricarichiamo le stats con il filtro categoria
+        generateStatsHTML('6M', cat); 
     } else {
-        // Filtra per categoria (es. GAME)
-        dataToRender = allReviews.filter(r => r.categoria?.toUpperCase() === cat.toUpperCase());
+        // Se siamo nella lista, filtriamo la lista
+        let dataToRender = allReviews;
+        if (cat !== 'ALL') {
+            dataToRender = allReviews.filter(r => r.categoria?.toUpperCase() === cat.toUpperCase());
+        }
+        renderReviews(dataToRender, isWishlistView);
     }
-    
-    // Passiamo isWishlistView così renderReviews sa se deve mostrare 
-    // le stelline o il layout "Wish" per i risultati filtrati
-    renderReviews(dataToRender, isWishlistView);
 }
-
