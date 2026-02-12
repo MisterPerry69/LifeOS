@@ -2240,19 +2240,28 @@ function toggleStats() {
 
 function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     const container = document.getElementById('reviews-stats-container');
+    const isAll = filterCat === 'ALL';
     
-    // 1. FILTRO BASE: Separiamo recensioni vere da wishlist usando l'utility
-    let activeReviews = allReviews.filter(r => !isWish(r));
-    const wishCount = allReviews.filter(r => isWish(r)).length;
+    // 1. FILTRI BASE: Separiamo recensioni vere da wishlist usando l'utility
+    // Per activeReviews prendiamo solo i NON-WISH della categoria scelta
+    let activeReviews = allReviews.filter(r => {
+        const itemIsWish = isWish(r);
+        const cleanCat = getCleanCat(r);
+        return !itemIsWish && (isAll || cleanCat === filterCat.toUpperCase());
+    });
 
-    // 2. FILTRO CATEGORIA: Se l'utente clicca su un quadratino (FILM, GAME, etc.)
-    if (filterCat !== 'ALL') {
-        activeReviews = activeReviews.filter(r => getCleanCat(r) === filterCat.toUpperCase());
-    }
-    
-    // 3. CONTEGGI PER MEDIA DISTRIBUTION
+    // Conteggio WISH specifico per la categoria selezionata
+    const categoryWishCount = allReviews.filter(r => {
+        const itemIsWish = isWish(r);
+        const cleanCat = getCleanCat(r);
+        return itemIsWish && (isAll || cleanCat === filterCat.toUpperCase());
+    }).length;
+
+    // 2. CONTEGGI PER MEDIA DISTRIBUTION (Sempre su base globale per il grafico sotto)
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
+    
+    // Usiamo activeReviews (già filtrata) per popolare i counts e il rating medio
     activeReviews.forEach(r => {
         const cat = getCleanCat(r);
         if(counts[cat] !== undefined) counts[cat]++;
@@ -2262,7 +2271,7 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
     const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
 
-    // --- LOGICA TREND ---
+    // --- LOGICA TREND (Ricalcolata su activeReviews filtrata) ---
     let trendData = {};
     let trendHTML = '';
     const now = new Date();
@@ -2271,7 +2280,7 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
         trendHTML = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 120px;">
                 ${Object.entries(counts).map(([cat, val]) => `
-                    <div style="background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a; padding: 10px; display: flex; flex-direction: column; justify-content: center; opacity: ${filterCat === 'ALL' || filterCat === cat ? 1 : 0.2}">
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a; padding: 10px; display: flex; flex-direction: column; justify-content: center; opacity: ${isAll || filterCat === cat ? 1 : 0.2}">
                         <div style="font-size: 8px; color: ${colors[cat]}; letter-spacing: 1px;">${cat}_TOTAL</div>
                         <div style="font-size: 20px; font-family: 'Rajdhani'; color: #fff;">${val}</div>
                     </div>
@@ -2327,8 +2336,8 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
                 <div style="font-size:18px; font-family:'Rajdhani'; color:#ffcc00;">${avgRating}</div>
             </div>
             <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
-                <div style="font-size:8px; color:#444; margin-bottom:5px;">WISH</div>
-                <div style="font-size:18px; font-family:'Rajdhani'; color:#888;">${wishCount}</div>
+                <div style="font-size:8px; color:#444; margin-bottom:5px;">WISH [${filterCat}]</div>
+                <div style="font-size:18px; font-family:'Rajdhani'; color:var(--accent);">${categoryWishCount}</div>
             </div>
         </div>
 
@@ -2344,7 +2353,7 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
             ${trendHTML}
         </div>
 
-        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px; display: ${filterCat === 'ALL' ? 'block' : 'none'}">
+        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px; display: ${isAll ? 'block' : 'none'}">
             <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; margin-bottom:15px; letter-spacing:1px;">MEDIA_DISTRIBUTION</h3>
             ${Object.entries(counts).map(([cat, count]) => {
                 const p = activeReviews.length ? (count / activeReviews.length * 100) : 0;
