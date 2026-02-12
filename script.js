@@ -1863,6 +1863,7 @@ function loadReviews() {
 
 function renderReviews(data, showOnlyWish = false) {
     const list = document.getElementById('reviews-list');
+    list.innerHTML = '';
     if (!list) return;
 
     // 1. FILTRAGGIO INTELLIGENTE
@@ -2490,27 +2491,31 @@ COMPITO:
 }
 
 function filterByCategory(cat, element) {
-    // 1. Aggiorna UI dei quadratini
+    // 1. Aggiorna l'aspetto dei quadratini
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
     element.classList.add('active');
 
     if (isStatsView) {
-        // Se siamo in Stats, ricarica le stats filtrate
+        // Se siamo nelle Stats, ricarichiamo i grafici col filtro
         generateStatsHTML('6M', cat);
     } else {
-        // Se siamo in Lista, filtra in base a dove ci troviamo (Wishlist o Reviews)
+        // Se siamo nella lista (Home o Wishlist)
         const filtered = allReviews.filter(r => {
-            const itemIsWish = isWish(r);
-            const cleanCat = getCleanCat(r);
+            const itemIsWish = isWish(r); // Usa l'utility: cerca la parola "WISH"
+            const cleanCat = getCleanCat(r); // Usa l'utility: prende solo "FILM"
             
-            // Deve corrispondere alla vista attuale
+            // FILTRO 1: Vista attuale (Se sono in Wishlist, voglio solo i WISH. Se sono in Reviews, voglio i NON-WISH)
             const matchView = isWishlistView ? itemIsWish : !itemIsWish;
-            // Deve corrispondere alla categoria del quadratino (o ALL)
+            
+            // FILTRO 2: Categoria (Se clicco ALL passano tutti, altrimenti solo la categoria specifica)
             const matchCat = (cat === 'ALL') ? true : (cleanCat === cat.toUpperCase());
             
             return matchView && matchCat;
         });
+
+        // Esegui il render con i dati filtrati
         renderReviews(filtered, isWishlistView);
     }
+    
     if(window.lucide) lucide.createIcons();
 }
