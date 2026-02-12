@@ -2255,3 +2255,87 @@ function promoteToReview(id) {
     openReviewEntry();
     document.getElementById('ai-review-input').value = `Ho completato ${item.titolo}. Ecco il mio voto e parere: `;
 }
+
+let isStatsView = false;
+
+function toggleStats() {
+    isStatsView = !isStatsView;
+    isWishlistView = false; // Se entriamo in stats, resettiamo wishlist view
+
+    const list = document.getElementById('reviews-list');
+    const statsCont = document.getElementById('reviews-stats-container');
+    const headerTitle = document.querySelector('#reviews .header h1');
+    const statsBtn = document.getElementById('nav-stats');
+
+    if (isStatsView) {
+        headerTitle.innerText = 'DATA_INTELLIGENCE';
+        statsBtn.style.color = "var(--accent)";
+        list.style.display = 'none';
+        statsCont.style.display = 'block';
+        generateStatsHTML(); // Funzione che crea i grafici
+    } else {
+        headerTitle.innerText = 'REVIEWS';
+        statsBtn.style.color = "var(--dim)";
+        list.style.display = 'flex';
+        statsCont.style.display = 'none';
+        renderReviews(allReviews, false);
+    }
+}
+
+function generateStatsHTML() {
+    const container = document.getElementById('reviews-stats-container');
+    
+    // 1. FILTRIAMO I DATI (Escludiamo WISH dai calcoli di rating)
+    const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
+    const totalWish = allReviews.length - activeReviews.length;
+    
+    // 2. CONTEGGI PER CATEGORIA
+    const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
+    let totalRating = 0;
+    
+    activeReviews.forEach(r => {
+        const cat = r.categoria?.toUpperCase();
+        if(counts[cat] !== undefined) counts[cat]++;
+        totalRating += parseFloat(r.rating || 0);
+    });
+
+    const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
+
+    // 3. GENERAZIONE HTML
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+            <div style="background:#111; padding:15px; border:1px solid #222; border-radius:4px;">
+                <div style="font-size:10px; color:#555;">TOTAL_REVIEWS</div>
+                <div style="font-size:24px; font-family:'Rajdhani'; color:var(--accent);">${activeReviews.length}</div>
+            </div>
+            <div style="background:#111; padding:15px; border:1px solid #222; border-radius:4px;">
+                <div style="font-size:10px; color:#555;">AVG_RATING</div>
+                <div style="font-size:24px; font-family:'Rajdhani'; color:#ffcc00;">${avgRating} <span style="font-size:12px;">/ 5</span></div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <h3 style="font-family:'Rajdhani'; font-size:14px; margin-bottom:15px; color:#888;">DISTRIBUZIONE_MEDIA</h3>
+            ${Object.entries(counts).map(([cat, count]) => {
+                const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
+                const perc = activeReviews.length ? (count / activeReviews.length * 100) : 0;
+                return `
+                    <div style="margin-bottom:12px;">
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; font-family:'JetBrains Mono';">
+                            <span>${cat}</span>
+                            <span>${count}</span>
+                        </div>
+                        <div style="width:100%; height:6px; background:#1a1a1a; border-radius:10px; overflow:hidden;">
+                            <div style="width:${perc}%; height:100%; background:${colors[cat]}; box-shadow: 0 0 10px ${colors[cat]}55;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+
+        <div style="background:rgba(136,136,136,0.05); padding:15px; border-left: 3px solid #444; margin-bottom:30px;">
+            <div style="font-size:11px; color:#666; font-family:'JetBrains Mono';">PENDING_WISHLIST</div>
+            <div style="font-size:20px; font-family:'Rajdhani'; color:#888;">${totalWish} <span style="font-size:12px;">ELEMENTI</span></div>
+        </div>
+    `;
+}
