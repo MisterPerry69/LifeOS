@@ -2403,42 +2403,54 @@ async function toggleCriticAI() {
     const bubble = document.getElementById('ai-side-bubble');
     const navItem = document.getElementById('nav-critic');
 
-    // Toggle visibilità
-    if (bubble.style.display === 'block') {
-        bubble.style.display = 'none';
+    if (bubble.classList.contains('active')) {
         bubble.classList.remove('active');
+        setTimeout(() => { bubble.style.display = 'none'; }, 300);
         navItem.style.color = 'var(--dim)';
         return;
     }
 
-    // Attivazione
+    // Reset e attivazione
     bubble.style.display = 'block';
     bubble.classList.add('active');
     navItem.style.color = 'var(--accent)';
-    bubble.innerHTML = `<div class="blink-dot"></div> [ANALIZZANDO_GUSTI_UTENTE...]`;
+    bubble.innerHTML = `<div class="typing-text" style="font-size:10px; color:var(--accent);">
+        <span class="blink-dot"></span> ANALIZZANDO_FLUSSO_DATI...
+    </div>`;
 
-    // Preparazione dati: prendiamo i titoli recensiti (escludendo i WISH)
+    // Preparazione prompt
     const history = allReviews
         .filter(r => r.categoria?.toUpperCase() !== 'WISH')
-        .slice(0, 10) // Gli ultimi 10 sono sufficienti
+        .slice(0, 10)
         .map(r => `${r.titolo} (${r.rating}/5)`)
         .join(', ');
 
-    const prompt = `Sei l'algoritmo di analisi "CRITIC_ANALYZER v2.0". 
-    Dati utente: [${history || 'Nessun dato trovato'}].
-    
-COMPITO:
-    Fai un'osservazione breve (max 30 parole) sui suoi gusti e suggerisci un genere/titolo che dovrebbe esplorare basato sui dati. 
-    Sii pungente, cyberpunk e usa un tono da terminale. Non usare introduzioni tipo "Ecco l'analisi".`;
+            const prompt = `Sei l'algoritmo di analisi "CRITIC_ANALYZER v2.0". 
+            Dati utente: [${history || 'Nessun dato trovato'}].
+            
+        COMPITO:
+            Fai un'osservazione breve (max 30 parole) sui suoi gusti e suggerisci un genere/titolo che dovrebbe esplorare basato sui dati. 
+            Sii pungente, cyberpunk e usa un tono da terminale. Non usare introduzioni tipo "Ecco l'analisi".`;
 
-    // Chiamata al server (Google Apps Script)
-    google.script.run
-        .withSuccessHandler((response) => {
-            // Effetto macchina da scrivere (opzionale) o inserimento diretto
-            bubble.innerHTML = response;
-        })
-        .withFailureHandler(() => {
-            bubble.innerHTML = "[ERRORE_LINK_NEURALE]";
-        })
-        .callGeminiSimple(prompt); 
+    // Gestione chiamata sicura
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+            .withSuccessHandler((response) => {
+                bubble.innerHTML = `<div style="color:#fff; letter-spacing:0.5px;">${response}</div>`;
+            })
+            .withFailureHandler(() => {
+                bubble.innerHTML = `<div style="color:red;">LINK_NEURALE_INTERROTTO</div>`;
+            })
+            .callGeminiSimple(prompt);
+    } else {
+        // Fallback per test locale o errore caricamento librerie Google
+        console.warn("Google Apps Script non rilevato. Simulazione risposta.");
+        setTimeout(() => {
+            bubble.innerHTML = `<div>[MODALITÀ_DEMO]: I tuoi gusti sono un paradosso logico. Troppi media, troppa poca vita.</div>`;
+        }, 1500);
+    }
 }
+
+
+
+
