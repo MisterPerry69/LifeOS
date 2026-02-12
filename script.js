@@ -2129,39 +2129,23 @@ async function editPosterLink() {
 let isWishlistView = false; // Stato globale del modulo
 
 function toggleWishlist() {
-    // 1. Inverti lo stato
+    // Se eravamo in stats, chiudile
+    if (isStatsView) toggleStats(); 
+
     isWishlistView = !isWishlistView;
     
-    // 2. Recupera gli elementi con cautela
     const wishBtn = document.getElementById('nav-wish');
     const headerTitle = document.querySelector('#reviews .header h1');
     
-    // Cambiamo il titolo della Header
-    if (headerTitle) {
-        headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
-    }
+    if (headerTitle) headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
 
-    // 3. Gestione Icona e Colore Tasto
     if (wishBtn) {
+        wishBtn.style.color = isWishlistView ? "var(--accent)" : "var(--dim)";
         const icon = wishBtn.querySelector('i');
-        if (isWishlistView) {
-            wishBtn.style.color = "var(--accent)";
-            if (icon) icon.setAttribute('data-lucide', 'bookmark-check'); 
-        } else {
-            wishBtn.style.color = "var(--dim)";
-            if (icon) icon.setAttribute('data-lucide', 'bookmark-plus');
-        }
+        if (icon) icon.setAttribute('data-lucide', isWishlistView ? 'bookmark-check' : 'bookmark-plus');
     }
 
-    // 4. Rendering della lista filtrata
-    // Usiamo allReviews che è quella caricata da loadReviews()
-    if (typeof allReviews !== 'undefined' && allReviews.length > 0) {
-        renderReviews(allReviews, isWishlistView);
-    } else {
-        console.error("Dati reviews non pronti.");
-    }
-
-    // Refresh icone Lucide (indispensabile dopo setAttribute)
+    renderReviews(allReviews, isWishlistView);
     if(window.lucide) lucide.createIcons();
 }
 
@@ -2260,7 +2244,12 @@ let isStatsView = false;
 
 function toggleStats() {
     isStatsView = !isStatsView;
-    isWishlistView = false; // Se entriamo in stats, resettiamo wishlist view
+    // Se entriamo in stats, spegniamo la visuale wishlist
+    if (isStatsView && isWishlistView) {
+        isWishlistView = false;
+        const wishBtn = document.getElementById('nav-wish');
+        if (wishBtn) wishBtn.style.color = "var(--dim)";
+    }
 
     const list = document.getElementById('reviews-list');
     const statsCont = document.getElementById('reviews-stats-container');
@@ -2272,7 +2261,7 @@ function toggleStats() {
         statsBtn.style.color = "var(--accent)";
         list.style.display = 'none';
         statsCont.style.display = 'block';
-        generateStatsHTML(); // Funzione che crea i grafici
+        generateStatsHTML('6M'); // Default a 6 mesi
     } else {
         headerTitle.innerText = 'REVIEWS';
         statsBtn.style.color = "var(--dim)";
@@ -2282,11 +2271,12 @@ function toggleStats() {
     }
 }
 
-function generateStatsHTML() {
+function generateStatsHTML(period = '6M') {
     const container = document.getElementById('reviews-stats-container');
     const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
+    const wishCount = allReviews.length - activeReviews.length;
     
-    // --- CALCOLO DISTRIBUZIONE ---
+    // 1. CALCOLO RATING E DISTRIBUZIONE
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     activeReviews.forEach(r => {
@@ -2296,75 +2286,85 @@ function generateStatsHTML() {
     });
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
 
-    // --- CALCOLO TREND MENSILE (Ultimi 6 mesi) ---
-    const monthlyTrend = {};
+    // 2. LOGICA GRAFICO TEMPORALE
+    let trendData = {};
     const now = new Date();
-    for(let i=5; i>=0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
-        monthlyTrend[label] = 0;
+
+    if (period === '6M') {
+        for(let i=5; i>=0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            trendData[d.toLocaleString('it-IT', { month: 'short' }).toUpperCase()] = 0;
+        }
+    } else if (period === '1Y') {
+        for(let i=11; i>=0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            trendData[d.toLocaleString('it-IT', { month: 'short' }).toUpperCase()] = 0;
+        }
     }
 
     activeReviews.forEach(r => {
         const d = new Date(r.data);
         const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
-        if(monthlyTrend[label] !== undefined) monthlyTrend[label]++;
+        if(trendData[label] !== undefined) trendData[label]++;
     });
 
-    const maxMonthly = Math.max(...Object.values(monthlyTrend), 1);
+    const maxVal = Math.max(...Object.values(trendData), 1);
 
-    // --- RENDER HTML ---
     container.innerHTML = `
-        <div style="margin-bottom: 25px; padding-bottom: 10px; border-bottom: 1px solid #1a1a1a;">
-            <h2 style="font-family:'Rajdhani'; color:var(--accent); font-size:14px; letter-spacing:2px;">[ CORE_DATA_ANALYSIS ]</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+            <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
+                <div style="font-size:8px; color:#444; margin-bottom:5px;">LOGS</div>
+                <div style="font-size:18px; font-family:'Rajdhani'; color:#fff;">${activeReviews.length}</div>
+            </div>
+            <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
+                <div style="font-size:8px; color:#444; margin-bottom:5px;">SCORE</div>
+                <div style="font-size:18px; font-family:'Rajdhani'; color:#ffcc00;">${avgRating}</div>
+            </div>
+            <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
+                <div style="font-size:8px; color:#444; margin-bottom:5px;">WISH</div>
+                <div style="font-size:18px; font-family:'Rajdhani'; color:#888;">${wishCount}</div>
+            </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
-            <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px;">
-                <div style="font-size:9px; color:#555; letter-spacing:1px;">TOTAL_LOGS</div>
-                <div style="font-size:24px; font-family:'Rajdhani'; color:#fff;">${activeReviews.length}</div>
+        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px; margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; letter-spacing:1px; margin:0;">ACTIVITY_TREND</h3>
+                <div style="display:flex; gap:10px; font-size:9px; font-family:'JetBrains Mono';">
+                    <span onclick="generateStatsHTML('6M')" style="cursor:pointer; color:${period==='6M'?'var(--accent)':'#444'}">6M</span>
+                    <span onclick="generateStatsHTML('1Y')" style="cursor:pointer; color:${period==='1Y'?'var(--accent)':'#444'}">1Y</span>
+                </div>
             </div>
-            <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px;">
-                <div style="font-size:9px; color:#555; letter-spacing:1px;">CRITIC_SCORE</div>
-                <div style="font-size:24px; font-family:'Rajdhani'; color:#ffcc00;">${avgRating}<span style="font-size:10px; color:#444;">/5</span></div>
-            </div>
-        </div>
-
-        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:20px; border-radius:4px; margin-bottom:25px;">
-            <h3 style="font-family:'Rajdhani'; font-size:11px; color:#444; margin-bottom:20px; letter-spacing:1px;">ACTIVITY_TREND (6M)</h3>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; height:80px; gap:8px;">
-                ${Object.entries(monthlyTrend).map(([month, val]) => {
-                    const height = (val / maxMonthly) * 100;
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; height:100px; gap:4px;">
+                ${Object.entries(trendData).map(([label, val]) => {
+                    const h = (val / maxVal) * 100;
                     return `
-                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
-                            <div style="font-size:8px; color:var(--accent);">${val}</div>
-                            <div style="width:100%; height:${height}%; background:linear-gradient(to top, var(--accent) 0%, transparent 100%); opacity:0.6; border-radius:2px 2px 0 0;"></div>
-                            <div style="font-size:8px; color:#333;">${month}</div>
+                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;">
+                            <div style="font-size:7px; color:var(--accent); opacity:${val>0?1:0}">${val}</div>
+                            <div style="width:100%; height:${h}%; background:var(--accent); opacity:${val>0?0.5:0.05}; border-radius:1px;"></div>
+                            <div style="font-size:7px; color:#333; transform:rotate(-45deg); margin-top:5px;">${label}</div>
                         </div>
                     `;
                 }).join('')}
             </div>
         </div>
 
-        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:20px; border-radius:4px;">
-            <h3 style="font-family:'Rajdhani'; font-size:11px; color:#444; margin-bottom:15px; letter-spacing:1px;">MEDIA_DISTRIBUTION</h3>
+        <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:15px; border-radius:4px;">
+            <h3 style="font-family:'Rajdhani'; font-size:10px; color:#444; margin-bottom:15px; letter-spacing:1px;">MEDIA_PROPORTIONS</h3>
             ${Object.entries(counts).map(([cat, count]) => {
                 const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
-                const perc = activeReviews.length ? (count / activeReviews.length * 100) : 0;
+                const p = activeReviews.length ? (count / activeReviews.length * 100) : 0;
                 return `
-                    <div style="margin-bottom:15px;">
-                        <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px; font-family:'JetBrains Mono';">
-                            <span style="color:${colors[cat]}">${cat}</span>
-                            <span style="color:#555;">${count} UNITS</span>
+                    <div style="margin-bottom:12px;">
+                        <div style="display:flex; justify-content:space-between; font-size:9px; margin-bottom:4px; font-family:'JetBrains Mono'; color:#888;">
+                            <span>${cat}</span>
+                            <span>${count}</span>
                         </div>
-                        <div style="width:100%; height:4px; background:#111; border-radius:2px;">
-                            <div style="width:${perc}%; height:100%; background:${colors[cat]}; box-shadow: 0 0 10px ${colors[cat]}33;"></div>
+                        <div style="width:100%; height:3px; background:#111; border-radius:2px; overflow:hidden;">
+                            <div style="width:${p}%; height:100%; background:${colors[cat]};"></div>
                         </div>
                     </div>
                 `;
             }).join('')}
         </div>
     `;
-    
-    if(window.lucide) lucide.createIcons();
 }
