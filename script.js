@@ -1808,17 +1808,18 @@ async function handleGhostInput(event) {
 
 //REVIEWS SECTION//
 
-// Utility per capire se un elemento è un desiderio
 function isWish(r) {
     if (!r || !r.categoria) return false;
-    // Cerca la parola WISH ovunque nella stringa categoria
+    // Se la categoria CONTIENE "WISH" ovunque (anche dopo la virgola)
     return r.categoria.toUpperCase().includes("WISH");
 }
 
 function getCleanCat(r) {
     if (!r || !r.categoria) return "VARIE";
-    // Prende la prima parte prima della virgola, toglie gli spazi e mette in maiuscolo
-    return r.categoria.split(",")[0].trim().toUpperCase();
+    // Prende la PRIMA parte PRIMA della virgola, rimuove spazi e "WISH"
+    const parts = r.categoria.split(",").map(p => p.trim().toUpperCase());
+    // Restituisce la categoria principale (es: "FILM" da "FILM, WISH")
+    return parts.find(p => p !== "WISH") || "VARIE";
 }
 
 function renderStars(rating, color) {
@@ -1863,82 +1864,6 @@ function loadReviews() {
     }
 }
 
-function renderReviews(data, showOnlyWish = false) {
-    const list = document.getElementById('reviews-list');
-    list.innerHTML = '';
-    if (!list) return;
-
-    // 1. FILTRAGGIO INTELLIGENTE
-    const filteredData = data.filter(item => {
-        const isWish = item.categoria?.toUpperCase() === 'WISH';
-        // Se showOnlyWish è true, passano solo i desideri. Se false, passa tutto il resto.
-        return showOnlyWish ? isWish : !isWish;
-    });
-
-    if (!filteredData || filteredData.length === 0) {
-        list.innerHTML = `<div style="text-align:center; opacity:0.1; padding:40px; letter-spacing:2px;">[ NESSUN_DATO_RILEVATO ]</div>`;
-        return;
-    }
-
-    const catColors = {
-        'FILM': '#00d4ff',
-        'SERIE': '#ff0055',
-        'GAME': '#00ff44',
-        'COMIC': '#ffcc00',
-        'WISH': '#888888'
-    };
-
-    list.innerHTML = filteredData.map(item => {
-        const isWish = item.categoria?.toUpperCase() === 'WISH';
-        const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
-        const dateStr = formatItalianDate(item.data);
-        
-        // Se è un desiderio, mostriamo un'icona invece delle stelle vuote
-        const starsHtml = isWish 
-            ? `<div style="color:${color}; font-size:10px; opacity:0.6; display:flex; align-items:center; gap:4px;"><i data-lucide="clock" style="width:12px;"></i> WISHLIST</div>`
-            : renderStars(item.rating, color);
-
-        return `
-            <div class="review-card" 
-                 data-review-id="${item.id}"
-                 style="border-left: 3px solid ${color}; cursor:pointer;">
-                
-                <div class="poster-mini" 
-                     style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
-                     ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
-                </div>
-
-                <div class="review-info">
-                    <div class="review-top">
-                        <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
-                        <div class="rating-stars" style="display:flex; gap:2px;">
-                            ${starsHtml}
-                        </div>
-                    </div>
-                    
-                    <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
-                        ${item.commento_breve || item.riassunto_ai || ''}
-                    </div>
-                    
-                    <div class="review-meta" style="font-family:'JetBrains Mono';">
-                        <span style="opacity:0.7">${item.categoria}</span>
-                        <span>${dateStr}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    // Listener per il dettaglio
-    list.querySelectorAll('.review-card').forEach(card => {
-        card.onclick = () => {
-            const id = card.getAttribute('data-review-id');
-            if (id) openReviewDetail(id);
-        };
-    });
-
-    if(window.lucide) lucide.createIcons();
-}
 
 // Funzione per generare le stelle (★ e ½)
 function getStarRating(rating) {
@@ -1953,12 +1878,11 @@ function renderReviews(data, showOnlyWish = false) {
     const list = document.getElementById('reviews-list');
     if (!list) return;
 
-    // --- AGGIUNTA FILTRO ISWISH ---
-    // Filtra i dati in base alla categoria 'WISH' e al parametro showOnlyWish
-    const filteredData = data ? data.filter(item => {
-        const isWish = item.categoria?.toUpperCase() === 'WISH';
-        return showOnlyWish ? isWish : !isWish;
-    }) : [];
+    // FIX: Se i dati sono già filtrati da filterByCategory, non rifiltrare
+    // Mantieni questa logica SOLO se chiamata direttamente da loadReviews
+    const filteredData = showOnlyWish 
+        ? data.filter(item => isWish(item))
+        : data;
 
     if (!filteredData || filteredData.length === 0) {
         list.innerHTML = `<div style="text-align:center; opacity:0.1; padding:40px; letter-spacing:2px;">[ NESSUN_DATO_RILEVATO ]</div>`;
@@ -2495,29 +2419,30 @@ COMPITO:
 }
 
 function filterByCategory(cat, element) {
-    // 1. UI: Gestione quadratini
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
     element.classList.add('active');
 
     if (isStatsView) {
         generateStatsHTML('6M', cat);
     } else {
-        // 2. FILTRAGGIO LOGICO
         const filtered = allReviews.filter(r => {
-            const itemIsWish = isWish(r);
-            const cleanCat = getCleanCat(r);
+            const itemIsWish = isWish(r);          // Es: true per "FILM, WISH"
+            const cleanCat = getCleanCat(r);        // Es: "FILM" per "FILM, WISH"
             
-            // Deve corrispondere alla pagina in cui ti trovi (Wishlist o Home)
+            // FIX: Se sono in Wishlist, mostro SOLO i wish
+            //      Se sono in Reviews, mostro SOLO i non-wish
             const matchView = isWishlistView ? itemIsWish : !itemIsWish;
             
-            // Deve corrispondere al quadratino cliccato
-            const matchCat = (cat === 'ALL') ? true : (cleanCat === cat.toUpperCase());
+            // FIX: Il filtro categoria si applica sulla categoria PULITA
+            const matchCat = (cat === 'ALL') ? true : (cleanCat === cat);
             
             return matchView && matchCat;
         });
 
-        console.log("Filtrati per " + cat + ":", filtered); // <-- Apri la console (F12) per vedere se qui i dati ci sono!
-        renderReviews(filtered, isWishlistView);
+        console.log(`Filtrati per ${cat}, wishlist=${isWishlistView}:`, filtered);
+        
+        // FIX: Chiama renderReviews con i dati già filtrati
+        renderReviews(filtered, false); // Non serve passare showOnlyWish, è già filtrato
     }
     if(window.lucide) lucide.createIcons();
 }
