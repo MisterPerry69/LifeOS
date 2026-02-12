@@ -2244,31 +2244,33 @@ let isStatsView = false;
 
 function toggleStats() {
     isStatsView = !isStatsView;
-    // Se entriamo in stats, spegniamo la visuale wishlist
-    if (isStatsView && isWishlistView) {
-        isWishlistView = false;
-        const wishBtn = document.getElementById('nav-wish');
-        if (wishBtn) wishBtn.style.color = "var(--dim)";
-    }
-
+    
+    // Elementi UI
+    const statsBtn = document.getElementById('nav-stats');
+    const wishBtn = document.getElementById('nav-wish');
     const list = document.getElementById('reviews-list');
     const statsCont = document.getElementById('reviews-stats-container');
     const headerTitle = document.querySelector('#reviews .header h1');
-    const statsBtn = document.getElementById('nav-stats');
 
     if (isStatsView) {
+        isWishlistView = false; // Spegniamo wishlist se entriamo in stats
         headerTitle.innerText = 'DATA_INTELLIGENCE';
-        statsBtn.style.color = "var(--accent)";
+        
+        // Gestione Colori Tasti
+        if(statsBtn) statsBtn.style.color = "var(--accent)";
+        if(wishBtn) wishBtn.style.color = "var(--dim)";
+        
         list.style.display = 'none';
         statsCont.style.display = 'block';
-        generateStatsHTML('6M'); // Default a 6 mesi
+        generateStatsHTML('6M'); 
     } else {
         headerTitle.innerText = 'REVIEWS';
-        statsBtn.style.color = "var(--dim)";
+        if(statsBtn) statsBtn.style.color = "var(--dim)";
         list.style.display = 'flex';
         statsCont.style.display = 'none';
         renderReviews(allReviews, false);
     }
+    if(window.lucide) lucide.createIcons();
 }
 
 function generateStatsHTML(period = '6M') {
@@ -2276,37 +2278,42 @@ function generateStatsHTML(period = '6M') {
     const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
     const wishCount = allReviews.length - activeReviews.length;
     
-    // 1. CALCOLO RATING E DISTRIBUZIONE
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     activeReviews.forEach(r => {
-        const cat = r.categoria?.toUpperCase();
-        if(counts[cat] !== undefined) counts[cat]++;
+        counts[r.categoria?.toUpperCase()]++;
         totalRating += parseFloat(r.rating || 0);
     });
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
 
-    // 2. LOGICA GRAFICO TEMPORALE
+    // --- LOGICA TREND MIGLIORATA ---
     let trendData = {};
     const now = new Date();
 
-    if (period === '6M') {
-        for(let i=5; i>=0; i--) {
+    if (period === '6M' || period === '1Y') {
+        const monthsToShow = period === '6M' ? 6 : 12;
+        for(let i = monthsToShow - 1; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            trendData[d.toLocaleString('it-IT', { month: 'short' }).toUpperCase()] = 0;
+            const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
+            trendData[label] = 0;
         }
-    } else if (period === '1Y') {
-        for(let i=11; i>=0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            trendData[d.toLocaleString('it-IT', { month: 'short' }).toUpperCase()] = 0;
-        }
+        activeReviews.forEach(r => {
+            const d = new Date(r.data); 
+            if(!isNaN(d)) {
+                const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
+                if(trendData.hasOwnProperty(label)) trendData[label]++;
+            }
+        });
+    } else if (period === 'ALL') {
+        // Raggruppa per Anno
+        activeReviews.forEach(r => {
+            const d = new Date(r.data);
+            if(!isNaN(d)) {
+                const year = d.getFullYear();
+                trendData[year] = (trendData[year] || 0) + 1;
+            }
+        });
     }
-
-    activeReviews.forEach(r => {
-        const d = new Date(r.data);
-        const label = d.toLocaleString('it-IT', { month: 'short' }).toUpperCase();
-        if(trendData[label] !== undefined) trendData[label]++;
-    });
 
     const maxVal = Math.max(...Object.values(trendData), 1);
 
@@ -2332,16 +2339,17 @@ function generateStatsHTML(period = '6M') {
                 <div style="display:flex; gap:10px; font-size:9px; font-family:'JetBrains Mono';">
                     <span onclick="generateStatsHTML('6M')" style="cursor:pointer; color:${period==='6M'?'var(--accent)':'#444'}">6M</span>
                     <span onclick="generateStatsHTML('1Y')" style="cursor:pointer; color:${period==='1Y'?'var(--accent)':'#444'}">1Y</span>
+                    <span onclick="generateStatsHTML('ALL')" style="cursor:pointer; color:${period==='ALL'?'var(--accent)':'#444'}">ALL</span>
                 </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; height:100px; gap:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; height:100px; gap:4px; padding-bottom:10px;">
                 ${Object.entries(trendData).map(([label, val]) => {
                     const h = (val / maxVal) * 100;
                     return `
-                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;">
-                            <div style="font-size:7px; color:var(--accent); opacity:${val>0?1:0}">${val}</div>
-                            <div style="width:100%; height:${h}%; background:var(--accent); opacity:${val>0?0.5:0.05}; border-radius:1px;"></div>
-                            <div style="font-size:7px; color:#333; transform:rotate(-45deg); margin-top:5px;">${label}</div>
+                        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; height:100%; justify-content:flex-end;">
+                            <div style="font-size:7px; color:var(--accent);">${val > 0 ? val : ''}</div>
+                            <div style="width:100%; height:${h}%; background:var(--accent); opacity:${val > 0 ? 0.6 : 0.05}; border-radius:1px; min-height:${val > 0 ? '2px' : '0'}"></div>
+                            <div style="font-size:7px; color:#333; transform:rotate(-45deg); margin-top:10px; white-space:nowrap;">${label}</div>
                         </div>
                     `;
                 }).join('')}
@@ -2367,4 +2375,5 @@ function generateStatsHTML(period = '6M') {
             }).join('')}
         </div>
     `;
+    if(window.lucide) lucide.createIcons();
 }
