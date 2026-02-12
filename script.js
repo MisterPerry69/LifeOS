@@ -2299,7 +2299,7 @@ function generateStatsHTML(period = '6M') {
     const activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
     const wishCount = allReviews.length - activeReviews.length;
     
-    // 1. CONTEGGI CATEGORIA (Sempre utili)
+    // 1. CONTEGGI CATEGORIA
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     activeReviews.forEach(r => {
@@ -2310,9 +2310,9 @@ function generateStatsHTML(period = '6M') {
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
     const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
 
-    // 2. LOGICA TREND (Generazione trendData e trendHTML)
+    // 2. LOGICA TREND (INIZIALIZZAZIONE VARIABILI)
     let trendData = {};
-    let trendHTML = '';
+    let trendHTML = ''; // Dichiarata qui fuori per evitare ReferenceError
     const now = new Date();
 
     if (period === 'ALL') {
@@ -2335,7 +2335,8 @@ function generateStatsHTML(period = '6M') {
             activeReviews.forEach(r => {
                 const d = new Date(r.data);
                 if(!isNaN(d) && d.getFullYear() === currentYear) {
-                    trendData[mesi[d.getMonth()]]++;
+                    const label = mesi[d.getMonth()];
+                    if(trendData.hasOwnProperty(label)) trendData[label]++;
                 }
             });
         } else { // 6M Default
