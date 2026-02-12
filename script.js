@@ -2125,7 +2125,6 @@ async function editPosterLink() {
 }
 
 // Stato locale del modulo Reviews
-let isWishlistView = false;
 
 let isWishlistView = false; // Stato globale del modulo
 
