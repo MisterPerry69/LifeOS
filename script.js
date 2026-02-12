@@ -1808,6 +1808,16 @@ async function handleGhostInput(event) {
 
 //REVIEWS SECTION//
 
+// Utility per capire se un elemento è un desiderio
+function isWish(r) {
+    return r.categoria && r.categoria.toUpperCase().includes("WISH");
+}
+
+// Utility per avere solo la categoria (es. "GAME, WISH" -> "GAME")
+function getCleanCat(r) {
+    if (!r.categoria) return "VARIE";
+    return r.categoria.split(",")[0].trim().toUpperCase();
+}
 
 function renderStars(rating, color) {
     let starsHtml = '';
@@ -2297,26 +2307,28 @@ function toggleStats() {
 function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     const container = document.getElementById('reviews-stats-container');
     
-    // FILTRO ATTIVO: Solo recensioni (no wish) + Categoria scelta
-    let activeReviews = allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH');
-    if (filterCat !== 'ALL') {
-        activeReviews = activeReviews.filter(r => r.categoria?.toUpperCase() === filterCat.toUpperCase());
-    }
+    // 1. FILTRO BASE: Separiamo recensioni vere da wishlist usando l'utility
+    let activeReviews = allReviews.filter(r => !isWish(r));
+    const wishCount = allReviews.filter(r => isWish(r)).length;
 
-    const wishCount = allReviews.length - allReviews.filter(r => r.categoria?.toUpperCase() !== 'WISH').length;
+    // 2. FILTRO CATEGORIA: Se l'utente clicca su un quadratino (FILM, GAME, etc.)
+    if (filterCat !== 'ALL') {
+        activeReviews = activeReviews.filter(r => getCleanCat(r) === filterCat.toUpperCase());
+    }
     
-    // Ricalcolo medie basato sul filtro
+    // 3. CONTEGGI PER MEDIA DISTRIBUTION
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     activeReviews.forEach(r => {
-        const cat = r.categoria?.toUpperCase();
+        const cat = getCleanCat(r);
         if(counts[cat] !== undefined) counts[cat]++;
         totalRating += parseFloat(r.rating || 0);
     });
+
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
     const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
 
-    // --- LOGICA TREND (Ricalcolata su activeReviews filtrata) ---
+    // --- LOGICA TREND ---
     let trendData = {};
     let trendHTML = '';
     const now = new Date();
@@ -2332,13 +2344,14 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
                 `).join('')}
             </div>`;
     } else {
-        // Barre temporali (6M o 1Y)
         const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
         if (period === '1Y') {
             mesi.forEach(m => trendData[m] = 0);
             activeReviews.forEach(r => {
                 const d = new Date(r.data);
-                if(!isNaN(d) && d.getFullYear() === now.getFullYear()) trendData[mesi[d.getMonth()]]++;
+                if(!isNaN(d) && d.getFullYear() === now.getFullYear()) {
+                    trendData[mesi[d.getMonth()]]++;
+                }
             });
         } else {
             for(let i = 5; i >= 0; i--) {
@@ -2369,7 +2382,6 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
             </div>`;
     }
 
-    // Costruiamo il template finale (uguale a prima ma con i dati filtrati)
     container.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px;">
             <div style="background:#0a0a0a; border:1px solid #1a1a1a; padding:12px; border-radius:4px; text-align:center;">
@@ -2478,18 +2490,27 @@ COMPITO:
 }
 
 function filterByCategory(cat, element) {
+    // 1. Aggiorna UI dei quadratini
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
     element.classList.add('active');
 
     if (isStatsView) {
-        // Se siamo in Stats, ricarichiamo le stats con il filtro categoria
-        generateStatsHTML('6M', cat); 
+        // Se siamo in Stats, ricarica le stats filtrate
+        generateStatsHTML('6M', cat);
     } else {
-        // Se siamo nella lista, filtriamo la lista
-        let dataToRender = allReviews;
-        if (cat !== 'ALL') {
-            dataToRender = allReviews.filter(r => r.categoria?.toUpperCase() === cat.toUpperCase());
-        }
-        renderReviews(dataToRender, isWishlistView);
+        // Se siamo in Lista, filtra in base a dove ci troviamo (Wishlist o Reviews)
+        const filtered = allReviews.filter(r => {
+            const itemIsWish = isWish(r);
+            const cleanCat = getCleanCat(r);
+            
+            // Deve corrispondere alla vista attuale
+            const matchView = isWishlistView ? itemIsWish : !itemIsWish;
+            // Deve corrispondere alla categoria del quadratino (o ALL)
+            const matchCat = (cat === 'ALL') ? true : (cleanCat === cat.toUpperCase());
+            
+            return matchView && matchCat;
+        });
+        renderReviews(filtered, isWishlistView);
     }
+    if(window.lucide) lucide.createIcons();
 }

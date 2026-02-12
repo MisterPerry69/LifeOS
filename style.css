@@ -1812,45 +1812,45 @@ CSS
 }
 
 .filter-chip {
-    position: relative;
-    padding: 4px 8px;
-    color: #444; /* Colore spento di default */
-    font-size: 9px;
-    font-family: 'JetBrains Mono';
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 4px;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
+}
+
+.filter-chip i {
+    width: 14px;
+    height: 14px;
+    color: #444;
+}
+
+.filter-chip span {
+    font-size: 8px;
+    font-family: 'JetBrains Mono';
+    color: #444;
 }
 
 .filter-chip.active {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 10px rgba(0, 212, 255, 0.05);
+}
+
+.filter-chip.active i, .filter-chip.active span {
     color: var(--accent);
 }
 
-.filter-chip.active::after {
-    content: '';
-    position: absolute;
-    bottom: -12px;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-}
-
 #category-filters {
-    display: flex; 
-    justify-content: space-around;
-    padding: 12px 10px; 
-    background: transparent; 
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    padding: 10px 15px;
+    background: transparent;
 }
 
-/* Piccola label prima del primo filtro */
-#category-filters::before {
-    content: "STRTR_";
-    font-family: 'JetBrains Mono';
-    font-size: 9px;
-    color: #222;
-    padding-top: 4px;
-}
