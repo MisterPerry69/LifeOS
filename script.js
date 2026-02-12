@@ -2451,11 +2451,15 @@ COMPITO:
         });
 
         const text = await standardResponse.text();
-        bubble.innerHTML = `<div style="color:#fff;">${text}</div>`;
         
-    } catch (e) {
-        bubble.innerHTML = `<div style="color:red; font-size:9px;">ERRORE_LINK_NEURALE: VERIFICA_PUBBLICAZIONE_WEBAPP</div>`;
-    }
+        // Se per caso ricevi ancora SUCCESS, aggiungiamo un check di debug
+        if (text === "SUCCESS") {
+            bubble.innerHTML = `<div style="color:var(--accent);">[ ERRORE_LINK_NEURALE: VERIFICA_PUBBLICAZIONE_WEBAPP ]</div>`;
+        } else {
+            bubble.innerHTML = `<div style="color:#fff;">${text}</div>`;
+        }
+
+
 }
 
 
