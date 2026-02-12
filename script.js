@@ -2166,23 +2166,19 @@ function toggleWishlist() {
 }
 
 function openReviewDetail(id) {
-    console.log("Click ricevuto, ID:", id);
-    
-    if (!allReviews || allReviews.length === 0) {
-        console.error("allReviews è vuoto, attendi il caricamento");
-        return;
-    }
+if (!allReviews || allReviews.length === 0) return;
     
     const item = allReviews.find(r => String(r.id) === String(id));
-    if (!item) {
-        console.error("Review non trovata:", id, allReviews);
-        return;
-    }
+    if (!item) return;
 
-    // --- LOGICA ISWISH ---
-    const isWish = item.categoria?.toUpperCase() === 'WISH';
+    // --- LOGICA ISWISH (CON TRIM E CONTROLLO RIGOROSO) ---
+    // Puliamo la stringa per evitare che "WISH " (con spazio) fallisca il confronto
+    const cleanedCategory = item.categoria ? item.categoria.trim().toUpperCase() : "";
+    const isWish = cleanedCategory === 'WISH';
+    
+    // Assegnazione colori
     const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
-    const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
+    const color = catColors[cleanedCategory] || 'var(--accent)';
     
     const modal = document.getElementById('review-detail-modal');
     if (!modal) return;
