@@ -1919,49 +1919,48 @@ function renderReviews(data, showOnlyWish = false) {
         'WISH': '#888888'
     };
 
-    list.innerHTML = filteredData.map(item => {
-        const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
-        const dateStr = formatItalianDate(item.data);
-        
-        // --- LOGICA STELLE/WISH ---
-        // Se è un WISH, mostriamo l'icona bookmark o clock invece delle stelle vuote
-        const isWish = item.categoria?.toUpperCase() === 'WISH';
-        const starsHtml = isWish 
-            ? `<div style="display:flex; align-items:center; gap:5px; color:#666; font-size:10px;">
-                <i data-lucide="bookmark" style="width:12px; height:12px;"></i> WISHLIST
-               </div>`
-            : renderStars(item.rating, color);
+   list.innerHTML = filteredData.map(item => {
+    const color = catColors[getCleanCat(item)] || 'var(--accent)'; // ← Usa categoria pulita per il colore
+    const dateStr = formatItalianDate(item.data);
+    
+    // FIX: Usa la funzione isWish() invece del confronto esatto
+    const itemIsWish = isWish(item);
+    const starsHtml = itemIsWish 
+        ? `<div style="display:flex; align-items:center; gap:5px; color:#666; font-size:10px;">
+            <i data-lucide="bookmark" style="width:12px; height:12px;"></i> WISHLIST
+           </div>`
+        : renderStars(item.rating, color);
 
-        return `
-            <div class="review-card" 
-                 data-review-id="${item.id}"
-                 style="border-left: 3px solid ${color}; cursor:pointer;">
-                
-                <div class="poster-mini" 
-                     style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
-                     ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
+    return `
+        <div class="review-card" 
+             data-review-id="${item.id}"
+             style="border-left: 3px solid ${color}; cursor:pointer;">
+            
+            <div class="poster-mini" 
+                 style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
+                 ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
+            </div>
+
+            <div class="review-info">
+                <div class="review-top">
+                    <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
+                    <div class="rating-stars" style="display:flex; gap:2px;">
+                        ${starsHtml}
+                    </div>
                 </div>
-
-                <div class="review-info">
-                    <div class="review-top">
-                        <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
-                        <div class="rating-stars" style="display:flex; gap:2px;">
-                            ${starsHtml}
-                        </div>
-                    </div>
-                    
-                    <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
-                        ${item.commento_breve || item.riassunto_ai || ''}
-                    </div>
-                    
-                    <div class="review-meta" style="font-family:'JetBrains Mono';">
-                        <span style="opacity:0.7">${item.categoria}</span>
-                        <span>${dateStr}</span>
-                    </div>
+                
+                <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
+                    ${item.commento_breve || item.riassunto_ai || ''}
+                </div>
+                
+                <div class="review-meta" style="font-family:'JetBrains Mono';">
+                    <span style="opacity:0.7">${item.categoria}</span>
+                    <span>${dateStr}</span>
                 </div>
             </div>
-        `;
-    }).join('');
+        </div>
+    `;
+}).join('');
 
     // Event delegation - rimane identico
     list.querySelectorAll('.review-card').forEach(card => {
