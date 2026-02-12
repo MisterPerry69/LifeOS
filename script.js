@@ -1810,12 +1810,14 @@ async function handleGhostInput(event) {
 
 // Utility per capire se un elemento è un desiderio
 function isWish(r) {
-    return r.categoria && r.categoria.toUpperCase().includes("WISH");
+    if (!r || !r.categoria) return false;
+    // Cerca la parola WISH ovunque nella stringa categoria
+    return r.categoria.toUpperCase().includes("WISH");
 }
 
-// Utility per avere solo la categoria (es. "GAME, WISH" -> "GAME")
 function getCleanCat(r) {
-    if (!r.categoria) return "VARIE";
+    if (!r || !r.categoria) return "VARIE";
+    // Prende la prima parte prima della virgola, toglie gli spazi e mette in maiuscolo
     return r.categoria.split(",")[0].trim().toUpperCase();
 }
 
@@ -2140,8 +2142,6 @@ async function editPosterLink() {
 let isWishlistView = false; // Stato globale del modulo
 
 function toggleWishlist() {
-    // Se eravamo in stats, chiudile
-    
     if (isStatsView) toggleStats(); 
 
     isWishlistView = !isWishlistView;
@@ -2149,11 +2149,9 @@ function toggleWishlist() {
     const wishBtn = document.getElementById('nav-wish');
     const headerTitle = document.querySelector('#reviews .header h1');
     
-    if (headerTitle) headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
-
-    document.querySelectorAll('.filter-chip').forEach(el => {
-        el.classList.toggle('active', el.innerText === 'ALL');
-    });
+    if (headerTitle) {
+        headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
+    }
 
     if (wishBtn) {
         wishBtn.style.color = isWishlistView ? "var(--accent)" : "var(--dim)";
@@ -2161,7 +2159,11 @@ function toggleWishlist() {
         if (icon) icon.setAttribute('data-lucide', isWishlistView ? 'bookmark-check' : 'bookmark-plus');
     }
 
-    renderReviews(allReviews, isWishlistView);
+    // Invece di renderReviews, usiamo il filtro che abbiamo creato
+    // Cerchiamo il chip 'ALL' per passarlo come riferimento grafico
+    const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
+    filterByCategory('ALL', allChip);
+
     if(window.lucide) lucide.createIcons();
 }
 
@@ -2260,19 +2262,18 @@ let isStatsView = false;
 
 function toggleStats() {
     isStatsView = !isStatsView;
-    console.log("Stats View:", isStatsView); // Debug
-
+    
     const statsBtn = document.getElementById('nav-stats');
     const wishBtn = document.getElementById('nav-wish');
     const list = document.getElementById('reviews-list');
     const statsCont = document.getElementById('reviews-stats-container');
     const headerTitle = document.querySelector('#reviews .header h1');
+    const filterContainer = document.getElementById('category-filters');
 
     if (isStatsView) {
         isWishlistView = false; 
         if (headerTitle) headerTitle.innerText = 'DATA_INTELLIGENCE';
         
-        // ILLUMINAZIONE FORZATA
         if (statsBtn) {
             statsBtn.style.setProperty('color', 'var(--accent)', 'important');
             statsBtn.style.opacity = "1";
@@ -2284,22 +2285,25 @@ function toggleStats() {
         
         list.style.display = 'none';
         statsCont.style.display = 'block';
-        generateStatsHTML('6M'); 
+        
+        // Reset filtri su ALL quando entri in Stats
+        const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
+        document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
+        if (allChip) allChip.classList.add('active');
+        
+        generateStatsHTML('6M', 'ALL'); 
     } else {
         if (headerTitle) headerTitle.innerText = 'REVIEWS';
-
-        // RESET VISIVO FILTRI (Qui!)
-        document.querySelectorAll('.filter-chip').forEach(el => {
-            el.classList.toggle('active', el.innerText === 'ALL');
-        });
-
         if (statsBtn) {
             statsBtn.style.setProperty('color', 'var(--dim)', 'important');
             statsBtn.style.opacity = "0.5";
         }
         list.style.display = 'flex';
         statsCont.style.display = 'none';
-        renderReviews(allReviews, false);
+        
+        // Quando esci dalle stats, forza il filtro ALL sulla vista Home
+        const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
+        filterByCategory('ALL', allChip);
     }
     
     if(window.lucide) lucide.createIcons();
@@ -2491,31 +2495,29 @@ COMPITO:
 }
 
 function filterByCategory(cat, element) {
-    // 1. Aggiorna l'aspetto dei quadratini
+    // 1. UI: Gestione quadratini
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
     element.classList.add('active');
 
     if (isStatsView) {
-        // Se siamo nelle Stats, ricarichiamo i grafici col filtro
         generateStatsHTML('6M', cat);
     } else {
-        // Se siamo nella lista (Home o Wishlist)
+        // 2. FILTRAGGIO LOGICO
         const filtered = allReviews.filter(r => {
-            const itemIsWish = isWish(r); // Usa l'utility: cerca la parola "WISH"
-            const cleanCat = getCleanCat(r); // Usa l'utility: prende solo "FILM"
+            const itemIsWish = isWish(r);
+            const cleanCat = getCleanCat(r);
             
-            // FILTRO 1: Vista attuale (Se sono in Wishlist, voglio solo i WISH. Se sono in Reviews, voglio i NON-WISH)
+            // Deve corrispondere alla pagina in cui ti trovi (Wishlist o Home)
             const matchView = isWishlistView ? itemIsWish : !itemIsWish;
             
-            // FILTRO 2: Categoria (Se clicco ALL passano tutti, altrimenti solo la categoria specifica)
+            // Deve corrispondere al quadratino cliccato
             const matchCat = (cat === 'ALL') ? true : (cleanCat === cat.toUpperCase());
             
             return matchView && matchCat;
         });
 
-        // Esegui il render con i dati filtrati
+        console.log("Filtrati per " + cat + ":", filtered); // <-- Apri la console (F12) per vedere se qui i dati ci sono!
         renderReviews(filtered, isWishlistView);
     }
-    
     if(window.lucide) lucide.createIcons();
 }
