@@ -2114,19 +2114,18 @@ function toggleWishlist() {
 }
 
 function openReviewDetail(id) {
-if (!allReviews || allReviews.length === 0) return;
+    if (!allReviews || allReviews.length === 0) return;
     
     const item = allReviews.find(r => String(r.id) === String(id));
     if (!item) return;
 
-    // --- LOGICA ISWISH (CON TRIM E CONTROLLO RIGOROSO) ---
-    // Puliamo la stringa per evitare che "WISH " (con spazio) fallisca il confronto
-    const cleanedCategory = item.categoria ? item.categoria.trim().toUpperCase() : "";
-    const isWish = cleanedCategory === 'WISH';
+    // FIX: Usa la funzione isWish() già esistente invece del confronto esatto
+    const itemIsWish = isWish(item); // ← Usa questa invece del confronto manuale
     
-    // Assegnazione colori
+    // Per il colore, usa la categoria pulita
+    const cleanCat = getCleanCat(item);
     const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
-    const color = catColors[cleanedCategory] || 'var(--accent)';
+    const color = catColors[cleanCat] || 'var(--accent)';
     
     const modal = document.getElementById('review-detail-modal');
     if (!modal) return;
@@ -2160,7 +2159,7 @@ if (!allReviews || allReviews.length === 0) return;
                          style="box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
                     
                     <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center; border-radius:2px;">
-                        ${isWish ? `
+                        ${itemIsWish ? `
                             <div style="color:${color}; font-family:'Rajdhani'; font-size: 0.9rem; letter-spacing:1px;">
                                 <i data-lucide="clock" style="width:14px; margin-bottom:4px;"></i><br>IN_WISHLIST
                             </div>
@@ -2175,7 +2174,7 @@ if (!allReviews || allReviews.length === 0) return;
 
                 <div class="review-text-zone">${(item.commento_full || item.commento || 'Nessun testo.').trim()}
                     
-                    ${isWish ? `
+                    ${itemIsWish ? `
                         <div style="margin-top:30px; border-top: 1px solid #222; padding-top:20px;">
                             <button onclick="promoteToReview('${item.id}')" 
                                     style="width:100%; background:${color}; color:#000; border:none; padding:12px; font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:4px;">
