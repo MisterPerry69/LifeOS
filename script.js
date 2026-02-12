@@ -1832,29 +1832,37 @@ function formatItalianDate(dateStr) {
 let allReviews = []; 
 
 function loadReviews() {
-    // FIX: usa i dati già caricati da loadStats
+    isWishlistView = false; // Reset dello stato all'avvio
+    const list = document.getElementById('reviews-list');
+    
     if (lastStatsData && lastStatsData.reviews) {
         allReviews = lastStatsData.reviews;
-        renderReviews(allReviews);
+        // Passiamo false come secondo parametro: mostra solo Recensioni
+        renderReviews(allReviews, false); 
     } else {
-        // Se non ci sono ancora dati, mostra loading
-        const list = document.getElementById('reviews-list');
         if (list) list.innerHTML = `<div style="text-align:center; opacity:0.3; padding:40px;">SYNCING...</div>`;
         
-        // E aspetta che loadStats finisca
         setTimeout(() => {
             if (lastStatsData && lastStatsData.reviews) {
                 allReviews = lastStatsData.reviews;
-                renderReviews(allReviews);
+                renderReviews(allReviews, false);
             }
         }, 2000);
     }
 }
-function renderReviews(data) {
+
+function renderReviews(data, showOnlyWish = false) {
     const list = document.getElementById('reviews-list');
     if (!list) return;
 
-    if (!data || data.length === 0) {
+    // 1. FILTRAGGIO INTELLIGENTE
+    const filteredData = data.filter(item => {
+        const isWish = item.categoria?.toUpperCase() === 'WISH';
+        // Se showOnlyWish è true, passano solo i desideri. Se false, passa tutto il resto.
+        return showOnlyWish ? isWish : !isWish;
+    });
+
+    if (!filteredData || filteredData.length === 0) {
         list.innerHTML = `<div style="text-align:center; opacity:0.1; padding:40px; letter-spacing:2px;">[ NESSUN_DATO_RILEVATO ]</div>`;
         return;
     }
@@ -1867,53 +1875,56 @@ function renderReviews(data) {
         'WISH': '#888888'
     };
 
-    list.innerHTML = data.map(item => {
-    const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
-    const dateStr = formatItalianDate(item.data);
-    const starsHtml = renderStars(item.rating, color);
+    list.innerHTML = filteredData.map(item => {
+        const isWish = item.categoria?.toUpperCase() === 'WISH';
+        const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
+        const dateStr = formatItalianDate(item.data);
+        
+        // Se è un desiderio, mostriamo un'icona invece delle stelle vuote
+        const starsHtml = isWish 
+            ? `<div style="color:${color}; font-size:10px; opacity:0.6; display:flex; align-items:center; gap:4px;"><i data-lucide="clock" style="width:12px;"></i> WISHLIST</div>`
+            : renderStars(item.rating, color);
 
-    return `
-        <div class="review-card" 
-             data-review-id="${item.id}"
-             style="border-left: 3px solid ${color}; cursor:pointer;">
-            
-            <div class="poster-mini" 
-                 style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
-                 ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
-            </div>
+        return `
+            <div class="review-card" 
+                 data-review-id="${item.id}"
+                 style="border-left: 3px solid ${color}; cursor:pointer;">
+                
+                <div class="poster-mini" 
+                     style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
+                     ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
+                </div>
 
-            <div class="review-info">
-                <div class="review-top">
-                    <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
-                    <div class="rating-stars" style="display:flex; gap:2px;">
-                        ${starsHtml}
+                <div class="review-info">
+                    <div class="review-top">
+                        <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
+                        <div class="rating-stars" style="display:flex; gap:2px;">
+                            ${starsHtml}
+                        </div>
+                    </div>
+                    
+                    <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
+                        ${item.commento_breve || item.riassunto_ai || ''}
+                    </div>
+                    
+                    <div class="review-meta" style="font-family:'JetBrains Mono';">
+                        <span style="opacity:0.7">${item.categoria}</span>
+                        <span>${dateStr}</span>
                     </div>
                 </div>
-                
-                <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
-                    ${item.commento_breve || item.riassunto_ai || ''}
-                </div>
-                
-                <div class="review-meta" style="font-family:'JetBrains Mono';">
-                    <span style="opacity:0.7">${item.categoria}</span>
-                    <span>${dateStr}</span>
-                </div>
             </div>
-        </div>
-    `;
-}).join('');
+        `;
+    }).join('');
 
-// AGGIUNGI QUESTO DOPO aver generato l'HTML:
-// Event delegation - un solo listener per tutte le card
-list.querySelectorAll('.review-card').forEach(card => {
-    card.onclick = () => {
-        const id = card.getAttribute('data-review-id');
-        if (id) openReviewDetail(id);
-    };
-});
+    // Listener per il dettaglio
+    list.querySelectorAll('.review-card').forEach(card => {
+        card.onclick = () => {
+            const id = card.getAttribute('data-review-id');
+            if (id) openReviewDetail(id);
+        };
+    });
 
-if(window.lucide) lucide.createIcons();
-
+    if(window.lucide) lucide.createIcons();
 }
 
 // Funzione per generare le stelle (★ e ½)
@@ -1925,74 +1936,82 @@ function getStarRating(rating) {
 
 let currentReviewId = null;
 
-function openReviewDetail(id) {
-    console.log("Click ricevuto, ID:", id);
-    console.log("allReviews disponibili:", allReviews);
-    
-    if (!allReviews || allReviews.length === 0) {
-        console.error("allReviews è vuoto, attendi il caricamento");
+function renderReviews(data, showOnlyWish = false) {
+    const list = document.getElementById('reviews-list');
+    if (!list) return;
+
+    // --- AGGIUNTA FILTRO ISWISH ---
+    // Filtra i dati in base alla categoria 'WISH' e al parametro showOnlyWish
+    const filteredData = data ? data.filter(item => {
+        const isWish = item.categoria?.toUpperCase() === 'WISH';
+        return showOnlyWish ? isWish : !isWish;
+    }) : [];
+
+    if (!filteredData || filteredData.length === 0) {
+        list.innerHTML = `<div style="text-align:center; opacity:0.1; padding:40px; letter-spacing:2px;">[ NESSUN_DATO_RILEVATO ]</div>`;
         return;
     }
-    
-    const item = allReviews.find(r => String(r.id) === String(id));
-    console.log("Item trovato:", item);
-    
-    if (!item) {
-        console.error("Review non trovata:", id, allReviews);
-        return;
-    }
 
-    const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00' };
-    const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
-    
-    const modal = document.getElementById('review-detail-modal');
-    if (!modal) return;
+    const catColors = {
+        'FILM': '#00d4ff',
+        'SERIE': '#ff0055',
+        'GAME': '#00ff44',
+        'COMIC': '#ffcc00',
+        'WISH': '#888888'
+    };
 
-    let fullDate = "--";
-    if (item.data) {
-        const d = item.data.split('-');
-        const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
-        fullDate = `${d[2]} ${mesi[parseInt(d[1])-1]} ${d[0]}`;
-    }
+    list.innerHTML = filteredData.map(item => {
+        const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
+        const dateStr = formatItalianDate(item.data);
+        
+        // --- LOGICA STELLE/WISH ---
+        // Se è un WISH, mostriamo l'icona bookmark o clock invece delle stelle vuote
+        const isWish = item.categoria?.toUpperCase() === 'WISH';
+        const starsHtml = isWish 
+            ? `<div style="display:flex; align-items:center; gap:5px; color:#666; font-size:10px;">
+                <i data-lucide="bookmark" style="width:12px; height:12px;"></i> WISHLIST
+               </div>`
+            : renderStars(item.rating, color);
 
-    modal.innerHTML = `
-<div class="review-detail-card" style="border-top: 3px solid ${color}">
-            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
-
-            <div style="margin-bottom: 5px; text-align: left;">
-                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; text-transform: uppercase; line-height:1.1;">
-                    ${item.titolo}
-                </h1>
-                <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 8px 0 0 0; letter-spacing:0.5px;">
-                    <span style="color:#888">${fullDate}</span> • 
-                    <span style="color:${color}">${item.categoria}</span> </br> 
-                    ${item.metadata || 'NO_INFO'}
-                </p>
-            </div>
-
-            <div class="review-main-content">
+        return `
+            <div class="review-card" 
+                 data-review-id="${item.id}"
+                 style="border-left: 3px solid ${color}; cursor:pointer;">
                 
-                <div class="detail-poster-zone">
-                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')" 
-                         style="box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
-                    
-                    <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center; border-radius:2px;">
-                        <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">
-                            ${renderStars(item.rating, color)}
-                        </div>
-                        <div style="font-family:'Rajdhani'; font-size: 1.3rem; color:${color}; font-weight:bold;">${item.rating} / 5</div>
-                    </div>
+                <div class="poster-mini" 
+                     style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
+                     ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
                 </div>
 
-                <div class="review-text-zone">${(item.commento_full || item.commento || 'Nessun testo.').trim()}</div>
-
+                <div class="review-info">
+                    <div class="review-top">
+                        <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
+                        <div class="rating-stars" style="display:flex; gap:2px;">
+                            ${starsHtml}
+                        </div>
+                    </div>
+                    
+                    <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
+                        ${item.commento_breve || item.riassunto_ai || ''}
+                    </div>
+                    
+                    <div class="review-meta" style="font-family:'JetBrains Mono';">
+                        <span style="opacity:0.7">${item.categoria}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                </div>
             </div>
-        </div>
-    `;
-    
-    modal.style.display = 'flex';
-    document.getElementById('modal-backdrop').style.display = 'block';
-    
+        `;
+    }).join('');
+
+    // Event delegation - rimane identico
+    list.querySelectorAll('.review-card').forEach(card => {
+        card.onclick = () => {
+            const id = card.getAttribute('data-review-id');
+            if (id) openReviewDetail(id);
+        };
+    });
+
     if(window.lucide) lucide.createIcons();
 }
 
@@ -2103,4 +2122,59 @@ async function editPosterLink() {
             alert("Errore durante il salvataggio.");
         }
     }
+}
+
+// Stato locale del modulo Reviews
+let isWishlistView = false;
+
+function toggleWishlist() {
+
+    const headerTitle = document.querySelector('#reviews h1');
+    headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
+    // 1. Inverti lo stato
+    isWishlistView = !isWishlistView;
+    
+    // 2. Aggiorna l'interfaccia (Colori dei tasti)
+    const wishBtn = document.getElementById('nav-wish');
+    const homeBtn = document.querySelector('.bottom-nav .nav-item[onclick="nav(\'home\')"] div'); // La pallina centrale
+    const criticBtn = document.getElementById('nav-critic');
+
+    if (isWishlistView) {
+        // Siamo in Wishlist
+        wishBtn.style.color = "var(--accent)";
+        wishBtn.querySelector('i').setAttribute('data-lucide', 'bookmark-check'); // Cambia icona se vuoi
+        // Spegniamo visivamente gli altri (opzionale)
+        criticBtn.style.color = "var(--dim)";
+    } else {
+        // Torniamo in Home Reviews
+        wishBtn.style.color = "var(--dim)";
+        wishBtn.querySelector('i').setAttribute('data-lucide', 'bookmark-plus');
+    }
+
+    // 3. Rendi la lista con il filtro corretto
+    // currentReviews è l'array globale dove tieni i dati caricati dal DB
+    renderReviews(currentReviews, isWishlistView);
+    
+    // Refresh icone Lucide
+    if(window.lucide) lucide.createIcons();
+}
+
+function promoteToReview(id) {
+    const item = allReviews.find(r => String(r.id) === String(id));
+    if (!item) return;
+
+    // 1. Chiudiamo il dettaglio attuale
+    closeReviewDetail();
+
+    // 2. Apriamo il modal dell'AI
+    openReviewEntry();
+
+    // 3. Pre-compiliamo la textarea con il titolo per aiutare l'utente
+    const aiInput = document.getElementById('ai-review-input');
+    aiInput.value = `Ho appena finito ${item.titolo}, ecco cosa ne penso: `;
+    aiInput.focus();
+    
+    // NOTA: Quando salverai questa nuova recensione, l'AI genererà un nuovo record. 
+    // Opzionalmente potremmo cancellare il vecchio record WISH, 
+    // ma per ora lasciamolo così per non complicare il DB.
 }
