@@ -1614,7 +1614,7 @@ CSS
     font-size: 0.95rem;
     line-height: 1.6;
     color: #ccc;
-    white-space: pre-wrap;
+    white-space: pre-line;
 }
 
 /* Il tasto ESC (Piccolo, a destra, scuro) */

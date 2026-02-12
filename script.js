@@ -2229,8 +2229,7 @@ function openReviewDetail(id) {
                     </div>
                 </div>
 
-                <div class="review-text-zone">
-                    ${(item.commento_full || item.commento || 'Nessun testo.').trim()}
+                <div class="review-text-zone">${(item.commento_full || item.commento || 'Nessun testo.').trim()}
                     
                     ${isWish ? `
                         <div style="margin-top:30px; border-top: 1px solid #222; padding-top:20px;">
