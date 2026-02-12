@@ -2165,22 +2165,98 @@ function toggleWishlist() {
     if(window.lucide) lucide.createIcons();
 }
 
+function openReviewDetail(id) {
+    console.log("Click ricevuto, ID:", id);
+    
+    if (!allReviews || allReviews.length === 0) {
+        console.error("allReviews è vuoto, attendi il caricamento");
+        return;
+    }
+    
+    const item = allReviews.find(r => String(r.id) === String(id));
+    if (!item) {
+        console.error("Review non trovata:", id, allReviews);
+        return;
+    }
+
+    // --- LOGICA ISWISH ---
+    const isWish = item.categoria?.toUpperCase() === 'WISH';
+    const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
+    const color = catColors[item.categoria?.toUpperCase()] || 'var(--accent)';
+    
+    const modal = document.getElementById('review-detail-modal');
+    if (!modal) return;
+
+    let fullDate = "--";
+    if (item.data) {
+        const d = item.data.split('-');
+        const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
+        fullDate = `${d[2]} ${mesi[parseInt(d[1])-1]} ${d[0]}`;
+    }
+
+    modal.innerHTML = `
+        <div class="review-detail-card" style="border-top: 3px solid ${color}">
+            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
+
+            <div style="margin-bottom: 5px; text-align: left;">
+                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; text-transform: uppercase; line-height:1.1;">
+                    ${item.titolo}
+                </h1>
+                <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 8px 0 0 0; letter-spacing:0.5px;">
+                    <span style="color:#888">${fullDate}</span> • 
+                    <span style="color:${color}">${item.categoria}</span> <br/> 
+                    ${item.metadata || 'NO_INFO'}
+                </p>
+            </div>
+
+            <div class="review-main-content">
+                
+                <div class="detail-poster-zone">
+                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')" 
+                         style="box-shadow: 0 10px 20px rgba(0,0,0,0.5);">
+                    
+                    <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center; border-radius:2px;">
+                        ${isWish ? `
+                            <div style="color:${color}; font-family:'Rajdhani'; font-size: 0.9rem; letter-spacing:1px;">
+                                <i data-lucide="clock" style="width:14px; margin-bottom:4px;"></i><br>IN_WISHLIST
+                            </div>
+                        ` : `
+                            <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">
+                                ${renderStars(item.rating, color)}
+                            </div>
+                            <div style="font-family:'Rajdhani'; font-size: 1.3rem; color:${color}; font-weight:bold;">${item.rating} / 5</div>
+                        `}
+                    </div>
+                </div>
+
+                <div class="review-text-zone">
+                    ${(item.commento_full || item.commento || 'Nessun testo.').trim()}
+                    
+                    ${isWish ? `
+                        <div style="margin-top:30px; border-top: 1px solid #222; padding-top:20px;">
+                            <button onclick="promoteToReview('${item.id}')" 
+                                    style="width:100%; background:${color}; color:#000; border:none; padding:12px; font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:4px;">
+                                CONVERTI IN RECENSIONE
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    document.getElementById('modal-backdrop').style.display = 'block';
+    
+    if(window.lucide) lucide.createIcons();
+}
+
+// Questa serve per far funzionare il tasto sopra
 function promoteToReview(id) {
     const item = allReviews.find(r => String(r.id) === String(id));
     if (!item) return;
-
-    // 1. Chiudiamo il dettaglio attuale
     closeReviewDetail();
-
-    // 2. Apriamo il modal dell'AI
     openReviewEntry();
-
-    // 3. Pre-compiliamo la textarea con il titolo per aiutare l'utente
-    const aiInput = document.getElementById('ai-review-input');
-    aiInput.value = `Ho appena finito ${item.titolo}, ecco cosa ne penso: `;
-    aiInput.focus();
-    
-    // NOTA: Quando salverai questa nuova recensione, l'AI genererà un nuovo record. 
-    // Opzionalmente potremmo cancellare il vecchio record WISH, 
-    // ma per ora lasciamolo così per non complicare il DB.
+    document.getElementById('ai-review-input').value = `Ho completato ${item.titolo}. Ecco il mio voto e parere: `;
 }
