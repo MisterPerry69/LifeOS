@@ -1113,7 +1113,7 @@ input:focus {
     content: "ANALISTA v1.04";
     position: absolute;
     top: -10px;
-    right: 10px; /* Lo mettiamo a destra che è più figo */
+    left: 10px;
     background: var(--accent);
     color: #000;
     font-size: 9px;
@@ -1762,3 +1762,34 @@ CSS
 .stats-bar-fill {
     animation: growBar 1s ease-out forwards;
 }
+
+/* Etichetta personalizzata per l'analista dei media */
+#reviews .side-bubble::before {
+    content: "CRITIC_ANALYZER v2.0";
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background: var(--accent);
+    color: #000;
+    font-size: 8px;
+    font-weight: 800;
+    padding: 2px 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 4px 0 0 rgba(0,0,0,0.3);
+}
+
+/* Effetto glitch opzionale quando appare */
+.side-bubble.active {
+    animation: bubbleSlide 0.3s ease-out;
+}
+
+@keyframes bubbleSlide {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+#reviews .side-bubble {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+

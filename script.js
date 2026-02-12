@@ -2244,8 +2244,8 @@ let isStatsView = false;
 
 function toggleStats() {
     isStatsView = !isStatsView;
-    
-    // Elementi UI
+    console.log("Stats View:", isStatsView); // Debug
+
     const statsBtn = document.getElementById('nav-stats');
     const wishBtn = document.getElementById('nav-wish');
     const list = document.getElementById('reviews-list');
@@ -2253,23 +2253,33 @@ function toggleStats() {
     const headerTitle = document.querySelector('#reviews .header h1');
 
     if (isStatsView) {
-        isWishlistView = false; // Spegniamo wishlist se entriamo in stats
-        headerTitle.innerText = 'DATA_INTELLIGENCE';
+        isWishlistView = false; 
+        if (headerTitle) headerTitle.innerText = 'DATA_INTELLIGENCE';
         
-        // Gestione Colori Tasti
-        if(statsBtn) statsBtn.style.color = "var(--accent)";
-        if(wishBtn) wishBtn.style.color = "var(--dim)";
+        // ILLUMINAZIONE FORZATA
+        if (statsBtn) {
+            statsBtn.style.setProperty('color', 'var(--accent)', 'important');
+            statsBtn.style.opacity = "1";
+        }
+        if (wishBtn) {
+            wishBtn.style.setProperty('color', 'var(--dim)', 'important');
+            wishBtn.style.opacity = "0.5";
+        }
         
         list.style.display = 'none';
         statsCont.style.display = 'block';
         generateStatsHTML('6M'); 
     } else {
-        headerTitle.innerText = 'REVIEWS';
-        if(statsBtn) statsBtn.style.color = "var(--dim)";
+        if (headerTitle) headerTitle.innerText = 'REVIEWS';
+        if (statsBtn) {
+            statsBtn.style.setProperty('color', 'var(--dim)', 'important');
+            statsBtn.style.opacity = "0.5";
+        }
         list.style.display = 'flex';
         statsCont.style.display = 'none';
         renderReviews(allReviews, false);
     }
+    
     if(window.lucide) lucide.createIcons();
 }
 
@@ -2387,4 +2397,48 @@ function generateStatsHTML(period = '6M') {
         </div>
     `;
     if(window.lucide) lucide.createIcons();
+}
+
+async function toggleCriticAI() {
+    const bubble = document.getElementById('ai-side-bubble');
+    const navItem = document.getElementById('nav-critic');
+
+    // Toggle visibilità
+    if (bubble.style.display === 'block') {
+        bubble.style.display = 'none';
+        bubble.classList.remove('active');
+        navItem.style.color = 'var(--dim)';
+        return;
+    }
+
+    // Attivazione
+    bubble.style.display = 'block';
+    bubble.classList.add('active');
+    navItem.style.color = 'var(--accent)';
+    bubble.innerHTML = `<div class="blink-dot"></div> [ANALIZZANDO_GUSTI_UTENTE...]`;
+
+    // Preparazione dati: prendiamo i titoli recensiti (escludendo i WISH)
+    const history = allReviews
+        .filter(r => r.categoria?.toUpperCase() !== 'WISH')
+        .slice(0, 10) // Gli ultimi 10 sono sufficienti
+        .map(r => `${r.titolo} (${r.rating}/5)`)
+        .join(', ');
+
+    const prompt = `Sei l'algoritmo di analisi "CRITIC_ANALYZER v2.0". 
+    Dati utente: [${history || 'Nessun dato trovato'}].
+    
+COMPITO:
+    Fai un'osservazione breve (max 30 parole) sui suoi gusti e suggerisci un genere/titolo che dovrebbe esplorare basato sui dati. 
+    Sii pungente, cyberpunk e usa un tono da terminale. Non usare introduzioni tipo "Ecco l'analisi".`;
+
+    // Chiamata al server (Google Apps Script)
+    google.script.run
+        .withSuccessHandler((response) => {
+            // Effetto macchina da scrivere (opzionale) o inserimento diretto
+            bubble.innerHTML = response;
+        })
+        .withFailureHandler(() => {
+            bubble.innerHTML = "[ERRORE_LINK_NEURALE]";
+        })
+        .callGeminiSimple(prompt); 
 }
