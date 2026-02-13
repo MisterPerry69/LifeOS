@@ -2457,15 +2457,17 @@ function filterByCategory(cat, element) {
         const filtered = allReviews.filter(r => {
             const itemIsWish = isWish(r);          // Es: true per "FILM, WISH"
             const cleanCat = getCleanCat(r);        // Es: "FILM" per "FILM, WISH"
-            
+            const title = (r.titolo || "").toLowerCase();
             // FIX: Se sono in Wishlist, mostro SOLO i wish
             //      Se sono in Reviews, mostro SOLO i non-wish
             const matchView = isWishlistView ? itemIsWish : !itemIsWish;
             
             // FIX: Il filtro categoria si applica sulla categoria PULITA
             const matchCat = (cat === 'ALL') ? true : (cleanCat === cat);
+
+            const matchSearch = title.includes(currentSearchQuery);
             
-            return matchView && matchCat;
+            return matchView && matchCat && matchSearch;
         });
 
         console.log(`Filtrati per ${cat}, wishlist=${isWishlistView}:`, filtered);
@@ -2488,4 +2490,17 @@ function updateReviewsDashboardWidget() {
 
         reviewsWidget.innerText = totalDone;
     }
+}
+
+let currentSearchQuery = "";
+
+function handleSearch(query) {
+    currentSearchQuery = query.toLowerCase().trim();
+    
+    // Recuperiamo quale categoria è attiva al momento
+    const activeChip = document.querySelector('.filter-chip.active');
+    const currentCat = activeChip ? activeChip.innerText.split(' ')[0] : 'ALL';
+    
+    // Rieseguiamo il filtraggio (che ora terrà conto anche della ricerca)
+    filterByCategory(currentCat, activeChip);
 }

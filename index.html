@@ -516,6 +516,16 @@
     </div>
   </div>
 
+  <div class="search-container" style="padding: 0 15px 15px 15px;">
+    <div style="position: relative; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 4px; display: flex; align-items: center; padding: 0 10px;">
+        <i data-lucide="search" style="width: 14px; color: #444;"></i>
+        <input type="text" id="review-search" placeholder="SEARCH_DATABASE..." 
+               style="background: transparent; border: none; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; font-size: 11px; width: 100%; outline: none;"
+               oninput="handleSearch(this.value)">
+    </div>
+</div>
+
+
 <div id="category-filters">
     <div class="filter-chip active" onclick="filterByCategory('ALL', this)">
         <i data-lucide="layout-grid"></i><span>ALL</span>
