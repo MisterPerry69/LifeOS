@@ -2761,10 +2761,15 @@ function renderAddEventForm() {
 function renderChronoEvents() {
     const container = document.getElementById('events-container');
     if (!container) return;
+
+    console.log("Total agendaData:", window.agendaData.length); // DEBUG
+    console.log("chronoDisplayLimit:", chronoDisplayLimit); // DEBUG
     
     const dataToShow = window.agendaData.slice(0, chronoDisplayLimit);
     const hasMore = window.agendaData.length > chronoDisplayLimit;
-    
+
+    console.log("hasMore:", hasMore); // DEBUG
+   
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; // FIX: formato yyyy-MM-dd
@@ -2805,13 +2810,13 @@ function renderChronoEvents() {
     }).join('');
     
     // FIX: Bottone Load More sempre visibile se ci sono più eventi
-    if (hasMore) {
+    if (window.agendaData.length > 7) { // Se ci sono più di 7 giorni con eventi
         container.innerHTML += `
             <div style="text-align:center; padding:20px;">
                 <button onclick="loadMoreChrono()" 
                         style="padding:12px 30px; background:transparent; border:1px solid var(--accent); 
                                color:var(--accent); font-family:'Rajdhani'; cursor:pointer; border-radius:4px;">
-                    CARICA_ALTRI_7_GIORNI (${window.agendaData.length - chronoDisplayLimit} rimanenti)
+                    CARICA_ALTRI (${window.agendaData.length - chronoDisplayLimit} rimanenti)
                 </button>
             </div>`;
     }
