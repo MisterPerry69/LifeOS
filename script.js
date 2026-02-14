@@ -24,6 +24,7 @@ let draggedItem = null;
 let charts = {};
 let deleteTarget = null;
 let currentReviews = [];
+let chronoDisplayLimit = 7; // Mostra 7 giorni alla volta
 
 
 // ============================================
@@ -2536,16 +2537,15 @@ function switchAgendaView(view) {
         document.querySelector('[onclick*="switchAgendaView(\'synth\')"]').style.color = '#fcee0a';
     } else if (view === 'chrono') {
         document.getElementById('calendar-real-zone').style.display = 'block';
-        console.log("agendaData:", window.agendaData);
+        chronoDisplayLimit = 7; // Reset
         
         if (!window.agendaData || window.agendaData.length === 0) {
             document.getElementById('events-container').innerHTML = 
                 `<div style="color:var(--dim); padding:20px; text-align:center;">
-                    NESSUN_EVENTO_NEI_PROSSIMI_7_GIORNI<br>
-                    <span style="font-size:10px; opacity:0.5;">Controlla permessi Google Calendar</span>
+                    NESSUN_EVENTO_NEI_PROSSIMI_30_GIORNI
                 </div>`;
         } else {
-            renderAgenda(window.agendaData);
+            renderChronoEvents();
         }
         
         document.querySelector('[onclick*="switchAgendaView(\'chrono\')"]').style.color = '#fcee0a';
@@ -2637,17 +2637,15 @@ function selectCalendarDay(y, m, d) {
     const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", 
                         "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
     
-    // FIX: Resetta TUTTI i giorni prima di evidenziare
+    // FIX: Resetta colori
     const today = new Date();
     document.querySelectorAll('#calendar-grid > div').forEach((row, idx) => {
-        if (idx === 0) return; // Salta intestazione giorni settimana
+        if (idx === 0) return;
         row.querySelectorAll('div').forEach(cell => {
             const dayNum = parseInt(cell.innerText);
-            if (!dayNum) return; // Salta celle vuote
+            if (!dayNum) return;
             
-            const isToday = (dayNum === today.getDate() && 
-                           m === today.getMonth() && 
-                           y === today.getFullYear());
+            const isToday = (dayNum === today.getDate() && m === today.getMonth() && y === today.getFullYear());
             const isSelected = (dayNum === d);
             
             if (isSelected) {
@@ -2663,21 +2661,19 @@ function selectCalendarDay(y, m, d) {
         });
     });
     
-    // Filtra eventi per la data selezionata
+    // FIX: Confronto date corretto
     const eventsForDay = [];
     
     if (window.agendaData) {
         window.agendaData.forEach(dayGroup => {
-            // Parse dateLabel per confrontare (es: "TODAY_14_FEB" o "15_FEB")
-            const parts = dayGroup.dateLabel.split('_');
-            const dayInLabel = parseInt(parts[parts.length - 2]); // Es: 14 da "TODAY_14_FEB"
-            
-            // Controlla se corrisponde al giorno selezionato
-            if (dayInLabel === d) {
+            // Confronta con formato yyyy-MM-dd
+            if (dayGroup.date === selectedDateStr) {
                 eventsForDay.push(...dayGroup.events);
             }
         });
     }
+    
+    console.log("Eventi per", selectedDateStr, ":", eventsForDay); // DEBUG
     
     const dayDetailZone = document.getElementById('day-detail-zone');
     if (!dayDetailZone) return;
@@ -2700,7 +2696,7 @@ function selectCalendarDay(y, m, d) {
         dayDetailZone.innerHTML = `
             <div style="padding:20px; border-top:1px solid #222; margin-top:20px;">
                 <div style="font-family:'Rajdhani'; font-size:1rem; color:#fcee0a; margin-bottom:15px;">
-                    ${d} ${monthNames[m]} ${y}
+                    ${d} ${monthNames[m]} ${y} • ${eventsForDay.length} EVENTI
                 </div>
                 ${eventsForDay.map(ev => `
                     <div style="display:flex; gap:15px; align-items:center; padding:10px 0; border-bottom:1px solid #111;">
@@ -2768,16 +2764,15 @@ async function submitNewEvent() {
         return;
     }
     
-    // Animazione bottone
     const btn = event.target;
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="blink">SYNCING...</span>';
     btn.disabled = true;
     
     try {
-        // Invia a Google Calendar tramite Apps Script
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors', // Importante per Apps Script
             body: JSON.stringify({
                 service: "add_calendar_event",
                 title: title,
@@ -2786,21 +2781,19 @@ async function submitNewEvent() {
             })
         });
         
-        const result = await response.text();
+        showCustomAlert("EVENTO_CREATO_CON_SUCCESSO", true);
         
-        if (result.includes("SUCCESS") || result.includes("CREATED")) {
-            showCustomAlert("EVENTO_CREATO_CON_SUCCESSO", true);
+        // Ricarica dati e torna a CHRONO
+        setTimeout(async () => {
+            await loadStats(); // Questo ricaricherà window.agendaData
+            switchAgendaView('chrono');
             
-            // Ricarica dati e torna a CHRONO
-            setTimeout(async () => {
-                await loadStats();
-                switchAgendaView('chrono');
-            }, 1500);
-        } else {
-            showCustomAlert("ERRORE_CREAZIONE_EVENTO");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
+            // Reset form
+            document.getElementById('new-event-title').value = '';
+            document.getElementById('new-event-date').value = '';
+            document.getElementById('new-event-time').value = '';
+        }, 1500);
+        
     } catch (e) {
         console.error("Errore:", e);
         showCustomAlert("ERRORE_CONNESSIONE");
@@ -2825,4 +2818,67 @@ function showCustomAlert(message, isSuccess = false) {
     
     bubble.classList.add('active');
     setTimeout(() => bubble.classList.remove('active'), 3000);
+}
+
+function renderChronoEvents() {
+    const container = document.getElementById('events-container');
+    if (!container) return;
+    
+    const dataToShow = window.agendaData.slice(0, chronoDisplayLimit);
+    const hasMore = window.agendaData.length > chronoDisplayLimit;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    container.innerHTML = dataToShow.map(day => {
+        const isToday = day.date === Utilities.formatDate(now, "GMT+1", "yyyy-MM-dd");
+        
+        return `
+        <div class="day-group" style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px;">
+            <div class="day-label" style="font-family:'Rajdhani'; font-size:1rem; color:${isToday ? '#fcee0a' : 'var(--dim)'}; 
+                                          margin-bottom:12px; letter-spacing:1px;">
+                ${day.dateLabel}
+            </div>
+            ${day.events.length === 0 ? 
+                `<div style="font-size:10px; color:#333; padding:10px;">NESSUN_EVENTO</div>` :
+                day.events.map(ev => {
+                    const [h, m] = ev.time.split(':').map(Number);
+                    const evTime = h * 60 + m;
+                    const isPast = isToday && evTime < currentTime;
+                    const isUpcoming = isToday && evTime >= currentTime && evTime <= currentTime + 60;
+                    
+                    return `
+                    <div class="event-node" style="display:flex; gap:15px; align-items:center; padding:12px 10px; 
+                                                    border-left:2px solid ${isUpcoming ? '#fcee0a' : isPast ? '#333' : 'var(--accent)'}; 
+                                                    margin-bottom:8px; opacity:${isPast ? '0.4' : '1'};">
+                        <div class="event-time" style="color:${isUpcoming ? '#fcee0a' : 'var(--dim)'}; 
+                                                       font-weight:bold; font-family:'JetBrains Mono'; 
+                                                       font-size:0.85rem; min-width:50px;">
+                            ${ev.time}
+                        </div>
+                        <div class="event-title" style="color:#fff; flex:1; font-size:0.9rem;">
+                            ${ev.title}
+                        </div>
+                    </div>`;
+                }).join('')
+            }
+        </div>`;
+    }).join('');
+    
+    // Bottone Load More
+    if (hasMore) {
+        container.innerHTML += `
+            <div style="text-align:center; padding:20px;">
+                <button onclick="loadMoreChrono()" 
+                        style="padding:12px 30px; background:transparent; border:1px solid var(--accent); 
+                               color:var(--accent); font-family:'Rajdhani'; cursor:pointer; border-radius:4px;">
+                    CARICA_ALTRI_7_GIORNI (${window.agendaData.length - chronoDisplayLimit} rimanenti)
+                </button>
+            </div>`;
+    }
+}
+
+function loadMoreChrono() {
+    chronoDisplayLimit += 7;
+    renderChronoEvents();
 }
