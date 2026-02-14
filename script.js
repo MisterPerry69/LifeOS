@@ -2536,7 +2536,18 @@ function switchAgendaView(view) {
         document.querySelector('[onclick*="switchAgendaView(\'synth\')"]').style.color = '#fcee0a';
     } else if (view === 'chrono') {
         document.getElementById('calendar-real-zone').style.display = 'block';
-        renderAgenda(window.agendaData || []);
+        console.log("agendaData:", window.agendaData);
+        
+        if (!window.agendaData || window.agendaData.length === 0) {
+            document.getElementById('events-container').innerHTML = 
+                `<div style="color:var(--dim); padding:20px; text-align:center;">
+                    NESSUN_EVENTO_NEI_PROSSIMI_7_GIORNI<br>
+                    <span style="font-size:10px; opacity:0.5;">Controlla permessi Google Calendar</span>
+                </div>`;
+        } else {
+            renderAgenda(window.agendaData);
+        }
+        
         document.querySelector('[onclick*="switchAgendaView(\'chrono\')"]').style.color = '#fcee0a';
     } else if (view === 'calendar') {
         document.getElementById('calendar-month-zone').style.display = 'block';
@@ -2544,6 +2555,7 @@ function switchAgendaView(view) {
         document.querySelector('[onclick*="switchAgendaView(\'calendar\')"]').style.color = '#fcee0a';
     } else if (view === 'add') {
         document.getElementById('add-event-zone').style.display = 'block';
+        renderAddEventForm(); // ← AGGIUNGI QUESTA RIGA
         document.querySelector('[onclick*="switchAgendaView(\'add\')"]').style.color = '#fcee0a';
     }
 }
@@ -2608,11 +2620,42 @@ function changeCalendarMonth(delta) {
 }
 
 function selectCalendarDay(y, m, d) {
-    // Qui puoi mostrare gli eventi del giorno selezionato o aprire il form ADD
-    alert(`Giorno selezionato: ${d}/${m+1}/${y}`);
-    // Opzione: switchAgendaView('chrono') e filtra per quel giorno
+    const selectedDate = new Date(y, m, d);
+    const dateStr = selectedDate.toISOString().split('T')[0]; // "2026-02-15"
+    
+    // Cerca eventi in agendaData
+    const dayData = (window.agendaData || []).find(day => {
+        const dayDate = new Date(day.dateLabel.split('_')[1] + ' ' + y); // Parse approssimativo
+        return dayDate.getDate() === d && dayDate.getMonth() === m;
+    });
+    
+    if (dayData && dayData.events.length > 0) {
+        // Mostra eventi in un overlay
+        const bubble = document.getElementById('analyst-bubble');
+        const text = document.getElementById('analyst-text');
+        
+        text.innerHTML = `
+            <div style="font-size:10px; color:var(--dim); margin-bottom:10px;">EVENTI_${d}/${m+1}/${y}</div>
+            ${dayData.events.map(ev => `
+                <div style="border-bottom:1px solid #222; padding:8px 0;">
+                    <span style="color:#fcee0a; font-weight:bold;">${ev.time}</span> 
+                    <span style="color:#fff;">${ev.title}</span>
+                </div>
+            `).join('')}
+        `;
+        bubble.classList.add('active');
+    } else {
+        // Nessun evento, proponi di aggiungerne uno
+        if (confirm(`Nessun evento il ${d}/${m+1}/${y}. Vuoi aggiungerne uno?`)) {
+            switchAgendaView('add');
+            // Pre-compila la data
+            setTimeout(() => {
+                const dateInput = document.getElementById('new-event-date');
+                if (dateInput) dateInput.value = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            }, 100);
+        }
+    }
 }
-
 // ADD - Form per aggiungere evento
 function renderAddEventForm() {
     const zone = document.getElementById('add-event-zone');
