@@ -7,7 +7,7 @@
 // 1. CONFIGURAZIONE E STATO GLOBALE
 // ============================================
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo10TaL8bjFh-qDTURMniGM0jHzWr4D5MeAJpyXlvqcDq7oietjxGpIhFZAoN8TMLP/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDmRkeFLKSTTRlkPhOhTaPDR8zKxZ9hqqu9hRUbusustTTFjZXOiPHD3XZz1ClqVzh/exec";
 
 // Stato applicazione centralizzato
 let historyData = [];
@@ -2564,6 +2564,8 @@ function switchAgendaView(view) {
 // (la tua renderAgenda è già ok)
 
 // CALENDAR - Vista mensile con navigazione
+let selectedDay = null;
+
 function renderMonthCalendar() {
     const zone = document.getElementById('calendar-month-zone');
     if (!zone) return;
@@ -2573,7 +2575,6 @@ function renderMonthCalendar() {
     const year = calendarMonth.getFullYear();
     const month = calendarMonth.getMonth();
     
-    // Header con navigazione
     zone.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:10px;">
             <i data-lucide="chevron-left" onclick="changeCalendarMonth(-1)" style="cursor:pointer; width:20px; color:var(--accent);"></i>
@@ -2581,9 +2582,9 @@ function renderMonthCalendar() {
             <i data-lucide="chevron-right" onclick="changeCalendarMonth(1)" style="cursor:pointer; width:20px; color:var(--accent);"></i>
         </div>
         <div id="calendar-grid"></div>
+        <div id="day-detail-zone"></div>
     `;
     
-    // Genera griglia giorni
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const grid = document.getElementById('calendar-grid');
@@ -2592,7 +2593,6 @@ function renderMonthCalendar() {
     ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'].forEach(d => html += `<div>${d}</div>`);
     html += '</div><div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px;">';
     
-    // Celle vuote prima del primo giorno
     for (let i = 1; i < firstDay || (firstDay === 0 && i < 7); i++) {
         html += '<div style="aspect-ratio:1; background:#0a0a0a;"></div>';
     }
@@ -2600,10 +2600,14 @@ function renderMonthCalendar() {
     const today = new Date();
     for (let day = 1; day <= daysInMonth; day++) {
         const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+        const isSelected = selectedDay && selectedDay.d === day && selectedDay.m === month && selectedDay.y === year;
+        
         html += `
-            <div style="aspect-ratio:1; background:${isToday ? 'var(--accent)' : '#111'}; 
-                        color:${isToday ? '#000' : '#fff'}; display:flex; align-items:center; 
-                        justify-content:center; border-radius:4px; cursor:pointer; font-weight:${isToday ? 'bold' : 'normal'};"
+            <div style="aspect-ratio:1; 
+                        background:${isSelected ? '#fcee0a' : isToday ? 'var(--accent)' : '#111'}; 
+                        color:${isSelected || isToday ? '#000' : '#fff'}; 
+                        display:flex; align-items:center; justify-content:center; 
+                        border-radius:4px; cursor:pointer; font-weight:${isToday || isSelected ? 'bold' : 'normal'};"
                  onclick="selectCalendarDay(${year}, ${month}, ${day})">
                 ${day}
             </div>`;
@@ -2612,7 +2616,14 @@ function renderMonthCalendar() {
     grid.innerHTML = html;
     
     if (window.lucide) lucide.createIcons();
+    
+    // Auto-seleziona oggi
+    if (!selectedDay) {
+        selectedDay = { y: today.getFullYear(), m: today.getMonth(), d: today.getDate() };
+        selectCalendarDay(today.getFullYear(), today.getMonth(), today.getDate());
+    }
 }
+
 
 function changeCalendarMonth(delta) {
     calendarMonth.setMonth(calendarMonth.getMonth() + delta);
@@ -2620,42 +2631,84 @@ function changeCalendarMonth(delta) {
 }
 
 function selectCalendarDay(y, m, d) {
-    const selectedDate = new Date(y, m, d);
-    const dateStr = selectedDate.toISOString().split('T')[0]; // "2026-02-15"
+    selectedDay = { y, m, d };
     
-    // Cerca eventi in agendaData
-    const dayData = (window.agendaData || []).find(day => {
-        const dayDate = new Date(day.dateLabel.split('_')[1] + ' ' + y); // Parse approssimativo
-        return dayDate.getDate() === d && dayDate.getMonth() === m;
-    });
+    const selectedDateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", 
+                        "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
     
-    if (dayData && dayData.events.length > 0) {
-        // Mostra eventi in un overlay
-        const bubble = document.getElementById('analyst-bubble');
-        const text = document.getElementById('analyst-text');
-        
-        text.innerHTML = `
-            <div style="font-size:10px; color:var(--dim); margin-bottom:10px;">EVENTI_${d}/${m+1}/${y}</div>
-            ${dayData.events.map(ev => `
-                <div style="border-bottom:1px solid #222; padding:8px 0;">
-                    <span style="color:#fcee0a; font-weight:bold;">${ev.time}</span> 
-                    <span style="color:#fff;">${ev.title}</span>
-                </div>
-            `).join('')}
-        `;
-        bubble.classList.add('active');
-    } else {
-        // Nessun evento, proponi di aggiungerne uno
-        if (confirm(`Nessun evento il ${d}/${m+1}/${y}. Vuoi aggiungerne uno?`)) {
-            switchAgendaView('add');
-            // Pre-compila la data
-            setTimeout(() => {
-                const dateInput = document.getElementById('new-event-date');
-                if (dateInput) dateInput.value = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            }, 100);
-        }
+    // Cerca eventi per quella data specifica
+    const eventsForDay = [];
+    
+    if (window.agendaData) {
+        window.agendaData.forEach(dayGroup => {
+            // Controlla se questo gruppo corrisponde alla data selezionata
+            // Il formato dateLabel è "TODAY_14_FEB" quindi dobbiamo parsarlo
+            dayGroup.events.forEach(ev => {
+                eventsForDay.push(ev);
+            });
+        });
     }
+    
+    // Mostra sotto il calendario (senza ri-renderizzare tutto)
+    const dayDetailZone = document.getElementById('day-detail-zone');
+    if (!dayDetailZone) return;
+    
+    if (eventsForDay.length === 0) {
+        dayDetailZone.innerHTML = `
+            <div style="padding:20px; text-align:center; border-top:1px solid #222; margin-top:20px;">
+                <div style="font-family:'Rajdhani'; font-size:1rem; color:var(--dim); margin-bottom:15px;">
+                    ${d} ${monthNames[m]} ${y}
+                </div>
+                <div style="font-size:10px; color:#444; margin-bottom:15px;">NESSUN_EVENTO_PROGRAMMATO</div>
+                <button onclick="quickAddEvent('${selectedDateStr}')" 
+                        style="padding:12px 20px; background:var(--accent); color:#000; border:none; 
+                               font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:4px;">
+                    + AGGIUNGI EVENTO
+                </button>
+            </div>
+        `;
+    } else {
+        dayDetailZone.innerHTML = `
+            <div style="padding:20px; border-top:1px solid #222; margin-top:20px;">
+                <div style="font-family:'Rajdhani'; font-size:1rem; color:#fcee0a; margin-bottom:15px;">
+                    ${d} ${monthNames[m]} ${y}
+                </div>
+                ${eventsForDay.map(ev => `
+                    <div style="display:flex; gap:15px; align-items:center; padding:10px 0; border-bottom:1px solid #111;">
+                        <div style="color:#fcee0a; font-weight:bold; font-family:'JetBrains Mono'; font-size:0.9rem;">
+                            ${ev.time}
+                        </div>
+                        <div style="color:#fff; flex:1;">${ev.title}</div>
+                    </div>
+                `).join('')}
+                <button onclick="quickAddEvent('${selectedDateStr}')" 
+                        style="margin-top:15px; padding:10px 15px; background:transparent; border:1px solid var(--accent); 
+                               color:var(--accent); font-family:'Rajdhani'; cursor:pointer; border-radius:4px; width:100%;">
+                    + NUOVO EVENTO
+                </button>
+            </div>
+        `;
+    }
+    
+    // Aggiorna visivamente il calendario per evidenziare il giorno
+    document.querySelectorAll('#calendar-grid > div > div').forEach(cell => {
+        if (cell.innerText == d) {
+            cell.style.background = '#fcee0a';
+            cell.style.color = '#000';
+        }
+    });
 }
+
+function quickAddEvent(dateStr) {
+    switchAgendaView('add');
+    setTimeout(() => {
+        const dateInput = document.getElementById('new-event-date');
+        if (dateInput) dateInput.value = dateStr;
+        document.getElementById('new-event-title').focus();
+    }, 100);
+}
+
 // ADD - Form per aggiungere evento
 function renderAddEventForm() {
     const zone = document.getElementById('add-event-zone');
