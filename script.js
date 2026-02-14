@@ -2507,3 +2507,162 @@ function handleSearch(query) {
     // Rieseguiamo il filtraggio (che ora terrà conto anche della ricerca)
     filterByCategory(currentCat, activeChip);
 }
+
+// ============================================
+// AGENDA - 4 PAGINE SEPARATE
+// ============================================
+
+// Variabili globali Agenda
+let currentAgendaView = 'synth'; // synth | chrono | calendar | add
+let calendarMonth = new Date();
+
+// ROUTER - Switch tra le 4 pagine
+function switchAgendaView(view) {
+    currentAgendaView = view;
+    
+    // Nascondi tutte le zone
+    document.getElementById('neural-input-zone').style.display = 'none';
+    document.getElementById('active-flow-zone').style.display = 'none';
+    document.getElementById('calendar-real-zone').style.display = 'none';
+    document.getElementById('calendar-month-zone').style.display = 'none';
+    document.getElementById('add-event-zone').style.display = 'none';
+    
+    // Resetta colori nav
+    document.querySelectorAll('#agenda .nav-item').forEach(el => el.style.color = 'var(--dim)');
+    
+    // Mostra zona corretta e colora icona
+    if (view === 'synth') {
+        document.getElementById('neural-input-zone').style.display = 'block';
+        document.querySelector('[onclick*="switchAgendaView(\'synth\')"]').style.color = '#fcee0a';
+    } else if (view === 'chrono') {
+        document.getElementById('calendar-real-zone').style.display = 'block';
+        renderAgenda(window.agendaData || []);
+        document.querySelector('[onclick*="switchAgendaView(\'chrono\')"]').style.color = '#fcee0a';
+    } else if (view === 'calendar') {
+        document.getElementById('calendar-month-zone').style.display = 'block';
+        renderMonthCalendar();
+        document.querySelector('[onclick*="switchAgendaView(\'calendar\')"]').style.color = '#fcee0a';
+    } else if (view === 'add') {
+        document.getElementById('add-event-zone').style.display = 'block';
+        document.querySelector('[onclick*="switchAgendaView(\'add\')"]').style.color = '#fcee0a';
+    }
+}
+
+// CHRONO - Già funzionante, basta chiamarlo
+// (la tua renderAgenda è già ok)
+
+// CALENDAR - Vista mensile con navigazione
+function renderMonthCalendar() {
+    const zone = document.getElementById('calendar-month-zone');
+    if (!zone) return;
+    
+    const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", 
+                        "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    
+    // Header con navigazione
+    zone.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:10px;">
+            <i data-lucide="chevron-left" onclick="changeCalendarMonth(-1)" style="cursor:pointer; width:20px; color:var(--accent);"></i>
+            <div style="font-family:'Rajdhani'; font-size:1.2rem; letter-spacing:2px;">${monthNames[month]} ${year}</div>
+            <i data-lucide="chevron-right" onclick="changeCalendarMonth(1)" style="cursor:pointer; width:20px; color:var(--accent);"></i>
+        </div>
+        <div id="calendar-grid"></div>
+    `;
+    
+    // Genera griglia giorni
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const grid = document.getElementById('calendar-grid');
+    
+    let html = '<div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; text-align:center; font-size:10px; color:var(--dim); margin-bottom:10px;">';
+    ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'].forEach(d => html += `<div>${d}</div>`);
+    html += '</div><div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px;">';
+    
+    // Celle vuote prima del primo giorno
+    for (let i = 1; i < firstDay || (firstDay === 0 && i < 7); i++) {
+        html += '<div style="aspect-ratio:1; background:#0a0a0a;"></div>';
+    }
+    
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+        html += `
+            <div style="aspect-ratio:1; background:${isToday ? 'var(--accent)' : '#111'}; 
+                        color:${isToday ? '#000' : '#fff'}; display:flex; align-items:center; 
+                        justify-content:center; border-radius:4px; cursor:pointer; font-weight:${isToday ? 'bold' : 'normal'};"
+                 onclick="selectCalendarDay(${year}, ${month}, ${day})">
+                ${day}
+            </div>`;
+    }
+    html += '</div>';
+    grid.innerHTML = html;
+    
+    if (window.lucide) lucide.createIcons();
+}
+
+function changeCalendarMonth(delta) {
+    calendarMonth.setMonth(calendarMonth.getMonth() + delta);
+    renderMonthCalendar();
+}
+
+function selectCalendarDay(y, m, d) {
+    // Qui puoi mostrare gli eventi del giorno selezionato o aprire il form ADD
+    alert(`Giorno selezionato: ${d}/${m+1}/${y}`);
+    // Opzione: switchAgendaView('chrono') e filtra per quel giorno
+}
+
+// ADD - Form per aggiungere evento
+function renderAddEventForm() {
+    const zone = document.getElementById('add-event-zone');
+    if (!zone) return;
+    
+    zone.innerHTML = `
+        <div style="padding:20px;">
+            <h3 style="font-family:'Rajdhani'; color:#fcee0a; margin-bottom:20px;">NUOVO_EVENTO</h3>
+            
+            <label style="font-size:10px; color:var(--dim); display:block; margin-bottom:5px;">TITOLO</label>
+            <input id="new-event-title" type="text" placeholder="Es: Riunione con team"
+                   style="width:100%; background:#111; border:1px solid #222; color:#fff; padding:12px; margin-bottom:15px; font-family:inherit; outline:none; border-radius:4px;">
+            
+            <label style="font-size:10px; color:var(--dim); display:block; margin-bottom:5px;">DATA</label>
+            <input id="new-event-date" type="date" 
+                   style="width:100%; background:#111; border:1px solid #222; color:#fff; padding:12px; margin-bottom:15px; font-family:inherit; outline:none; border-radius:4px;">
+            
+            <label style="font-size:10px; color:var(--dim); display:block; margin-bottom:5px;">ORA</label>
+            <input id="new-event-time" type="time" 
+                   style="width:100%; background:#111; border:1px solid #222; color:#fff; padding:12px; margin-bottom:20px; font-family:inherit; outline:none; border-radius:4px;">
+            
+            <button onclick="submitNewEvent()" class="cyber-btn" 
+                    style="width:100%; padding:15px; border:1px solid #fcee0a; color:#fcee0a; background:transparent; cursor:pointer; font-family:'Rajdhani'; font-weight:bold; letter-spacing:2px;">
+                AGGIUNGI_AL_CALENDARIO
+            </button>
+        </div>
+    `;
+}
+
+async function submitNewEvent() {
+    const title = document.getElementById('new-event-title').value.trim();
+    const date = document.getElementById('new-event-date').value;
+    const time = document.getElementById('new-event-time').value;
+    
+    if (!title || !date || !time) {
+        alert("COMPILA TUTTI I CAMPI");
+        return;
+    }
+    
+    // TODO: Aggiungi action in Apps Script per creare evento su Google Calendar
+    // Per ora lo aggiungiamo al foglio Agenda come fallback
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            service: "agenda_add",
+            text: `${title} - ${date} ${time}`
+        })
+    });
+    
+    alert("EVENTO_REGISTRATO");
+    switchAgendaView('chrono');
+    loadStats();
+}
