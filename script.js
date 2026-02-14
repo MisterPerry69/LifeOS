@@ -2637,20 +2637,48 @@ function selectCalendarDay(y, m, d) {
     const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", 
                         "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
     
-    // Cerca eventi per quella data specifica
+    // FIX: Resetta TUTTI i giorni prima di evidenziare
+    const today = new Date();
+    document.querySelectorAll('#calendar-grid > div').forEach((row, idx) => {
+        if (idx === 0) return; // Salta intestazione giorni settimana
+        row.querySelectorAll('div').forEach(cell => {
+            const dayNum = parseInt(cell.innerText);
+            if (!dayNum) return; // Salta celle vuote
+            
+            const isToday = (dayNum === today.getDate() && 
+                           m === today.getMonth() && 
+                           y === today.getFullYear());
+            const isSelected = (dayNum === d);
+            
+            if (isSelected) {
+                cell.style.background = '#fcee0a';
+                cell.style.color = '#000';
+            } else if (isToday) {
+                cell.style.background = 'var(--accent)';
+                cell.style.color = '#000';
+            } else {
+                cell.style.background = '#111';
+                cell.style.color = '#fff';
+            }
+        });
+    });
+    
+    // Filtra eventi per la data selezionata
     const eventsForDay = [];
     
     if (window.agendaData) {
         window.agendaData.forEach(dayGroup => {
-            // Controlla se questo gruppo corrisponde alla data selezionata
-            // Il formato dateLabel è "TODAY_14_FEB" quindi dobbiamo parsarlo
-            dayGroup.events.forEach(ev => {
-                eventsForDay.push(ev);
-            });
+            // Parse dateLabel per confrontare (es: "TODAY_14_FEB" o "15_FEB")
+            const parts = dayGroup.dateLabel.split('_');
+            const dayInLabel = parseInt(parts[parts.length - 2]); // Es: 14 da "TODAY_14_FEB"
+            
+            // Controlla se corrisponde al giorno selezionato
+            if (dayInLabel === d) {
+                eventsForDay.push(...dayGroup.events);
+            }
         });
     }
     
-    // Mostra sotto il calendario (senza ri-renderizzare tutto)
     const dayDetailZone = document.getElementById('day-detail-zone');
     if (!dayDetailZone) return;
     
@@ -2690,14 +2718,6 @@ function selectCalendarDay(y, m, d) {
             </div>
         `;
     }
-    
-    // Aggiorna visivamente il calendario per evidenziare il giorno
-    document.querySelectorAll('#calendar-grid > div > div').forEach(cell => {
-        if (cell.innerText == d) {
-            cell.style.background = '#fcee0a';
-            cell.style.color = '#000';
-        }
-    });
 }
 
 function quickAddEvent(dateStr) {
@@ -2744,21 +2764,65 @@ async function submitNewEvent() {
     const time = document.getElementById('new-event-time').value;
     
     if (!title || !date || !time) {
-        alert("COMPILA TUTTI I CAMPI");
+        showCustomAlert("COMPILA_TUTTI_I_CAMPI");
         return;
     }
     
-    // TODO: Aggiungi action in Apps Script per creare evento su Google Calendar
-    // Per ora lo aggiungiamo al foglio Agenda come fallback
-    await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-            service: "agenda_add",
-            text: `${title} - ${date} ${time}`
-        })
-    });
+    // Animazione bottone
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="blink">SYNCING...</span>';
+    btn.disabled = true;
     
-    alert("EVENTO_REGISTRATO");
-    switchAgendaView('chrono');
-    loadStats();
+    try {
+        // Invia a Google Calendar tramite Apps Script
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                service: "add_calendar_event",
+                title: title,
+                date: date,
+                time: time
+            })
+        });
+        
+        const result = await response.text();
+        
+        if (result.includes("SUCCESS") || result.includes("CREATED")) {
+            showCustomAlert("EVENTO_CREATO_CON_SUCCESSO", true);
+            
+            // Ricarica dati e torna a CHRONO
+            setTimeout(async () => {
+                await loadStats();
+                switchAgendaView('chrono');
+            }, 1500);
+        } else {
+            showCustomAlert("ERRORE_CREAZIONE_EVENTO");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch (e) {
+        console.error("Errore:", e);
+        showCustomAlert("ERRORE_CONNESSIONE");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function showCustomAlert(message, isSuccess = false) {
+    const bubble = document.getElementById('analyst-bubble');
+    const text = document.getElementById('analyst-text');
+    
+    text.innerHTML = `
+        <div style="font-size:0.7rem; color:${isSuccess ? 'var(--accent)' : '#ff4d4d'}; 
+                    margin-bottom:8px; letter-spacing:2px;">
+            ${isSuccess ? '✓ OPERAZIONE_COMPLETATA' : '✗ ERRORE_SISTEMA'}
+        </div>
+        <div style="color:#fff; font-size:0.9rem; margin-top:10px;">
+            ${message}
+        </div>
+    `;
+    
+    bubble.classList.add('active');
+    setTimeout(() => bubble.classList.remove('active'), 3000);
 }
