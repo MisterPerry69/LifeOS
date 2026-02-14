@@ -156,9 +156,7 @@ async function loadStats() {
         renderGrid(data);
         
         // Render agenda se attiva
-        if (document.getElementById('agenda')?.classList.contains('active')) {
-            renderAgenda(window.agendaData);
-        }
+        updateAgendaWidget(data.agenda || []);
 
         // --- BLOCCO FINANCE CON CONTROLLI NULL ---
         if (data.finance) {
@@ -2906,4 +2904,50 @@ function renderChronoEvents() {
 function loadMoreChrono() {
     chronoDisplayLimit += 7;
     renderChronoEvents();
+}
+
+function updateAgendaWidget(agendaData) {
+    const widget = document.getElementById('widget-tasks');
+    if (!widget) return;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    
+    // Trova eventi di oggi
+    const todayEvents = [];
+    agendaData.forEach(day => {
+        if (day.date === todayStr) {
+            todayEvents.push(...day.events);
+        }
+    });
+    
+    if (todayEvents.length === 0) {
+        widget.innerHTML = 'NO_EVENTS_TODAY';
+        widget.style.fontSize = '0.7rem';
+        return;
+    }
+    
+    // Trova il prossimo evento (futuro più vicino)
+    const upcomingEvents = todayEvents
+        .map(ev => {
+            const [h, m] = ev.time.split(':').map(Number);
+            const evTime = h * 60 + m;
+            return { ...ev, minutes: evTime };
+        })
+        .filter(ev => ev.minutes >= currentTime)
+        .sort((a, b) => a.minutes - b.minutes);
+    
+    if (upcomingEvents.length > 0) {
+        const next = upcomingEvents[0];
+        widget.innerHTML = `
+            <div style="font-size:0.9rem; color:var(--accent); font-weight:bold;">${next.time}</div>
+            <div style="font-size:0.65rem; opacity:0.7; margin-top:2px;">${next.title.substring(0, 20)}${next.title.length > 20 ? '...' : ''}</div>
+        `;
+    } else {
+        // Tutti gli eventi sono passati
+        widget.innerHTML = `
+            <div style="font-size:0.7rem;">${todayEvents.length} COMPLETATI</div>
+        `;
+    }
 }
