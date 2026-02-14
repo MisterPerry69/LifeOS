@@ -2536,20 +2536,24 @@ function switchAgendaView(view) {
         document.getElementById('neural-input-zone').style.display = 'block';
         document.querySelector('[onclick*="switchAgendaView(\'synth\')"]').style.color = '#fcee0a';
     } else if (view === 'chrono') {
-        document.getElementById('calendar-real-zone').style.display = 'block';
-        chronoDisplayLimit = 7; // Reset
-        
-        if (!window.agendaData || window.agendaData.length === 0) {
-            document.getElementById('events-container').innerHTML = 
-                `<div style="color:var(--dim); padding:20px; text-align:center;">
-                    NESSUN_EVENTO_NEI_PROSSIMI_30_GIORNI
-                </div>`;
-        } else {
-            renderChronoEvents();
-        }
-        
-        document.querySelector('[onclick*="switchAgendaView(\'chrono\')"]').style.color = '#fcee0a';
-    } else if (view === 'calendar') {
+    document.getElementById('calendar-real-zone').style.display = 'block';
+    chronoDisplayLimit = 7;
+    
+    console.log("CHRONO - agendaData:", window.agendaData); // DEBUG
+    console.log("CHRONO - lunghezza:", window.agendaData?.length); // DEBUG
+    
+    if (!window.agendaData || window.agendaData.length === 0) {
+        document.getElementById('events-container').innerHTML = 
+            `<div style="color:var(--dim); padding:20px; text-align:center;">
+                NESSUN_EVENTO_NEI_PROSSIMI_30_GIORNI
+            </div>`;
+    } else {
+        renderChronoEvents();
+    }
+    
+    document.querySelector('[onclick*="switchAgendaView(\'chrono\')"]').style.color = '#fcee0a';
+}
+         else if (view === 'calendar') {
         document.getElementById('calendar-month-zone').style.display = 'block';
         renderMonthCalendar();
         document.querySelector('[onclick*="switchAgendaView(\'calendar\')"]').style.color = '#fcee0a';
@@ -2754,72 +2758,6 @@ function renderAddEventForm() {
     `;
 }
 
-async function submitNewEvent() {
-    const title = document.getElementById('new-event-title').value.trim();
-    const date = document.getElementById('new-event-date').value;
-    const time = document.getElementById('new-event-time').value;
-    
-    if (!title || !date || !time) {
-        showCustomAlert("COMPILA_TUTTI_I_CAMPI");
-        return;
-    }
-    
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="blink">SYNCING...</span>';
-    btn.disabled = true;
-    
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors', // Importante per Apps Script
-            body: JSON.stringify({
-                service: "add_calendar_event",
-                title: title,
-                date: date,
-                time: time
-            })
-        });
-        
-        showCustomAlert("EVENTO_CREATO_CON_SUCCESSO", true);
-        
-        // Ricarica dati e torna a CHRONO
-        setTimeout(async () => {
-            await loadStats(); // Questo ricaricherà window.agendaData
-            switchAgendaView('chrono');
-            
-            // Reset form
-            document.getElementById('new-event-title').value = '';
-            document.getElementById('new-event-date').value = '';
-            document.getElementById('new-event-time').value = '';
-        }, 1500);
-        
-    } catch (e) {
-        console.error("Errore:", e);
-        showCustomAlert("ERRORE_CONNESSIONE");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-}
-
-function showCustomAlert(message, isSuccess = false) {
-    const bubble = document.getElementById('analyst-bubble');
-    const text = document.getElementById('analyst-text');
-    
-    text.innerHTML = `
-        <div style="font-size:0.7rem; color:${isSuccess ? 'var(--accent)' : '#ff4d4d'}; 
-                    margin-bottom:8px; letter-spacing:2px;">
-            ${isSuccess ? '✓ OPERAZIONE_COMPLETATA' : '✗ ERRORE_SISTEMA'}
-        </div>
-        <div style="color:#fff; font-size:0.9rem; margin-top:10px;">
-            ${message}
-        </div>
-    `;
-    
-    bubble.classList.add('active');
-    setTimeout(() => bubble.classList.remove('active'), 3000);
-}
-
 function renderChronoEvents() {
     const container = document.getElementById('events-container');
     if (!container) return;
@@ -2829,9 +2767,10 @@ function renderChronoEvents() {
     
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; // FIX: formato yyyy-MM-dd
     
     container.innerHTML = dataToShow.map(day => {
-        const isToday = day.date === Utilities.formatDate(now, "GMT+1", "yyyy-MM-dd");
+        const isToday = day.date === todayStr; // FIX: confronto corretto
         
         return `
         <div class="day-group" style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px;">
@@ -2865,7 +2804,7 @@ function renderChronoEvents() {
         </div>`;
     }).join('');
     
-    // Bottone Load More
+    // FIX: Bottone Load More sempre visibile se ci sono più eventi
     if (hasMore) {
         container.innerHTML += `
             <div style="text-align:center; padding:20px;">
@@ -2876,6 +2815,87 @@ function renderChronoEvents() {
                 </button>
             </div>`;
     }
+    
+    if (window.lucide) lucide.createIcons();
+}
+
+function showCustomAlert(message, isSuccess = false) {
+    const bubble = document.getElementById('analyst-bubble');
+    const text = document.getElementById('analyst-text');
+    
+    text.innerHTML = `
+        <div style="font-size:0.7rem; color:${isSuccess ? 'var(--accent)' : '#ff4d4d'}; 
+                    margin-bottom:8px; letter-spacing:2px;">
+            ${isSuccess ? '✓ OPERAZIONE_COMPLETATA' : '✗ ERRORE_SISTEMA'}
+        </div>
+        <div style="color:#fff; font-size:0.9rem; margin-top:10px;">
+            ${message}
+        </div>
+    `;
+    
+    bubble.classList.add('active');
+    setTimeout(() => bubble.classList.remove('active'), 3000);
+}
+
+function renderChronoEvents() {
+    const container = document.getElementById('events-container');
+    if (!container) return;
+    
+    const dataToShow = window.agendaData.slice(0, chronoDisplayLimit);
+    const hasMore = window.agendaData.length > chronoDisplayLimit;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; // FIX: formato yyyy-MM-dd
+    
+    container.innerHTML = dataToShow.map(day => {
+        const isToday = day.date === todayStr; // FIX: confronto corretto
+        
+        return `
+        <div class="day-group" style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px;">
+            <div class="day-label" style="font-family:'Rajdhani'; font-size:1rem; color:${isToday ? '#fcee0a' : 'var(--dim)'}; 
+                                          margin-bottom:12px; letter-spacing:1px;">
+                ${day.dateLabel}
+            </div>
+            ${day.events.length === 0 ? 
+                `<div style="font-size:10px; color:#333; padding:10px;">NESSUN_EVENTO</div>` :
+                day.events.map(ev => {
+                    const [h, m] = ev.time.split(':').map(Number);
+                    const evTime = h * 60 + m;
+                    const isPast = isToday && evTime < currentTime;
+                    const isUpcoming = isToday && evTime >= currentTime && evTime <= currentTime + 60;
+                    
+                    return `
+                    <div class="event-node" style="display:flex; gap:15px; align-items:center; padding:12px 10px; 
+                                                    border-left:2px solid ${isUpcoming ? '#fcee0a' : isPast ? '#333' : 'var(--accent)'}; 
+                                                    margin-bottom:8px; opacity:${isPast ? '0.4' : '1'};">
+                        <div class="event-time" style="color:${isUpcoming ? '#fcee0a' : 'var(--dim)'}; 
+                                                       font-weight:bold; font-family:'JetBrains Mono'; 
+                                                       font-size:0.85rem; min-width:50px;">
+                            ${ev.time}
+                        </div>
+                        <div class="event-title" style="color:#fff; flex:1; font-size:0.9rem;">
+                            ${ev.title}
+                        </div>
+                    </div>`;
+                }).join('')
+            }
+        </div>`;
+    }).join('');
+    
+    // FIX: Bottone Load More sempre visibile se ci sono più eventi
+    if (hasMore) {
+        container.innerHTML += `
+            <div style="text-align:center; padding:20px;">
+                <button onclick="loadMoreChrono()" 
+                        style="padding:12px 30px; background:transparent; border:1px solid var(--accent); 
+                               color:var(--accent); font-family:'Rajdhani'; cursor:pointer; border-radius:4px;">
+                    CARICA_ALTRI_7_GIORNI (${window.agendaData.length - chronoDisplayLimit} rimanenti)
+                </button>
+            </div>`;
+    }
+    
+    if (window.lucide) lucide.createIcons();
 }
 
 function loadMoreChrono() {
