@@ -913,7 +913,6 @@ function handleAgendaCommand(input, isInternal = false) {
         const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
         return fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             body: JSON.stringify({ service: "agenda_add", text: cleanCmd })
         });
     });
@@ -952,20 +951,24 @@ function loadAgenda() {
 
 function renderAgenda(days) {
     const container = document.getElementById('events-container');
-    if (!container || !days || days.length === 0) {
-        if (container) container.innerHTML = "<div class='day-label' style='border-right-color:var(--dim)'>CHRONO_EMPTY</div>";
-        return;
-    }
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
 
     container.innerHTML = days.map(day => `
         <div class="day-group">
             <div class="day-label">${day.dateLabel}</div>
-            ${day.events.map(ev => `
-                <div class="event-node">
-                    <div class="event-time">${ev.time}</div>
+            ${day.events.map(ev => {
+                const [h, m] = ev.time.split(':').map(Number);
+                const evTime = h * 60 + m;
+                // Se l'evento è passato da meno di un'ora o è il prossimo
+                const isUpcoming = evTime >= currentTime; 
+                
+                return `
+                <div class="event-node" style="opacity: ${isUpcoming ? '1' : '0.3'}">
+                    <div class="event-time" style="color: ${isUpcoming ? '#fcee0a' : 'var(--dim)'}">${ev.time}</div>
                     <div class="event-title">${ev.title}</div>
-                </div>
-            `).join('')}
+                </div>`;
+            }).join('')}
         </div>
     `).join('');
 }
@@ -2467,7 +2470,7 @@ function filterByCategory(cat, element) {
 
             const matchSearch = title.includes(currentSearchQuery);
             
-            return matchView && matchCat && matchSearch;
+            return matchView && matchCat;
         });
 
         console.log(`Filtrati per ${cat}, wishlist=${isWishlistView}:`, filtered);

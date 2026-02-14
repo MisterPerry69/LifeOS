@@ -194,41 +194,71 @@
   <!-- ============================================ -->
   <!-- PAGE: AGENDA -->
   <!-- ============================================ -->
-  <div id="agenda" class="page">
+<div id="agenda" class="page">
     <div class="header">
-      <div class="header-left">
-        <div class="status-indicator">
-          <span class="blink-dot" style="background-color: #fcee0a; box-shadow: 0 0 8px #fcee0a;"></span>
-          <span style="font-size: 10px; letter-spacing: 2px; color: #fcee0a; font-weight: 700;">TEMPORAL_LINK // ACTIVE</span>
+        <div class="header-left">
+            <div class="status-indicator">
+                <span class="blink-dot" style="background-color: #fcee0a; box-shadow: 0 0 8px #fcee0a;"></span>
+                <span style="font-size: 10px; letter-spacing: 2px; color: #fcee0a; font-weight: 700;">TEMPORAL_LINK // ACTIVE</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="calendar" style="color: #fcee0a; width: 28px; height: 28px;"></i>
+                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff;">PLANNER</h1>
+            </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="calendar" style="color: #fcee0a; width: 28px; height: 28px;"></i>
-          <h1 id="agenda-title" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">AGENDA</h1>
+        <div class="header-right">
+            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
         </div>
-      </div>
-      <div class="header-right">
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-      </div>
     </div>
-    <main id="agenda-main" style="padding: 0 20px; flex: 1; overflow-y: auto;">
-      <div id="neural-input-zone" style="margin-top: 20px;">
-        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 15px; opacity: 0.6;">
-          <i data-lucide="terminal" style="width: 12px; color: #fcee0a;"></i>
-          <span style="font-family: 'Rajdhani'; font-size: 10px; letter-spacing: 2px;">AWAITING_NEURAL_STREAM...</span>
-        </div>
-        <textarea id="neural-prompt" placeholder="Butta giù la lista della spesa..." style="width:100%; height:120px; background:#111; border:1px dashed #333; color:#eee; padding:15px; font-family:inherit; outline:none; margin-bottom:15px; border-radius: 4px;"></textarea>
-        <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; padding:15px; background:transparent; border:1px solid #fcee0a; color:#fcee0a; font-family:'Rajdhani'; font-weight:bold; letter-spacing:3px; cursor: pointer;">INITIALIZE_FLOW</button>
-      </div>
-      <div id="active-flow-zone" style="display:none;">
-        <div id="daily-timeline-content"></div>
-        <button onclick="closeDaySession()" style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">[ TERMINATE_SESSION & LOG ]</button>
-      </div>
-      <div style="margin-top:40px; border-top: 1px solid #222; padding-top: 20px; padding-bottom: 100px;">
-        <div id="events-container"></div>
-      </div>
-    </main>
-  </div>
 
+    <main id="agenda-main" style="padding: 0 20px; flex: 1; overflow-y: auto; padding-bottom: 120px;">
+        <div id="calendar-real-zone" style="margin-top: 20px;">
+            <div style="font-size: 10px; color: var(--dim); margin-bottom: 15px; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 5px;">CALENDAR_STREAM_ACTIVE</div>
+            <div id="events-container"></div>
+        </div>
+
+        <div id="neural-input-zone" style="margin-top: 30px;">
+             <div style="font-size: 10px; color: #fcee0a; margin-bottom: 10px; letter-spacing: 2px;">NEURAL_SYNTHESIZER</div>
+            <textarea id="neural-prompt" placeholder="Es: Oggi allenamento, spesa e finire il progetto..." 
+                      style="width:100%; height:100px; background:#111; border:1px solid #222; color:#eee; padding:15px; font-family:inherit; outline:none; border-radius: 4px;"></textarea>
+            <button onclick="synthesizeDaily()" class="cyber-btn" style="width:100%; margin-top: 10px; padding:15px; border:1px solid #fcee0a; color:#fcee0a; background: transparent; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; letter-spacing: 2px;">INITIALIZE_FLOW</button>
+        </div>
+
+        <div id="active-flow-zone" style="display:none; margin-top: 20px;">
+            <div id="daily-timeline-content"></div>
+            <button onclick="document.getElementById('active-flow-zone').style.display='none'; document.getElementById('neural-input-zone').style.display='block';" 
+                    style="margin-top:20px; color:var(--dim); font-size:10px; border:none; background:none; cursor:pointer;">[ NEW_SESSION ]</button>
+        </div>
+    </main>
+
+    <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 9000; backdrop-filter: blur(10px);">
+        <div class="nav-item" onclick="synthesizeDaily()" style="flex:1; text-align: center; color: #fcee0a;">
+            <i data-lucide="cpu" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">SYNTH</div>
+        </div>
+        
+        <div class="nav-item" onclick="document.getElementById('calendar-real-zone').scrollIntoView({behavior:'smooth'})" style="flex:1; text-align: center; color: var(--dim);">
+            <i data-lucide="search" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">CHRONO</div>
+        </div>
+
+        <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
+            <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
+                <i data-lucide="home" style="width: 28px; color: #000;"></i>
+            </div>
+        </div>
+
+        <div class="nav-item" onclick="loadAgendaHistory()" style="flex:1; text-align: center; color: var(--dim);"> 
+            <i data-lucide="archive" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
+        </div>
+
+        <div class="nav-item" onclick="document.getElementById('neural-prompt').focus()" style="flex:1; text-align: center; color: var(--dim);">
+            <i data-lucide="plus-square" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">ADD</div>
+        </div>
+    </div>
+</div>
   <!-- ============================================ -->
   <!-- PAGE: HABIT TRACKER -->
   <!-- ============================================ -->
