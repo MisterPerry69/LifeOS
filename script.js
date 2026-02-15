@@ -1491,6 +1491,7 @@ function switchFinanceTab(target) {
 }
 
 function nav(page) {
+    console.log("NAV chiamato con:", page); // ← DEBUG
     // Nascondi tutte le pagine principali (.page)
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     
@@ -1504,7 +1505,7 @@ function nav(page) {
     }
 
     if (page === 'body') {
-    initBodyModule(); // ← AGGIUNGI QUESTA RIGA
+        initBodyModule(); // ← AGGIUNGI QUESTA RIGA
     }
 
     if (page === 'reviews') {
