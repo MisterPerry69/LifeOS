@@ -417,6 +417,8 @@ async function sendCmd(event) {
     const val = input.value.trim();
     if (!val) return;
 
+    console.log("sendCmd ricevuto:", val); // DEBUG
+
     // Finance command
     if (val.startsWith('-') || val.startsWith('spesa ')) {
         handleFinanceCommand(val);
@@ -424,12 +426,18 @@ async function sendCmd(event) {
         return;
     }
 
-    // Optimistic UI per note normali
-    if (!val.toLowerCase().startsWith('t ') && !val.includes('+')) {
+    // Determina se è un comando speciale
+    const isExtraCmd = /\+\d/.test(val);
+    const isWeightCmd = /^\d+(\.\d+)?\s?kg/i.test(val);
+    const isHabitCmd = /^h\d/i.test(val);
+
+    // Optimistic UI SOLO per note normali
+    if (!isExtraCmd && !isWeightCmd && !isHabitCmd) {
         const grid = document.getElementById('keep-grid');
         if (grid) {
             const tempCard = document.createElement('div');
             tempCard.className = "keep-card bg-default blink temp-note";
+            tempCard.id = 'temp-note-' + Date.now();
             tempCard.innerHTML = `
                 <div class="title-row">SYNCING...</div>
                 <div class="content-preview">${val}</div>
@@ -447,37 +455,41 @@ async function sendCmd(event) {
     input.value = "";
     input.placeholder = "> SYNC_STARTING...";
     
-    let service = "note";
-    if (val.toLowerCase().startsWith('t ')) service = "agenda_add";
-    else if (/^\+(\d+(\.\d+)?)$/.test(val) || val.toLowerCase().startsWith('ieri+')) service = "extra_hours";
-
     try {
-        fetch(SCRIPT_URL, {
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ service: service, text: val })
+            body: JSON.stringify({ service: "note", text: val })
         });
 
         input.placeholder = "> COMMAND_SENT.";
         
+        // Aspetta un attimo prima di ricaricare
         setTimeout(async () => {
             await loadStats();
+            
+            // Rimuovi card temporanea se esiste
+            document.querySelectorAll('.temp-note').forEach(el => el.remove());
+            
             const noteDetail = document.getElementById('note-detail');
-            if (noteDetail && noteDetail.style.display === 'flex' && service === "extra_hours") {
-                openExtraDetail();
+            if (noteDetail && noteDetail.style.display === 'flex') {
+                if (isExtraCmd) {
+                    openExtraDetail();
+                }
             }
-        }, 3000);
+        }, 2000);
 
     } catch (e) {
+        console.error("Errore sendCmd:", e);
         input.placeholder = "!! SYNC_ERROR !!";
+        // Rimuovi card temporanea in caso di errore
+        document.querySelectorAll('.temp-note').forEach(el => el.remove());
     }
     
     setTimeout(() => {
         input.placeholder = "> DIGITA...";
         input.focus();
-    }, 1500);
+    }, 2500);
 }
-
 
 // FIX: Rinominata per evitare conflitti
 function handleFinanceCommand(rawText) {
@@ -1756,6 +1768,7 @@ function toggleQuickMenu() {
 
 // Funzione chiamata dalle opzioni del menu
 function createNew(kind) {
+    console.log("createNew chiamato con:", kind); // DEBUG
     createNewNote();
     
     if (kind === 'LINK') {
@@ -1772,11 +1785,16 @@ function createNew(kind) {
 
 // Funzione di supporto per aprire il modal vuoto
 function createNewNote() {
+    console.log("createNewNote chiamato"); // DEBUG
     currentNoteData = { id: null, type: 'NOTE', color: 'default', index: undefined };
+    
+    const modal = document.getElementById('note-detail');
+    console.log("Modal trovato:", modal); // DEBUG
+    
     document.getElementById('detail-type').innerText = "NUOVA_NOTA";
     document.getElementById('detail-text').value = "";
-    document.getElementById('note-detail').className = "note-overlay bg-default";
-    document.getElementById('note-detail').style.display = "flex";
+    modal.className = "note-overlay bg-default";
+    modal.style.display = "flex";
     document.getElementById('modal-backdrop').style.display = "block";
 }
 
@@ -3210,6 +3228,8 @@ function closeWeightLog() {
 // SUBMIT WORKOUT FEELING
 // ============================================
 
+// In submitWorkoutFeeling(), SOSTITUISCI la parte del coach con questo:
+
 async function submitWorkoutFeeling() {
     const input = document.getElementById('workout-feeling-input').value.trim();
     if (!input) {
@@ -3223,53 +3243,59 @@ async function submitWorkoutFeeling() {
     btn.disabled = true;
     
     try {
-        // Step 1: Parsing con Gemini
-        const response = await fetch(SCRIPT_URL, {
+        // Step 1: Parse workout
+        const parseResponse = await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             body: JSON.stringify({
                 service: 'parse_workout',
                 text: input
             })
         });
         
-        // Step 2: Mostra risposta coach
-        setTimeout(() => {
+        const parseResult = await parseResponse.json();
+        
+        if (parseResult.status === "SUCCESS") {
+            const parsedData = parseResult.parsed;
+            
+            // Step 2: Salva workout con dati parsati
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    service: 'save_workout',
+                    raw_input: input,
+                    parsed_data: parsedData
+                })
+            });
+            
+            // Step 3: Chiedi al coach un commento
+            const coachResponse = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'ask_body_coach',
+                    query: `Ho fatto questo workout: ${input}. Dammi un feedback breve.`
+                })
+            });
+            
+            const coachText = await coachResponse.text();
+            
+            // Mostra risposta coach
             const coachZone = document.getElementById('coach-response-zone');
             coachZone.style.display = 'block';
             coachZone.innerHTML = `
                 <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 1px;">COACH_RESPONSE:</div>
-                <div class="blink" style="color: #00ff41;">Analizzando workout...</div>
+                <div style="color: #fff; line-height: 1.6;">"${coachText}"</div>
             `;
             
-            // Mock response (sostituiremo con vera AI)
+            // Reset e ricarica dopo 3 secondi
             setTimeout(() => {
-                coachZone.innerHTML = `
-                    <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 1px;">COACH_RESPONSE:</div>
-                    <div style="color: #fff; line-height: 1.6;">
-                        "Panca giù. Hai dormito male o è altro? Stacco solido comunque. La prossima prova 102kg."
-                    </div>
-                `;
-            }, 1500);
-        }, 500);
-        
-        // Step 3: Salva nel DB
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                service: 'save_workout',
-                raw_input: input,
-                // parsed_data verrà aggiunto dopo il parsing
-            })
-        });
-        
-        // Reset e ricarica
-        setTimeout(() => {
-            closeWorkoutFeeling();
-            loadStats();
-            renderBodyDashboard();
-        }, 3000);
+                closeWorkoutFeeling();
+                loadStats();
+                renderBodyDashboard();
+            }, 3000);
+        } else {
+            throw new Error("Parse failed");
+        }
         
     } catch (e) {
         console.error("Errore workout:", e);
@@ -3347,6 +3373,8 @@ function toggleBodyCoach() {
     setTimeout(() => document.getElementById('coach-input')?.focus(), 200);
 }
 
+// Nel tuo script.js, SOSTITUISCI handleCoachInput:
+
 async function handleCoachInput(event) {
     if (event.key !== 'Enter') return;
     
@@ -3358,19 +3386,32 @@ async function handleCoachInput(event) {
     text.innerHTML = `<div style="color: #00ff41;" class="blink">THINKING...</div>`;
     
     try {
-        // TODO: Collegare vera AI
-        setTimeout(() => {
-            text.innerHTML = `
-                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 6px;">COACH:</div>
-                <div style="color: #fff; line-height: 1.6;">
-                    "Ok, capito. Domani 20 min di workout, fattibili. Niente scuse."
-                </div>
-                <div onclick="document.getElementById('analyst-bubble').classList.remove('active')" 
-                     style="margin-top: 12px; font-size: 0.7rem; color: var(--dim); cursor: pointer; text-align: right;">
-                    [CHIUDI]
-                </div>
-            `;
-        }, 1000);
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'ask_body_coach',
+                query: query
+            })
+        });
+        
+        const coachResponse = await response.text();
+        
+        text.innerHTML = `
+            <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 6px;">COACH:</div>
+            <div style="color: #fff; line-height: 1.6;">
+                "${coachResponse}"
+            </div>
+            <input type="text" id="coach-input" placeholder="Altra domanda..." 
+                   style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; font-size: 0.85rem; outline: none; border-radius: 4px; box-sizing: border-box; margin-top: 12px;"
+                   onkeypress="handleCoachInput(event)">
+            <div onclick="document.getElementById('analyst-bubble').classList.remove('active')" 
+                 style="margin-top: 12px; font-size: 0.7rem; color: var(--dim); cursor: pointer; text-align: right;">
+                [CHIUDI]
+            </div>
+        `;
+        
+        setTimeout(() => document.getElementById('coach-input')?.focus(), 100);
+        
     } catch (e) {
         text.innerHTML = `<div style="color: #ff4d4d;">ERRORE_COACH</div>`;
     }
