@@ -1689,18 +1689,6 @@ CSS
         width: 100%;
     }
 
-#reviews.page {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    height: 100vh !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-}
-
-#reviews.page.active {
-    display: flex !important;
-}
 
 /* 1. Sblocchiamo l'altezza fissa */
     .review-card {
@@ -1778,12 +1766,7 @@ CSS
 .review-detail-card::-webkit-scrollbar { width: 4px; }
 .review-detail-card::-webkit-scrollbar-thumb { background: #222; }
 
-#reviews-stats-container {
-    scrollbar-width: none; /* Nasconde scrollbar Firefox */
-}
-#reviews-stats-container::-webkit-scrollbar {
-    display: none; /* Nasconde scrollbar Chrome/Safari */
-}
+
 
 /* Animazione per far apparire le barre */
 @keyframes growBar {
@@ -1886,3 +1869,10 @@ CSS
     background: transparent;
 }
 
+
+#reviews.page.active {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100vw !important;
+    height: 100vh !important;
+}
