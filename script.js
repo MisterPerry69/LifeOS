@@ -664,6 +664,24 @@ function closeNoteDetail(forceSave = true) {
 }
 
 function saveAndClose() {
+    const text = document.getElementById('detail-text').value.trim();
+    
+    if (!text) {
+        closeNoteDetail(false);
+        return;
+    }
+    
+    // Se è una nota nuova (senza ID)
+    if (!currentNoteData.id) {
+        // Salva come comando normale
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ service: "note", text: text })
+        }).then(() => {
+            setTimeout(() => loadStats(), 2000);
+        });
+    }
+    
     closeNoteDetail(true);
 }
 
@@ -3065,24 +3083,48 @@ function renderBodyDashboard() {
 function calculateStreak(workouts) {
     if (!workouts || workouts.length === 0) return 0;
     
-    let streak = 0;
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const TARGET_WORKOUTS_PER_WEEK = 3;
     
-    for (let i = 0; i < workouts.length; i++) {
-        const workoutDate = new Date(workouts[i].date);
-        workoutDate.setHours(0, 0, 0, 0);
+    // Raggruppa workout per settimana
+    const weeklyWorkouts = {};
+    
+    workouts.forEach(w => {
+        const date = new Date(w.date);
+        // Calcola numero settimana dall'inizio dell'anno
+        const weekNum = getWeekNumber(date);
+        const weekKey = `${date.getFullYear()}-W${weekNum}`;
         
-        const daysDiff = Math.floor((today - workoutDate) / (1000 * 60 * 60 * 24));
+        weeklyWorkouts[weekKey] = (weeklyWorkouts[weekKey] || 0) + 1;
+    });
+    
+    // Conta settimane consecutive con almeno 3 workout
+    let streak = 0;
+    let currentDate = new Date(today);
+    
+    while (true) {
+        const weekNum = getWeekNumber(currentDate);
+        const weekKey = `${currentDate.getFullYear()}-W${weekNum}`;
         
-        if (daysDiff === streak) {
+        if ((weeklyWorkouts[weekKey] || 0) >= TARGET_WORKOUTS_PER_WEEK) {
             streak++;
+            // Vai alla settimana precedente
+            currentDate.setDate(currentDate.getDate() - 7);
         } else {
             break;
         }
     }
     
     return streak;
+}
+
+// Helper per calcolare numero settimana
+function getWeekNumber(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
 function renderTodayLog() {
@@ -3491,5 +3533,50 @@ function initBodyModule() {
     } else {
         loadBodyData();
         switchBodyView('dashboard');
+    }
+}
+
+async function submitNewEvent() {
+    const title = document.getElementById('new-event-title').value.trim();
+    const date = document.getElementById('new-event-date').value;
+    const time = document.getElementById('new-event-time').value;
+    
+    if (!title || !date || !time) {
+        showCustomAlert("COMPILA TUTTI I CAMPI");
+        return;
+    }
+    
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'add_calendar_event',
+                title: title,
+                date: date,
+                time: time
+            })
+        });
+        
+        const result = await response.text();
+        
+        if (result === "EVENT_CREATED_SUCCESS") {
+            showCustomAlert("EVENTO AGGIUNTO AL CALENDARIO", true);
+            
+            // Pulisci form
+            document.getElementById('new-event-title').value = '';
+            document.getElementById('new-event-date').value = '';
+            document.getElementById('new-event-time').value = '';
+            
+            // Ricarica agenda dopo 2 secondi
+            setTimeout(() => {
+                loadStats();
+                switchAgendaView('chrono');
+            }, 2000);
+        } else {
+            showCustomAlert("ERRORE: " + result);
+        }
+    } catch (e) {
+        console.error("Errore submit evento:", e);
+        showCustomAlert("ERRORE_CONNESSIONE");
     }
 }

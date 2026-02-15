@@ -518,12 +518,29 @@ input:focus {
     left: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    z-index: 10001 !important;
     display: none;
     align-items: center;
     justify-content: center;
+    z-index: 10001 !important;
     padding: 20px;
-    box-sizing: border-box;
+}
+
+#note-detail .header {
+    width: 100%;
+}
+
+#note-detail .modal-body {
+    width: 100%;
+    flex: 1;
+}
+
+#note-detail #detail-text {
+    width: 100%;
+    height: 100%;
+}
+
+#note-detail .note-toolbar {
+    width: 100%;
 }
 
 
