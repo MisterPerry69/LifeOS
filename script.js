@@ -2997,13 +2997,15 @@ let currentBodyView = 'dashboard'; // dashboard | stats | history
 // ============================================
 
 async function loadBodyData() {
-    // I dati arrivano da loadStats() ma li processiamo qui
-    if (!lastStatsData) return;
+    if (!lastStatsData || !lastStatsData.body) {
+        console.log("Body data not available yet");
+        return;
+    }
     
-    // TODO: Quando aggiungiamo sheet Health_Workouts, carichiamo da lì
-    // Per ora usiamo dati mock per testare UI
+    bodyData.currentWeight = lastStatsData.body.weight || 94.5;
+    bodyData.workouts = lastStatsData.body.workouts || [];
     
-    bodyData.currentWeight = parseFloat(lastStatsData.weight) || 94.5;
+    // TODO: Caricare weightHistory dal foglio Health_Log
     
     renderBodyDashboard();
 }
@@ -3011,52 +3013,112 @@ async function loadBodyData() {
 function renderBodyDashboard() {
     // Peso attuale
     const weightEl = document.getElementById('body-current-weight');
-    if (weightEl) weightEl.innerText = bodyData.currentWeight.toFixed(1);
+    if (weightEl && bodyData.currentWeight) {
+        weightEl.innerText = bodyData.currentWeight.toFixed(1);
+    }
     
-    // Delta peso (TODO: calcolare da storico)
+    // Delta peso (calcolato da storico reale)
     const deltaEl = document.getElementById('body-weight-delta');
-    if (deltaEl) deltaEl.innerHTML = '<span style="color:#00ff41;">↓ 0.3 kg da ieri</span>'; // Mock
+    if (deltaEl && bodyData.weightHistory && bodyData.weightHistory.length > 1) {
+        const current = bodyData.currentWeight;
+        const previous = bodyData.weightHistory[1]; // Peso di ieri
+        const delta = current - previous;
+        const arrow = delta < 0 ? '↓' : delta > 0 ? '↑' : '→';
+        const color = delta < 0 ? '#00ff41' : delta > 0 ? '#ff4d4d' : '#666';
+        deltaEl.innerHTML = `<span style="color:${color};">${arrow} ${Math.abs(delta).toFixed(1)} kg da ieri</span>`;
+    } else {
+        deltaEl.innerHTML = '<span style="color:#666;">Nessun dato storico</span>';
+    }
     
-    // Streak (TODO: calcolare da workout history)
+    // Streak (calcolato da workout history)
     const streakEl = document.getElementById('body-streak');
-    if (streakEl) streakEl.innerText = '4'; // Mock
+    if (streakEl) {
+        const streak = calculateStreak(bodyData.workouts);
+        streakEl.innerText = streak;
+    }
     
-    // Today log (TODO: caricare da DB)
+    // Today log
     renderTodayLog();
     
-    // Recent workouts (TODO: caricare da DB)
+    // Recent workouts
     renderRecentWorkouts();
+}
+
+function calculateStreak(workouts) {
+    if (!workouts || workouts.length === 0) return 0;
+    
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (let i = 0; i < workouts.length; i++) {
+        const workoutDate = new Date(workouts[i].date);
+        workoutDate.setHours(0, 0, 0, 0);
+        
+        const daysDiff = Math.floor((today - workoutDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff === streak) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    
+    return streak;
 }
 
 function renderTodayLog() {
     const container = document.getElementById('body-today-log');
     if (!container) return;
     
-    // Mock data
-    const todayLogs = [
-        { type: 'workout', time: '15:30', text: 'Allenamento gambe', status: 'done' },
-        { type: 'meal', time: '13:00', text: '1850 kcal logged', status: 'done' },
-        { type: 'weight', time: '--', text: 'Peso mancante', status: 'pending' }
-    ];
+    const today = new Date().toISOString().split('T')[0]; // yyyy-MM-dd
+    
+    // Controlla workout di oggi
+    const todayWorkout = bodyData.workouts.find(w => w.date === today);
+    
+    // Controlla peso di oggi
+    const todayWeight = bodyData.weightHistory && bodyData.weightHistory.length > 0 
+        && new Date(bodyData.weightHistory[0].date).toISOString().split('T')[0] === today;
+    
+    const todayLogs = [];
+    
+    if (todayWorkout) {
+        todayLogs.push({ 
+            type: 'workout', 
+            time: new Date(todayWorkout.date).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}), 
+            text: `Allenamento (${todayWorkout.exercises.length} esercizi)`, 
+            status: 'done' 
+        });
+    }
+    
+    if (todayWeight) {
+        todayLogs.push({ 
+            type: 'weight', 
+            time: new Date(bodyData.weightHistory[0].date).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}), 
+            text: `Peso: ${bodyData.currentWeight}kg`, 
+            status: 'done' 
+        });
+    }
+    
+    // TODO: Aggiungi meal quando integri FatSecret
     
     if (todayLogs.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#333; padding:20px; font-size:10px;">NESSUN_DATO_OGGI</div>';
+        container.innerHTML = '<div style="text-align:center; color:#333; padding:20px; font-size:10px;">NESSUN_LOG_OGGI</div>';
         return;
     }
     
     container.innerHTML = todayLogs.map(log => {
         const icon = log.type === 'workout' ? '💪' : log.type === 'meal' ? '🍽️' : '⚖️';
         const statusIcon = log.status === 'done' ? '✓' : '⏳';
-        const opacity = log.status === 'done' ? '1' : '0.4';
         
         return `
-            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #111; opacity: ${opacity};">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #111;">
                 <div style="font-size: 1.2rem;">${icon}</div>
                 <div style="flex: 1;">
                     <div style="font-size: 0.85rem; color: #fff;">${log.text}</div>
                     <div style="font-size: 0.7rem; color: var(--dim); margin-top: 2px;">${log.time}</div>
                 </div>
-                <div style="font-size: 1rem; color: ${log.status === 'done' ? '#00ff41' : '#666'};">${statusIcon}</div>
+                <div style="font-size: 1rem; color: #00ff41;">${statusIcon}</div>
             </div>
         `;
     }).join('');
@@ -3066,53 +3128,32 @@ function renderRecentWorkouts() {
     const container = document.getElementById('body-recent-workouts');
     if (!container) return;
     
-    // Mock data
-    const recentWorkouts = [
-        {
-            date: '15 FEB',
-            mood: 0,
-            exercises: [
-                { name: 'Panca', weight: 40, reps: 8, trend: 'down' },
-                { name: 'Stacco', weight: 100, reps: 5, trend: 'up' }
-            ]
-        },
-        {
-            date: '14 FEB',
-            mood: 1,
-            exercises: [
-                { name: 'Squat', weight: 120, reps: 3, trend: 'up' }
-            ]
-        }
-    ];
-    
-    if (recentWorkouts.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#333; padding:20px; font-size:10px;">NESSUN_WORKOUT_RECENTE</div>';
+    if (!bodyData.workouts || bodyData.workouts.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#333; padding:20px; font-size:10px;">NESSUN_WORKOUT_REGISTRATO</div>';
         return;
     }
     
+    const recentWorkouts = bodyData.workouts.slice(0, 5); // Ultimi 5
+    
     container.innerHTML = recentWorkouts.map(w => {
         const moodEmoji = w.mood === -2 ? '😫' : w.mood === -1 ? '😐' : w.mood === 0 ? '😊' : w.mood === 1 ? '😄' : '🔥';
+        const date = new Date(w.date);
+        const dateStr = date.toLocaleDateString('it-IT', {day: '2-digit', month: 'short'}).toUpperCase();
         
         return `
             <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #111;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <div style="font-size: 0.9rem; color: var(--dim); font-family: 'Rajdhani';">${w.date}</div>
+                    <div style="font-size: 0.9rem; color: var(--dim); font-family: 'Rajdhani';">${dateStr}</div>
                     <div style="font-size: 1.2rem;">${moodEmoji}</div>
                 </div>
-                ${w.exercises.map(ex => {
-                    const trendIcon = ex.trend === 'up' ? '📈' : ex.trend === 'down' ? '⚠️' : '➡️';
-                    const trendColor = ex.trend === 'up' ? '#00ff41' : ex.trend === 'down' ? '#ff4d4d' : '#666';
-                    
-                    return `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
-                            <div style="flex: 1;">
-                                <span style="color: #fff; font-size: 0.85rem;">${ex.name}</span>
-                                <span style="color: var(--dim); font-size: 0.75rem; margin-left: 8px;">${ex.weight}kg × ${ex.reps}</span>
-                            </div>
-                            <div style="font-size: 0.9rem; color: ${trendColor};">${trendIcon}</div>
+                ${w.exercises && w.exercises.length > 0 ? w.exercises.map(ex => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                        <div style="flex: 1;">
+                            <span style="color: #fff; font-size: 0.85rem;">${ex.name}</span>
+                            ${ex.weight ? `<span style="color: var(--dim); font-size: 0.75rem; margin-left: 8px;">${ex.weight}kg${ex.reps ? ` × ${ex.reps}` : ''}</span>` : ''}
                         </div>
-                    `;
-                }).join('')}
+                    </div>
+                `).join('') : `<div style="color: #666; font-size: 0.8rem;">${w.notes || w.raw || 'Nessun dettaglio'}</div>`}
             </div>
         `;
     }).join('');
