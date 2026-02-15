@@ -151,6 +151,10 @@ async function loadStats() {
             
             // Invece di renderReviews nudo, chiamiamo il filtro
             filterByCategory(currentCat, activeChip || document.querySelector('.filter-chip'));
+
+            if (document.getElementById('body')?.classList.contains('active')) {
+            loadBodyData();
+        }
         }        
         // Render griglia note
         renderGrid(data);
@@ -3384,6 +3388,25 @@ function renderBodyHistory() {
 
 // Chiamato quando entri nella pagina Body
 function initBodyModule() {
-    loadBodyData();
-    switchBodyView('dashboard');
+    console.log("initBodyModule called, lastStatsData:", lastStatsData); // DEBUG
+    
+    if (!lastStatsData) {
+        console.log("lastStatsData null, aspetto..."); // DEBUG
+        // Se i dati non sono ancora arrivati, aspetta
+        setTimeout(() => {
+            if (lastStatsData) {
+                loadBodyData();
+                switchBodyView('dashboard');
+            } else {
+                // Mostra loading
+                const dashboard = document.getElementById('body-dashboard');
+                if (dashboard) {
+                    dashboard.innerHTML = '<div style="text-align:center; padding:40px; color:var(--dim);" class="blink">SYNCING_BODY_DATA...</div>';
+                }
+            }
+        }, 1000);
+    } else {
+        loadBodyData();
+        switchBodyView('dashboard');
+    }
 }
