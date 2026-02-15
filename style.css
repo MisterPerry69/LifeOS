@@ -1689,19 +1689,19 @@ CSS
         width: 100%;
     }
 
-    #reviews.page {
-    height: 100vh;
-    padding: 0;
-    overflow: hidden;
-}
-
-#reviews.page.active {
+#reviews.page {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
     height: 100vh !important;
-    overflow-y: auto !important;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
+
+#reviews.page.active {
+    display: flex !important;
+}
+
 /* 1. Sblocchiamo l'altezza fissa */
     .review-card {
         height: auto !important; /* Lascia che la card si allunghi se serve */
