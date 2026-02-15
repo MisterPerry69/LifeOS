@@ -1448,6 +1448,24 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Aggiungi questo event listener globale nel tuo script.js:
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        // Chiudi weight modal se aperto
+        const weightModal = document.getElementById('weight-log-modal');
+        if (weightModal && weightModal.style.display !== 'none') {
+            closeWeightLog();
+        }
+        
+        // Chiudi workout modal se aperto
+        const workoutModal = document.getElementById('workout-feeling-modal');
+        if (workoutModal && workoutModal.style.display === 'block') {
+            closeWorkoutFeeling();
+        }
+    }
+});
+
 function switchFinanceTab(target) {
     const dashboard = document.getElementById('finance-home-view');
     const searchView = document.getElementById('finance-search-view');
@@ -3099,17 +3117,35 @@ function renderRecentWorkouts() {
 // QUICK LOG
 // ============================================
 
+// Nel tuo script.js, SOSTITUISCI la funzione openQuickLog:
+
 function openQuickLog(type) {
     if (type === 'workout') {
         document.getElementById('workout-feeling-modal').style.display = 'block';
         setTimeout(() => document.getElementById('workout-feeling-input').focus(), 300);
     } else if (type === 'weight') {
-        document.getElementById('weight-log-modal').style.display = 'flex';
-        document.getElementById('modal-backdrop').style.display = 'block';
+        // FIX: Non usare modal-backdrop, crea backdrop inline nel modal stesso
+        const modal = document.getElementById('weight-log-modal');
+        modal.style.display = 'flex';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.background = 'rgba(0,0,0,0.9)'; // ← Backdrop integrato
+        modal.style.zIndex = '10000';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        
         setTimeout(() => document.getElementById('weight-input').focus(), 300);
     } else if (type === 'meal') {
         showCustomAlert("INTEGRAZIONE_FATSECRET_IN_SVILUPPO");
     }
+}
+
+function closeWeightLog() {
+    document.getElementById('weight-log-modal').style.display = 'none';
+    document.getElementById('weight-input').value = '';
 }
 
 function closeWorkoutFeeling() {
@@ -3298,7 +3334,14 @@ async function handleCoachInput(event) {
 // VIEW SWITCHING
 // ============================================
 
+// SOSTITUISCI la funzione switchBodyView:
+
 function switchBodyView(view) {
+    // Se clicchi sulla view attiva, torna a dashboard
+    if (currentBodyView === view) {
+        view = 'dashboard';
+    }
+    
     currentBodyView = view;
     
     // Nascondi tutte le view
