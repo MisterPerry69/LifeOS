@@ -1778,12 +1778,6 @@ CSS
 .review-detail-card::-webkit-scrollbar { width: 4px; }
 .review-detail-card::-webkit-scrollbar-thumb { background: #222; }
 
-#reviews.page {
-    height: 100vh;
-    padding: 0;
-    overflow: hidden;
-}
-
 #reviews-stats-container {
     scrollbar-width: none; /* Nasconde scrollbar Firefox */
 }
