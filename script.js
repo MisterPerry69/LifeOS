@@ -1481,6 +1481,10 @@ function nav(page) {
         switchFinanceTab('dashboard');
     }
 
+    if (page === 'body') {
+    initBodyModule(); // ← AGGIUNGI QUESTA RIGA
+    }
+
     if (page === 'reviews') {
     loadReviews();
     }
@@ -2950,4 +2954,393 @@ function updateAgendaWidget(agendaData) {
             <div style="font-size:0.7rem;">${todayEvents.length} COMPLETATI</div>
         `;
     }
+}
+
+// ============================================
+// BODY MODULE - JavaScript
+// ============================================
+
+let bodyData = {
+    currentWeight: null,
+    weightHistory: [],
+    workouts: [],
+    todayLog: {}
+};
+
+let currentBodyView = 'dashboard'; // dashboard | stats | history
+
+// ============================================
+// LOAD DATA
+// ============================================
+
+async function loadBodyData() {
+    // I dati arrivano da loadStats() ma li processiamo qui
+    if (!lastStatsData) return;
+    
+    // TODO: Quando aggiungiamo sheet Health_Workouts, carichiamo da lì
+    // Per ora usiamo dati mock per testare UI
+    
+    bodyData.currentWeight = parseFloat(lastStatsData.weight) || 94.5;
+    
+    renderBodyDashboard();
+}
+
+function renderBodyDashboard() {
+    // Peso attuale
+    const weightEl = document.getElementById('body-current-weight');
+    if (weightEl) weightEl.innerText = bodyData.currentWeight.toFixed(1);
+    
+    // Delta peso (TODO: calcolare da storico)
+    const deltaEl = document.getElementById('body-weight-delta');
+    if (deltaEl) deltaEl.innerHTML = '<span style="color:#00ff41;">↓ 0.3 kg da ieri</span>'; // Mock
+    
+    // Streak (TODO: calcolare da workout history)
+    const streakEl = document.getElementById('body-streak');
+    if (streakEl) streakEl.innerText = '4'; // Mock
+    
+    // Today log (TODO: caricare da DB)
+    renderTodayLog();
+    
+    // Recent workouts (TODO: caricare da DB)
+    renderRecentWorkouts();
+}
+
+function renderTodayLog() {
+    const container = document.getElementById('body-today-log');
+    if (!container) return;
+    
+    // Mock data
+    const todayLogs = [
+        { type: 'workout', time: '15:30', text: 'Allenamento gambe', status: 'done' },
+        { type: 'meal', time: '13:00', text: '1850 kcal logged', status: 'done' },
+        { type: 'weight', time: '--', text: 'Peso mancante', status: 'pending' }
+    ];
+    
+    if (todayLogs.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#333; padding:20px; font-size:10px;">NESSUN_DATO_OGGI</div>';
+        return;
+    }
+    
+    container.innerHTML = todayLogs.map(log => {
+        const icon = log.type === 'workout' ? '💪' : log.type === 'meal' ? '🍽️' : '⚖️';
+        const statusIcon = log.status === 'done' ? '✓' : '⏳';
+        const opacity = log.status === 'done' ? '1' : '0.4';
+        
+        return `
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #111; opacity: ${opacity};">
+                <div style="font-size: 1.2rem;">${icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-size: 0.85rem; color: #fff;">${log.text}</div>
+                    <div style="font-size: 0.7rem; color: var(--dim); margin-top: 2px;">${log.time}</div>
+                </div>
+                <div style="font-size: 1rem; color: ${log.status === 'done' ? '#00ff41' : '#666'};">${statusIcon}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderRecentWorkouts() {
+    const container = document.getElementById('body-recent-workouts');
+    if (!container) return;
+    
+    // Mock data
+    const recentWorkouts = [
+        {
+            date: '15 FEB',
+            mood: 0,
+            exercises: [
+                { name: 'Panca', weight: 40, reps: 8, trend: 'down' },
+                { name: 'Stacco', weight: 100, reps: 5, trend: 'up' }
+            ]
+        },
+        {
+            date: '14 FEB',
+            mood: 1,
+            exercises: [
+                { name: 'Squat', weight: 120, reps: 3, trend: 'up' }
+            ]
+        }
+    ];
+    
+    if (recentWorkouts.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#333; padding:20px; font-size:10px;">NESSUN_WORKOUT_RECENTE</div>';
+        return;
+    }
+    
+    container.innerHTML = recentWorkouts.map(w => {
+        const moodEmoji = w.mood === -2 ? '😫' : w.mood === -1 ? '😐' : w.mood === 0 ? '😊' : w.mood === 1 ? '😄' : '🔥';
+        
+        return `
+            <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #111;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <div style="font-size: 0.9rem; color: var(--dim); font-family: 'Rajdhani';">${w.date}</div>
+                    <div style="font-size: 1.2rem;">${moodEmoji}</div>
+                </div>
+                ${w.exercises.map(ex => {
+                    const trendIcon = ex.trend === 'up' ? '📈' : ex.trend === 'down' ? '⚠️' : '➡️';
+                    const trendColor = ex.trend === 'up' ? '#00ff41' : ex.trend === 'down' ? '#ff4d4d' : '#666';
+                    
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                            <div style="flex: 1;">
+                                <span style="color: #fff; font-size: 0.85rem;">${ex.name}</span>
+                                <span style="color: var(--dim); font-size: 0.75rem; margin-left: 8px;">${ex.weight}kg × ${ex.reps}</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: ${trendColor};">${trendIcon}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }).join('');
+}
+
+// ============================================
+// QUICK LOG
+// ============================================
+
+function openQuickLog(type) {
+    if (type === 'workout') {
+        document.getElementById('workout-feeling-modal').style.display = 'block';
+        setTimeout(() => document.getElementById('workout-feeling-input').focus(), 300);
+    } else if (type === 'weight') {
+        document.getElementById('weight-log-modal').style.display = 'flex';
+        document.getElementById('modal-backdrop').style.display = 'block';
+        setTimeout(() => document.getElementById('weight-input').focus(), 300);
+    } else if (type === 'meal') {
+        showCustomAlert("INTEGRAZIONE_FATSECRET_IN_SVILUPPO");
+    }
+}
+
+function closeWorkoutFeeling() {
+    document.getElementById('workout-feeling-modal').style.display = 'none';
+    document.getElementById('workout-feeling-input').value = '';
+    document.getElementById('coach-response-zone').style.display = 'none';
+}
+
+function closeWeightLog() {
+    document.getElementById('weight-log-modal').style.display = 'none';
+    document.getElementById('modal-backdrop').style.display = 'none';
+    document.getElementById('weight-input').value = '';
+}
+
+// ============================================
+// SUBMIT WORKOUT FEELING
+// ============================================
+
+async function submitWorkoutFeeling() {
+    const input = document.getElementById('workout-feeling-input').value.trim();
+    if (!input) {
+        showCustomAlert("SCRIVI_QUALCOSA_SUL_WORKOUT");
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="blink">PROCESSING...</span>';
+    btn.disabled = true;
+    
+    try {
+        // Step 1: Parsing con Gemini
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                service: 'parse_workout',
+                text: input
+            })
+        });
+        
+        // Step 2: Mostra risposta coach
+        setTimeout(() => {
+            const coachZone = document.getElementById('coach-response-zone');
+            coachZone.style.display = 'block';
+            coachZone.innerHTML = `
+                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 1px;">COACH_RESPONSE:</div>
+                <div class="blink" style="color: #00ff41;">Analizzando workout...</div>
+            `;
+            
+            // Mock response (sostituiremo con vera AI)
+            setTimeout(() => {
+                coachZone.innerHTML = `
+                    <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 1px;">COACH_RESPONSE:</div>
+                    <div style="color: #fff; line-height: 1.6;">
+                        "Panca giù. Hai dormito male o è altro? Stacco solido comunque. La prossima prova 102kg."
+                    </div>
+                `;
+            }, 1500);
+        }, 500);
+        
+        // Step 3: Salva nel DB
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                service: 'save_workout',
+                raw_input: input,
+                // parsed_data verrà aggiunto dopo il parsing
+            })
+        });
+        
+        // Reset e ricarica
+        setTimeout(() => {
+            closeWorkoutFeeling();
+            loadStats();
+            renderBodyDashboard();
+        }, 3000);
+        
+    } catch (e) {
+        console.error("Errore workout:", e);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        showCustomAlert("ERRORE_CONNESSIONE");
+    }
+}
+
+// ============================================
+// SUBMIT WEIGHT
+// ============================================
+
+async function submitWeight() {
+    const input = document.getElementById('weight-input');
+    const weight = parseFloat(input.value);
+    
+    if (!weight || weight < 30 || weight > 300) {
+        showCustomAlert("PESO_NON_VALIDO");
+        return;
+    }
+    
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                service: 'log_weight',
+                weight: weight
+            })
+        });
+        
+        showCustomAlert(`PESO_REGISTRATO: ${weight}kg`, true);
+        
+        setTimeout(() => {
+            closeWeightLog();
+            loadStats();
+            renderBodyDashboard();
+        }, 1500);
+        
+    } catch (e) {
+        console.error("Errore peso:", e);
+        showCustomAlert("ERRORE_CONNESSIONE");
+    }
+}
+
+// ============================================
+// COACH AI TOGGLE
+// ============================================
+
+function toggleBodyCoach() {
+    const bubble = document.getElementById('analyst-bubble');
+    const text = document.getElementById('analyst-text');
+    const navItem = document.getElementById('body-nav-ai');
+    
+    if (bubble.classList.contains('active')) {
+        bubble.classList.remove('active');
+        navItem.style.color = 'var(--dim)';
+        return;
+    }
+    
+    bubble.classList.add('active');
+    navItem.style.color = '#00ff41';
+    
+    text.innerHTML = `
+        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px;">COACH_AI // READY</div>
+        <div style="color: #00ff41; font-size: 0.9rem; margin-bottom: 12px;">
+            Che c'è? Hai bisogno di una spinta o vuoi solo lamentarti?
+        </div>
+        <input type="text" id="coach-input" placeholder="Scrivi qui..." 
+               style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; font-size: 0.85rem; outline: none; border-radius: 4px; box-sizing: border-box;"
+               onkeypress="handleCoachInput(event)">
+    `;
+    
+    setTimeout(() => document.getElementById('coach-input')?.focus(), 200);
+}
+
+async function handleCoachInput(event) {
+    if (event.key !== 'Enter') return;
+    
+    const input = document.getElementById('coach-input');
+    const query = input.value.trim();
+    if (!query) return;
+    
+    const text = document.getElementById('analyst-text');
+    text.innerHTML = `<div style="color: #00ff41;" class="blink">THINKING...</div>`;
+    
+    try {
+        // TODO: Collegare vera AI
+        setTimeout(() => {
+            text.innerHTML = `
+                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 6px;">COACH:</div>
+                <div style="color: #fff; line-height: 1.6;">
+                    "Ok, capito. Domani 20 min di workout, fattibili. Niente scuse."
+                </div>
+                <div onclick="document.getElementById('analyst-bubble').classList.remove('active')" 
+                     style="margin-top: 12px; font-size: 0.7rem; color: var(--dim); cursor: pointer; text-align: right;">
+                    [CHIUDI]
+                </div>
+            `;
+        }, 1000);
+    } catch (e) {
+        text.innerHTML = `<div style="color: #ff4d4d;">ERRORE_COACH</div>`;
+    }
+}
+
+// ============================================
+// VIEW SWITCHING
+// ============================================
+
+function switchBodyView(view) {
+    currentBodyView = view;
+    
+    // Nascondi tutte le view
+    document.getElementById('body-dashboard').style.display = 'none';
+    document.getElementById('body-stats-view').style.display = 'none';
+    document.getElementById('body-history-view').style.display = 'none';
+    
+    // Reset colori nav
+    document.querySelectorAll('#body .nav-item').forEach(el => el.style.color = 'var(--dim)');
+    
+    if (view === 'dashboard') {
+        document.getElementById('body-dashboard').style.display = 'block';
+    } else if (view === 'stats') {
+        document.getElementById('body-stats-view').style.display = 'block';
+        document.getElementById('body-nav-stats').style.color = '#00ff41';
+        renderBodyStats();
+    } else if (view === 'history') {
+        document.getElementById('body-history-view').style.display = 'block';
+        document.getElementById('body-nav-history').style.color = '#00ff41';
+        renderBodyHistory();
+    }
+}
+
+function renderBodyStats() {
+    // TODO: Implementare grafici Chart.js
+    console.log("Rendering body stats...");
+}
+
+function renderBodyHistory() {
+    // TODO: Implementare calendario storico
+    const container = document.getElementById('body-history-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--dim);">HISTORY_IN_SVILUPPO</div>';
+    }
+}
+
+// ============================================
+// INIT
+// ============================================
+
+// Chiamato quando entri nella pagina Body
+function initBodyModule() {
+    loadBodyData();
+    switchBodyView('dashboard');
 }

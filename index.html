@@ -296,55 +296,199 @@
     </div>
   </div>
 
-  <!-- ============================================ -->
-  <!-- PAGE: HEALTH -->
-  <!-- ============================================ -->
-  <div id="health" class="page">
+<!-- ============================================ -->
+<!-- PAGE: BODY -->
+<!-- ============================================ -->
+<div id="body" class="page">
     <div class="header">
-      <div class="header-left">
-        <div class="status-indicator">
-          <span class="blink-dot"></span>
-          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">BIO_METRICS // SYNC</span>
+        <div class="header-left">
+            <div class="status-indicator">
+                <span class="blink-dot" style="background-color: #00ff41; box-shadow: 0 0 8px #00ff41;"></span>
+                <span style="font-size: 10px; letter-spacing: 2px; color: #00ff41; font-weight: 700;">BODY_SYNC // ACTIVE</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="activity" style="color: #00ff41; width: 28px; height: 28px;"></i>
+                <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff;">BODY</h1>
+            </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="zap" class="brain-icon"></i>
-          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">BODY_STATS</h1>
+        <div class="header-right">
+            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
         </div>
-      </div>
-      <div class="header-right">
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-      </div>
     </div>
+
+    <main id="body-main" style="padding: 0 20px; flex: 1; overflow-y: auto; padding-bottom: 120px;">
+        
+        <!-- DASHBOARD PRINCIPALE -->
+        <div id="body-dashboard" style="margin-top: 20px;">
+            
+            <!-- Stats Card -->
+            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    
+                    <!-- Peso -->
+                    <div>
+                        <div style="font-size: 10px; color: var(--dim); margin-bottom: 5px; letter-spacing: 1px;">PESO_ATTUALE</div>
+                        <div style="font-size: 1.8rem; font-family: 'Rajdhani'; color: #00ff41; font-weight: bold;">
+                            <span id="body-current-weight">--</span>
+                            <span style="font-size: 1rem;">kg</span>
+                        </div>
+                        <div id="body-weight-delta" style="font-size: 0.7rem; color: #666; margin-top: 3px;">
+                            <!-- Variazione rispetto a ieri -->
+                        </div>
+                    </div>
+
+                    <!-- Streak -->
+                    <div>
+                        <div style="font-size: 10px; color: var(--dim); margin-bottom: 5px; letter-spacing: 1px;">STREAK_ATTIVO</div>
+                        <div style="font-size: 1.8rem; font-family: 'Rajdhani'; color: #ff9500; font-weight: bold;">
+                            <span id="body-streak">0</span>
+                            <span style="font-size: 1rem;">🔥</span>
+                        </div>
+                        <div style="font-size: 0.7rem; color: #666; margin-top: 3px;">giorni consecutivi</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Quick Log Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <button onclick="openQuickLog('workout')" 
+                        style="padding: 15px; background: transparent; border: 1px solid #00ff41; color: #00ff41; 
+                               font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                    💪 WORKOUT
+                </button>
+                <button onclick="openQuickLog('meal')" 
+                        style="padding: 15px; background: transparent; border: 1px solid #ff9500; color: #ff9500; 
+                               font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                    🍽️ PASTO
+                </button>
+                <button onclick="openQuickLog('weight')" 
+                        style="padding: 15px; background: transparent; border: 1px solid #00d4ff; color: #00d4ff; 
+                               font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                    ⚖️ PESO
+                </button>
+            </div>
+
+            <!-- Oggi -->
+            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+                <div style="font-size: 10px; color: var(--dim); margin-bottom: 12px; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 8px;">
+                    OGGI_LOG
+                </div>
+                <div id="body-today-log">
+                    <div style="text-align: center; color: #333; padding: 20px; font-size: 10px;">
+                        NESSUN_DATO_OGGI
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ultimi Workout -->
+            <div style="margin-top: 20px; background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+                <div style="font-size: 10px; color: var(--dim); margin-bottom: 12px; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 8px;">
+                    RECENT_WORKOUTS
+                </div>
+                <div id="body-recent-workouts">
+                    <!-- Popolato da JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STATS VIEW (hidden by default) -->
+        <div id="body-stats-view" style="display: none; margin-top: 20px;">
+            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Rajdhani'; font-size: 1rem; color: var(--dim); margin: 0 0 15px 0;">PESO_TREND</h3>
+                <canvas id="weight-chart" style="max-height: 200px;"></canvas>
+            </div>
+
+            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+                <h3 style="font-family: 'Rajdhani'; font-size: 1rem; color: var(--dim); margin: 0 0 15px 0;">WORKOUT_FREQUENCY</h3>
+                <canvas id="workout-chart" style="max-height: 200px;"></canvas>
+            </div>
+        </div>
+
+        <!-- HISTORY VIEW (hidden by default) -->
+        <div id="body-history-view" style="display: none; margin-top: 20px;">
+            <div id="body-history-container">
+                <!-- Popolato da JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BOTTOM NAV -->
     <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 9000; backdrop-filter: blur(10px);">
-    
-    <div class="nav-item" id="nav-analyst" onclick="toggleAnalyst()" style="flex:1; text-align: center; color: var(--dim);">
-        <i data-lucide="cpu" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
-    </div>
-    
-    <div class="nav-item" id="nav-log" onclick="switchFinanceTab('log')" style="flex:1; text-align: center; color: var(--dim);">
-        <i data-lucide="filter" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
-    </div>
+        
+        <div class="nav-item" id="body-nav-ai" onclick="toggleBodyCoach()" style="flex:1; text-align: center; color: var(--dim);">
+            <i data-lucide="message-circle" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">COACH</div>
+        </div>
+        
+        <div class="nav-item" id="body-nav-stats" onclick="switchBodyView('stats')" style="flex:1; text-align: center; color: var(--dim);">
+            <i data-lucide="trending-up" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">STATS</div>
+        </div>
 
-    <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
-        <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
-            <i data-lucide="home" style="width: 28px; color: #000;"></i>
+        <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
+            <div style="background: #00ff41; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px #00ff41; border: 3px solid #000;">
+                <i data-lucide="home" style="width: 28px; color: #000;"></i>
+            </div>
+        </div>
+
+        <div class="nav-item" id="body-nav-log" onclick="openQuickLog('workout')" style="flex:1; text-align: center; color: var(--dim);">
+            <i data-lucide="plus-circle" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">LOG</div>
+        </div>
+
+        <div class="nav-item" id="body-nav-history" onclick="switchBodyView('history')" style="flex:1; text-align: center; color: var(--dim);">
+            <i data-lucide="calendar-days" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
         </div>
     </div>
 
-    <div class="nav-item" id="nav-stats" onclick="switchFinanceTab('stats')" style="flex:1; text-align: center; color: #222;"> 
-        <i data-lucide="bar-chart-3" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">STATS</div>
+    <!-- WORKOUT FEELING MODAL -->
+    <div id="workout-feeling-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; padding: 20px; overflow-y: auto;">
+        <div style="max-width: 500px; margin: 50px auto; background: #0a0a0a; border: 2px solid #00ff41; border-radius: 8px; padding: 25px;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-family: 'Rajdhani'; font-size: 1.3rem; color: #00ff41; margin: 0;">COME È ANDATA?</h3>
+                <button onclick="closeWorkoutFeeling()" style="background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.2rem;">✕</button>
+            </div>
+
+            <textarea id="workout-feeling-input" 
+                      placeholder="Scrivi a flusso... es: 'Oggi panca malissimo, fatto 40kg x8 invece di 10. Stacco ok 100kg x5. Ero stanco morto.'"
+                      style="width: 100%; height: 150px; background: #111; border: 1px solid #222; color: #fff; padding: 15px; font-family: 'JetBrains Mono'; font-size: 0.9rem; outline: none; border-radius: 4px; resize: vertical; box-sizing: border-box;"></textarea>
+
+            <button onclick="submitWorkoutFeeling()" 
+                    style="width: 100%; margin-top: 15px; padding: 15px; background: #00ff41; color: #000; border: none; font-family: 'Rajdhani'; font-weight: bold; font-size: 1rem; cursor: pointer; border-radius: 4px;">
+                INVIA AL COACH
+            </button>
+
+            <div id="coach-response-zone" style="margin-top: 20px; padding: 15px; background: #050505; border-left: 3px solid #00ff41; display: none;">
+                <!-- Risposta coach apparirà qui -->
+            </div>
+        </div>
     </div>
 
-    <div class="nav-item" id="nav-entry" onclick="toggleFinanceInput(true)" style="flex:1; text-align: center; color: var(--dim);">
-        <i data-lucide="plus-square" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
+    <!-- WEIGHT LOG MODAL -->
+    <div id="weight-log-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0a0a0a; border: 2px solid #00d4ff; border-radius: 8px; padding: 25px; z-index: 10000; min-width: 300px;">
+        <h3 style="font-family: 'Rajdhani'; font-size: 1.3rem; color: #00d4ff; margin: 0 0 15px 0;">LOG PESO</h3>
+        
+        <input type="number" id="weight-input" step="0.1" placeholder="es: 95.5"
+               style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 12px; font-family: 'JetBrains Mono'; font-size: 1.2rem; outline: none; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px;">
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="submitWeight()" 
+                    style="flex: 1; padding: 12px; background: #00d4ff; color: #000; border: none; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                SALVA
+            </button>
+            <button onclick="closeWeightLog()" 
+                    style="flex: 1; padding: 12px; background: transparent; border: 1px solid var(--dim); color: var(--dim); font-family: 'Rajdhani'; cursor: pointer; border-radius: 4px;">
+                ANNULLA
+            </button>
+        </div>
     </div>
+
 </div>
-
-  </div>
 
   <!-- ============================================ -->
   <!-- PAGE: FINANCE -->
