@@ -133,7 +133,7 @@
                 <div onclick="createNew('NOTE')" style="padding: 12px 20px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
                     <i data-lucide="sticky-note" style="width:14px"></i> NOTA
                 </div>
-                <div onclick="createNew('LIST')" style="padding: 12px 20px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
+                <div onclick="createNew('LISTA')" style="padding: 12px 20px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
                     <i data-lucide="list-checks" style="width:14px"></i> LISTA
                 </div>
                 <div onclick="createNew('LINK')" style="padding: 12px 20px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 10px;">
@@ -799,28 +799,41 @@
     </div>
   </div>
 
+    <!-- ============================================ -->
+    <!-- MODAL: TODO -->
+    <!-- ============================================ -->
 
 <div id="todo-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
-    <div class="header" style="border-bottom: 1px solid #333; padding: 20px;">
-        <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani';">NEW_TODO_LIST</h2>
+    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">NEW_TODO_LIST</h2>
         <div class="esc-btn" onclick="closeTodoModal()">[esc X]</div>
     </div>
     
     <div style="flex: 1; padding: 20px; overflow-y: auto;">
-        <input type="text" id="todo-title" placeholder="LIST_TITLE..." style="width: 100%; margin-bottom: 20px; background: #111; border: 1px solid #333; padding: 15px; color: var(--accent); font-family: inherit;">
+        <div id="todo-items-container" style="margin-bottom: 20px;"></div>
         
-        <div id="todo-items-container"></div>
-        
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <input type="text" id="new-todo-item" placeholder="ADD_ITEM..." style="flex: 1; background: #111; border: 1px solid #333; padding: 15px; color: #fff;" onkeypress="if(event.key==='Enter') addTodoItem()">
-            <button onclick="addTodoItem()" style="background: var(--accent); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold;">+</button>
-        </div>
+        <input 
+            type="text" 
+            id="new-todo-item" 
+            placeholder="TYPE_AND_PRESS_ENTER..." 
+            style="
+                width: 100%; 
+                background: #0a0a0a; 
+                border: 1px solid var(--accent); 
+                padding: 15px; 
+                color: var(--accent); 
+                font-family: 'JetBrains Mono';
+                font-size: 13px;
+            " 
+            onkeypress="if(event.key==='Enter') addTodoItem()"
+        >
     </div>
     
     <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end;">
-        <button onclick="saveTodoList()" style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold;">SAVE</button>
+        <button onclick="saveTodoList()" style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; font-size: 14px;">SAVE_LIST</button>
     </div>
 </div>
+
 
   <!-- ============================================ -->
   <!-- MODAL: DELETE CONFIRMATION -->

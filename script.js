@@ -1860,10 +1860,40 @@ function renderTodoItems() {
     const container = document.getElementById('todo-items-container');
     
     container.innerHTML = todoItems.map(item => `
-        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #0a0a0a; margin-bottom: 8px; border-radius: 4px;">
-            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleTodoItem('${item.id}')" style="width: 18px; height: 18px; cursor: pointer;">
-            <span style="flex: 1; ${item.checked ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${item.text}</span>
-            <i data-lucide="x" style="width: 16px; color: #ff0055; cursor: pointer;" onclick="removeTodoItem('${item.id}')"></i>
+        <div style="
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px; 
+            background: rgba(255,255,255,0.02); 
+            margin-bottom: 8px; 
+            border-radius: 4px;
+            border-left: 2px solid ${item.checked ? '#00ff41' : '#333'};
+        ">
+            <input 
+                type="checkbox" 
+                ${item.checked ? 'checked' : ''} 
+                onchange="toggleTodoItem('${item.id}')" 
+                style="
+                    width: 20px; 
+                    height: 20px; 
+                    cursor: pointer;
+                    accent-color: var(--accent);
+                "
+            >
+            <span style="
+                flex: 1; 
+                font-family: 'JetBrains Mono';
+                font-size: 13px;
+                ${item.checked ? 'text-decoration: line-through; opacity: 0.4;' : 'color: #eee;'}
+            ">${item.text}</span>
+            <i 
+                data-lucide="x" 
+                style="width: 16px; color: #666; cursor: pointer; opacity: 0.5;" 
+                onclick="removeTodoItem('${item.id}')"
+                onmouseover="this.style.opacity='1'; this.style.color='#ff0055';"
+                onmouseout="this.style.opacity='0.5'; this.style.color='#666';"
+            ></i>
         </div>
     `).join('');
     
@@ -1882,15 +1912,13 @@ function removeTodoItem(id) {
 }
 
 async function saveTodoList() {
-    const title = document.getElementById('todo-title').value.trim() || 'TODO LIST';
-    
     if (todoItems.length === 0) {
-        showCustomAlert("AGGIUNGI_ALMENO_1_ITEM");
+        showCustomAlert("ADD_AT_LEAST_ONE_ITEM");
         return;
     }
     
-    // Formato testo per salvare
-    const todoText = `${title}\n` + todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
+    // Salva come testo con checkbox unicode
+    const todoText = todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
     
     try {
         await fetch(SCRIPT_URL, {
@@ -1901,12 +1929,13 @@ async function saveTodoList() {
             })
         });
         
+        showCustomAlert("LIST_SAVED", true);
         closeTodoModal();
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
-        console.error("Errore save todo:", e);
-        showCustomAlert("ERRORE_SALVATAGGIO");
+        console.error("Errore:", e);
+        showCustomAlert("SAVE_ERROR");
     }
 }
 
