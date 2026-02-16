@@ -583,6 +583,12 @@ function closeNoteDetail(forceSave = true) {
 
     if (forceSave && currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
         const newText = textArea.value.trim();
+
+             console.log("=== CHIUSURA NOTA ===");
+    console.log("ID:", currentNoteData.id);
+    console.log("Testo textarea:", newText);
+    console.log("Tipo:", currentNoteData.type);   
+
         const oldNote = loadedNotesData[currentNoteData.index];
 
         if (oldNote) {
