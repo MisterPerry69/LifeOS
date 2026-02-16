@@ -165,11 +165,30 @@ async function loadStats() {
         // --- BLOCCO FINANCE CON CONTROLLI NULL ---
         if (data.finance) {
             // 1. Widget home
-            const widgetSpent = document.getElementById('widget-spent');
-            const widgetCash = document.getElementById('widget-cash');
-            if (widgetSpent) widgetSpent.innerText = data.finance.spent || "0.00";
-            if (widgetCash) widgetCash.innerText = data.finance.cash || "--";
-
+const spent = parseFloat(data.finance.spent) || 0;
+        const income = parseFloat(data.finance.income) || 0;
+        
+        widgetSpent.innerText = spent.toFixed(2);
+        
+        // Calcola % spesa/entrate
+        let color = '#00ff41'; // Verde default
+        
+        if (income > 0) {
+            const spentPercent = (spent / income) * 100;
+            
+            if (spentPercent > 85) {
+                color = '#ff0055'; // Rosso - stai spendendo troppo!
+            } else if (spentPercent > 60) {
+                color = '#ff9500'; // Arancione - occhio
+            } else {
+                color = '#00ff41'; // Verde - ok
+            }
+        } else if (spent > 0) {
+            color = '#ff0055'; // Rosso - spendi ma non hai entrate!
+        }
+        
+        widgetSpent.style.color = color;
+    }
             // 2. Pagina Finance - Saldi
             const totalEl = document.getElementById('total-balance');
             const bankEl = document.getElementById('bank-val');
