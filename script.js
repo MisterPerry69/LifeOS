@@ -1842,10 +1842,12 @@ async function createNew(type) {
         }
         
         modal.style.display = 'flex';
-        document.getElementById('todo-title').value = '';
         document.getElementById('todo-items-container').innerHTML = '';
-        document.getElementById('new-todo-item').focus();
-    }
+        const input = document.getElementById('new-todo-item');
+        if (input) {
+            input.value = '';
+            input.focus();    
+        }
 }
 
 function addTodoItem() {
