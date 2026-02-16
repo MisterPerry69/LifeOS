@@ -1851,6 +1851,15 @@ function addTodoItem() {
     const id = 'item_' + Date.now();
     todoItems.push({ id: id, text: text, checked: false });
     
+    // ← FEEDBACK VISIVO
+    input.style.borderColor = 'var(--accent)';
+    input.style.background = 'rgba(0,255,65,0.1)';
+    
+    setTimeout(() => {
+        input.style.borderColor = 'var(--accent)';
+        input.style.background = '#0a0a0a';
+    }, 200);
+    
     renderTodoItems();
     input.value = '';
     input.focus();
@@ -1870,17 +1879,24 @@ function renderTodoItems() {
             border-radius: 4px;
             border-left: 2px solid ${item.checked ? '#00ff41' : '#333'};
         ">
-            <input 
-                type="checkbox" 
-                ${item.checked ? 'checked' : ''} 
-                onchange="toggleTodoItem('${item.id}')" 
+            <div 
+                onclick="toggleTodoItem('${item.id}')" 
                 style="
+                    min-width: 20px;
                     width: 20px; 
                     height: 20px; 
+                    border: 2px solid ${item.checked ? 'var(--accent)' : '#444'};
+                    background: ${item.checked ? 'var(--accent)' : 'transparent'};
+                    border-radius: 3px;
                     cursor: pointer;
-                    accent-color: var(--accent);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s;
                 "
             >
+                ${item.checked ? '<i data-lucide="check" style="width: 14px; color: #000;"></i>' : ''}
+            </div>
             <span style="
                 flex: 1; 
                 font-family: 'JetBrains Mono';
@@ -1891,8 +1907,6 @@ function renderTodoItems() {
                 data-lucide="x" 
                 style="width: 16px; color: #666; cursor: pointer; opacity: 0.5;" 
                 onclick="removeTodoItem('${item.id}')"
-                onmouseover="this.style.opacity='1'; this.style.color='#ff0055';"
-                onmouseout="this.style.opacity='0.5'; this.style.color='#666';"
             ></i>
         </div>
     `).join('');
@@ -1942,6 +1956,143 @@ async function saveTodoList() {
 function closeTodoModal() {
     document.getElementById('todo-modal').style.display = 'none';
     todoItems = [];
+}
+
+function openNoteDetail(noteId) {
+    const note = loadedNotesData.find(n => String(n.id) === String(noteId));
+    if (!note) return;
+    
+    currentNoteData = note;
+    
+    document.getElementById('modal-backdrop').style.display = 'block';
+    const modal = document.getElementById('note-detail');
+    modal.style.display = 'flex';
+    
+    document.getElementById('detail-title').value = note.title || '';
+    
+    // ← CHECK SE È UNA TODO LIST
+    if (note.content.includes('☐') || note.content.includes('☑')) {
+        // È una TODO - Renderizza interattiva
+        renderInteractiveTodo(note);
+    } else {
+        // Nota normale
+        document.getElementById('detail-text').value = note.content;
+    }
+    
+    updateColorPicker(note.color || 'default');
+}
+
+function renderInteractiveTodo(note) {
+    const textArea = document.getElementById('detail-text');
+    
+    // Nascondi textarea, mostra lista interattiva
+    textArea.style.display = 'none';
+    
+    // Crea container TODO se non esiste
+    let todoContainer = document.getElementById('interactive-todo-container');
+    if (!todoContainer) {
+        todoContainer = document.createElement('div');
+        todoContainer.id = 'interactive-todo-container';
+        todoContainer.style.cssText = 'flex: 1; overflow-y: auto; padding: 10px;';
+        textArea.parentElement.appendChild(todoContainer);
+    }
+    
+    todoContainer.style.display = 'block';
+    
+    // Parse TODO items
+    const lines = note.content.split('\n');
+    const items = lines.map((line, idx) => {
+        const checked = line.startsWith('☑');
+        const text = line.replace(/^[☐☑]\s*/, '');
+        return { id: 'saved_' + idx, text: text, checked: checked };
+    }).filter(i => i.text.trim());
+    
+    // Render items
+    todoContainer.innerHTML = items.map(item => `
+        <div style="
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px; 
+            background: rgba(255,255,255,0.02); 
+            margin-bottom: 8px; 
+            border-radius: 4px;
+        ">
+            <div 
+                onclick="toggleSavedTodo(this, '${item.id}')" 
+                style="
+                    min-width: 20px;
+                    width: 20px; 
+                    height: 20px; 
+                    border: 2px solid ${item.checked ? 'var(--accent)' : '#444'};
+                    background: ${item.checked ? 'var(--accent)' : 'transparent'};
+                    border-radius: 3px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                "
+                data-checked="${item.checked}"
+            >
+                ${item.checked ? '<i data-lucide="check" style="width: 14px; color: #000;"></i>' : ''}
+            </div>
+            <span style="
+                flex: 1; 
+                font-family: 'JetBrains Mono';
+                font-size: 13px;
+                ${item.checked ? 'text-decoration: line-through; opacity: 0.4;' : 'color: #eee;'}
+            " data-text="${item.text}">${item.text}</span>
+        </div>
+    `).join('');
+    
+    if(window.lucide) lucide.createIcons();
+}
+
+function toggleSavedTodo(checkbox, id) {
+    const isChecked = checkbox.getAttribute('data-checked') === 'true';
+    const newChecked = !isChecked;
+    
+    checkbox.setAttribute('data-checked', newChecked);
+    checkbox.style.background = newChecked ? 'var(--accent)' : 'transparent';
+    checkbox.style.borderColor = newChecked ? 'var(--accent)' : '#444';
+    
+    const textSpan = checkbox.nextElementSibling;
+    if (newChecked) {
+        checkbox.innerHTML = '<i data-lucide="check" style="width: 14px; color: #000;"></i>';
+        textSpan.style.textDecoration = 'line-through';
+        textSpan.style.opacity = '0.4';
+    } else {
+        checkbox.innerHTML = '';
+        textSpan.style.textDecoration = 'none';
+        textSpan.style.opacity = '1';
+    }
+    
+    if(window.lucide) lucide.createIcons();
+    
+    // Auto-save stato
+    saveTodoState();
+}
+
+async function saveTodoState() {
+    const container = document.getElementById('interactive-todo-container');
+    const items = Array.from(container.children).map(div => {
+        const checkbox = div.querySelector('[data-checked]');
+        const text = div.querySelector('[data-text]').getAttribute('data-text');
+        const checked = checkbox.getAttribute('data-checked') === 'true';
+        return `${checked ? '☑' : '☐'} ${text}`;
+    });
+    
+    const newContent = items.join('\n');
+    
+    // Salva su backend
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            service: 'update_note',
+            id: currentNoteData.id,
+            text: newContent
+        })
+    });
 }
 
 function filterArchive() {
