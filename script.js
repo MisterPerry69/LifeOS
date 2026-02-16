@@ -828,6 +828,30 @@ function toggleBrainSearch() {
     }
 }
 
+function filterNotes(query) {
+    const searchTerm = query.toLowerCase().trim();
+    const allCards = document.querySelectorAll('.keep-card');
+    
+    if (!searchTerm) {
+        // Nessuna ricerca → mostra tutto
+        allCards.forEach(card => card.style.display = 'flex');
+        return;
+    }
+    
+    // Filtra le card
+    allCards.forEach(card => {
+        const title = card.querySelector('.title-row')?.textContent.toLowerCase() || '';
+        const content = card.querySelector('.content-preview')?.textContent.toLowerCase() || '';
+        
+        // Mostra se trovato nel titolo O nel contenuto
+        if (title.includes(searchTerm) || content.includes(searchTerm)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
 function toggleSearch(show) {
     const wrapper = document.getElementById('search-wrapper');
     const input = document.getElementById('search-input');
