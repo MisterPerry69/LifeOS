@@ -1843,11 +1843,8 @@ async function createNew(type) {
         
         modal.style.display = 'flex';
         document.getElementById('todo-items-container').innerHTML = '';
-        const input = document.getElementById('new-todo-item');
-        if (input) {
-            input.value = '';
-            input.focus();    
-        }
+        document.getElementById('new-todo-item').focus();
+    }
 }
 
 function addTodoItem() {
