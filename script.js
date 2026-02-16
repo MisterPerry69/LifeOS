@@ -585,14 +585,12 @@ function closeNoteDetail(forceSave = true) {
         const newText = textArea.value.trim();
         const oldNote = loadedNotesData[currentNoteData.index];
 
-        // FIX: Salva SEMPRE se c'è un id valido, senza confrontare
         if (oldNote) {
             oldNote.content = newText;
             oldNote.color = currentNoteData.color;
             renderGrid(lastStatsData);
         }
 
-        // FIX: Manda SEMPRE la fetch (il server farà il confronto se vuoi)
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
@@ -612,6 +610,11 @@ function closeNoteDetail(forceSave = true) {
     const deleteModal = document.getElementById('delete-modal');
     if (colorPicker) colorPicker.style.display = 'none';
     if (deleteModal) deleteModal.style.display = 'none';
+    
+    // ← AGGIUNGI QUESTE 3 RIGHE
+    const todoContainer = document.getElementById('interactive-todo-container');
+    if (textArea) textArea.style.display = 'block';
+    if (todoContainer) todoContainer.style.display = 'none';
     
     currentNoteData = null;
     detailMonthOffset = 0;
@@ -1845,6 +1848,10 @@ async function createNew(type) {
     if (type === 'LISTA') {
     try {
         todoItems = [];
+
+    const todoContainer = document.getElementById('interactive-todo-container');
+    if (todoContainer) todoContainer.style.display = 'none';
+
         const modal = document.getElementById('todo-modal');
         
         console.log("1. Modal trovato:", modal);
@@ -2008,7 +2015,8 @@ async function saveTodoList() {
 
 function closeTodoModal() {
     document.getElementById('todo-modal').style.display = 'none';
-    todoItems = [];
+    todoItems = []; // ← Reset items
+    document.getElementById('todo-items-container').innerHTML = ''; // ← Pulisci HTML
 }
 
 function openNoteDetail(noteId) {
