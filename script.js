@@ -1998,20 +1998,19 @@ async function saveTodoList() {
         return;
     }
     
-    // ← FEEDBACK IMMEDIATO (come saveAndClose)
     const saveBtn = document.querySelector('button[onclick="saveTodoList()"]');
     const originalText = saveBtn.innerHTML;
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    const todoText = todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
+    // Aggiungi marker speciale all'inizio per identificare tipo
+    const todoText = "[LISTA]\n" + todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
     
-    // ← OPTIMISTIC UI
     const fakeId = 'temp_' + Date.now();
     const fakeNote = {
         id: fakeId,
         date: new Date(),
-        type: 'NOTE',
+        type: 'LISTA', // ← Cambiato da NOTE
         content: todoText,
         color: 'default',
         title: 'TODO_LIST'
@@ -2025,7 +2024,10 @@ async function saveTodoList() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ service: "note", text: todoText })
+            body: JSON.stringify({ 
+                service: "note", 
+                text: todoText 
+            })
         });
         
         setTimeout(() => loadStats(), 2000);
