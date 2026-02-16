@@ -808,10 +808,24 @@ function setFilter(type, el) {
     }
 }
 
-function handleSearch() {
-    const input = document.getElementById('search-input');
-    searchQuery = (input.value || "").toLowerCase();
-    if (lastStatsData) renderGrid(lastStatsData);
+function toggleBrainSearch() {
+    const overlay = document.getElementById('brain-search-overlay');
+    const input = document.getElementById('brain-search-input');
+    
+    if (overlay.style.display === 'none' || !overlay.style.display) {
+        overlay.style.display = 'block';
+        setTimeout(() => {
+            overlay.style.transform = 'translateY(0)';
+            input.focus();
+        }, 10);
+    } else {
+        overlay.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            input.value = '';
+            filterNotes(''); // Reset filtro
+        }, 300);
+    }
 }
 
 function toggleSearch(show) {
