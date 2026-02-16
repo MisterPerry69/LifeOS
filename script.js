@@ -1832,8 +1832,11 @@ async function createNew(type) {
     }
     
     if (type === 'LISTA') {
+    try {
         todoItems = [];
         const modal = document.getElementById('todo-modal');
+        
+        console.log("1. Modal trovato:", modal);
         
         if (!modal) {
             console.error("todo-modal non trovato!");
@@ -1841,9 +1844,25 @@ async function createNew(type) {
             return;
         }
         
+        console.log("2. Mostrando modal...");
         modal.style.display = 'flex';
+        
+        console.log("3. Pulendo container...");
         document.getElementById('todo-items-container').innerHTML = '';
-        document.getElementById('new-todo-item').focus();
+        
+        console.log("4. Cercando input...");
+        const input = document.getElementById('new-todo-item');
+        console.log("   Input trovato:", input);
+        
+        console.log("5. Focus su input...");
+        input.focus(); // ← QUESTA È LA RIGA 1845 che da errore
+        
+        console.log("6. Todo modal aperto!");
+        
+    } catch(e) {
+        console.error("ERRORE in createNew LISTA:", e);
+        console.error("Stack:", e.stack);
+    }
     }
 }
 
