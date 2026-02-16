@@ -133,29 +133,26 @@ async function loadStats() {
             return;
         }
 
-        // --- AGGIORNA VARIABILI GLOBALI (Aggiungi qui sotto) ---
+        // --- AGGIORNA VARIABILI GLOBALI ---
         historyData = data.history || [];
         extraItemsGlobal = data.extraDetails || [];
         window.agendaData = data.agenda || [];
         loadedNotesData = data.notes || [];
         lastStatsData = data;
-
-        // AGGIUNGI QUESTE DUE RIGHE:
         allReviews = data.reviews || []; 
 
-        // Se la sezione Reviews è aperta, aggiorna la lista filtrando correttamente
+        // Se la sezione Reviews è aperta, aggiorna la lista
         if (document.getElementById('reviews')?.classList.contains('active')) {
-            // Cerchiamo il chip attivo per sapere se dobbiamo filtrare per FILM, GAME ecc. o ALL
             const activeChip = document.querySelector('.filter-chip.active');
             const currentCat = activeChip ? activeChip.innerText.split(' ')[0] : 'ALL';
-            
-            // Invece di renderReviews nudo, chiamiamo il filtro
             filterByCategory(currentCat, activeChip || document.querySelector('.filter-chip'));
-
-            if (document.getElementById('body')?.classList.contains('active')) {
+        }
+        
+        // Se Body è aperto, aggiorna
+        if (document.getElementById('body')?.classList.contains('active')) {
             loadBodyData();
         }
-        }        
+        
         // Render griglia note
         renderGrid(data);
         
@@ -164,31 +161,38 @@ async function loadStats() {
 
         // --- BLOCCO FINANCE CON CONTROLLI NULL ---
         if (data.finance) {
-            // 1. Widget home
-const spent = parseFloat(data.finance.spent) || 0;
-        const income = parseFloat(data.finance.income) || 0;
-        
-        widgetSpent.innerText = spent.toFixed(2);
-        
-        // Calcola % spesa/entrate
-        let color = '#00ff41'; // Verde default
-        
-        if (income > 0) {
-            const spentPercent = (spent / income) * 100;
+            // 1. Widget home con COLORE DINAMICO
+            const widgetSpent = document.getElementById('widget-spent');
             
-            if (spentPercent > 85) {
-                color = '#ff0055'; // Rosso - stai spendendo troppo!
-            } else if (spentPercent > 60) {
-                color = '#ff9500'; // Arancione - occhio
-            } else {
-                color = '#00ff41'; // Verde - ok
+            if (widgetSpent) {
+                const spent = parseFloat(data.finance.spent) || 0;
+                const income = parseFloat(data.finance.income) || 0;
+                
+                widgetSpent.innerText = spent.toFixed(2);
+                
+                // Calcola colore in base a % spesa/entrate
+                let color = '#00ff41'; // Verde default
+                
+                if (income > 0) {
+                    const spentPercent = (spent / income) * 100;
+                    
+                    if (spentPercent > 85) {
+                        color = '#ff0055'; // Rosso - stai spendendo troppo!
+                    } else if (spentPercent > 60) {
+                        color = '#ff9500'; // Arancione - occhio
+                    } else {
+                        color = '#00ff41'; // Verde - ok
+                    }
+                } else if (spent > 0) {
+                    color = '#ff0055'; // Rosso - spendi ma non hai entrate!
+                }
+                
+                widgetSpent.style.color = color;
             }
-        } else if (spent > 0) {
-            color = '#ff0055'; // Rosso - spendi ma non hai entrate!
-        }
-        
-        widgetSpent.style.color = color;
-    }
+            
+            const widgetCash = document.getElementById('widget-cash');
+            if (widgetCash) widgetCash.innerText = data.finance.cash || "--";
+
             // 2. Pagina Finance - Saldi
             const totalEl = document.getElementById('total-balance');
             const bankEl = document.getElementById('bank-val');
@@ -227,7 +231,6 @@ const spent = parseFloat(data.finance.spent) || 0;
         
     } catch (err) {
         console.error("ERRORE_CRITICO_SYNC:", err);
-        // FIX: Mostra errore all'utente invece di crashare silenziosamente
         const widgetNotes = document.getElementById('widget-notes');
         if (widgetNotes) widgetNotes.innerText = "ERR";
     }
