@@ -82,6 +82,18 @@ window.onload = async () => {
             });
         }
     }, 100);
+
+    document.addEventListener('click', function(e) {
+    const quickMenu = document.getElementById('quick-menu');
+    const entryBtn = document.querySelector('.nav-item[onclick*="toggleQuickMenu"]');
+    
+    // Se il menu è aperto E il click NON è sul menu o sul bottone
+    if (!quickMenu.classList.contains('quick-menu-hidden') && 
+        !quickMenu.contains(e.target) && 
+        !entryBtn?.contains(e.target)) {
+        toggleQuickMenu();
+    }
+});
 };
 
 async function bootLog(text, delay = 150) {
@@ -1907,6 +1919,24 @@ async function createNew(type) {
         console.error("Stack:", e.stack);
     }
     }
+
+    if (type === 'LINK') {
+        const modal = document.getElementById('link-modal');
+        if (!modal) {
+            console.error("link-modal non trovato!");
+            return;
+        }
+        
+        modal.style.display = 'flex';
+        document.getElementById('link-url-input').value = '';
+        document.getElementById('link-preview-container').style.display = 'none';
+        document.getElementById('save-link-btn').disabled = true;
+        document.getElementById('save-link-btn').style.opacity = '0.5';
+        currentLinkData = null;
+        
+        document.getElementById('link-url-input').focus();
+    }
+}
 }
 
 function addTodoItem() {
@@ -4116,4 +4146,122 @@ function renderWithData(data) {
             renderFinanceLog(data.finance.transactions);
         }
     }
+}
+
+const LINK_PREVIEW_API_KEY = "76862f86fbf805677b3ee8f57b38702e"; // ← Inserisci la tua key
+let currentLinkData = null;
+
+
+
+async function fetchLinkPreview() {
+    const input = document.getElementById('link-url-input');
+    const url = input.value.trim();
+    
+    if (!url) return;
+    
+    // Validazione URL base
+    try {
+        new URL(url);
+    } catch(e) {
+        showCustomAlert("URL_NON_VALIDO");
+        return;
+    }
+    
+    // Feedback loading
+    input.style.borderColor = 'var(--accent)';
+    input.style.background = 'rgba(0,255,65,0.1)';
+    input.disabled = true;
+    
+    try {
+        const response = await fetch(`https://api.linkpreview.net/?key=${LINK_PREVIEW_API_KEY}&q=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        
+        if (data.title) {
+            currentLinkData = {
+                url: url,
+                title: data.title,
+                description: data.description || '',
+                image: data.image || '',
+                domain: new URL(url).hostname
+            };
+            
+            // Mostra preview
+            document.getElementById('link-preview-title').innerText = data.title;
+            document.getElementById('link-preview-description').innerText = data.description || 'No description';
+            document.getElementById('link-preview-domain').innerText = '🔗 ' + currentLinkData.domain;
+            
+            const imgEl = document.getElementById('link-preview-image');
+            if (data.image) {
+                imgEl.style.backgroundImage = `url(${data.image})`;
+            } else {
+                imgEl.style.background = '#111';
+                imgEl.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#333; font-size:3rem;">🔗</div>';
+            }
+            
+            document.getElementById('link-preview-container').style.display = 'block';
+            document.getElementById('save-link-btn').disabled = false;
+            document.getElementById('save-link-btn').style.opacity = '1';
+        } else {
+            showCustomAlert("IMPOSSIBILE_OTTENERE_PREVIEW");
+        }
+        
+    } catch(e) {
+        console.error("Errore fetch preview:", e);
+        showCustomAlert("ERRORE_FETCH_PREVIEW");
+    } finally {
+        input.style.borderColor = 'var(--accent)';
+        input.style.background = '#0a0a0a';
+        input.disabled = false;
+    }
+}
+
+async function saveLinkNote() {
+    if (!currentLinkData) return;
+    
+    const saveBtn = document.getElementById('save-link-btn');
+    saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
+    saveBtn.disabled = true;
+    
+    // Formato testo per salvare
+    const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n\n${currentLinkData.description}`;
+    
+    // Optimistic UI
+    const fakeId = 'temp_' + Date.now();
+    const fakeNote = {
+        id: fakeId,
+        date: new Date(),
+        type: 'LINK',
+        content: linkText,
+        color: 'default',
+        title: currentLinkData.title,
+        linkData: currentLinkData // Extra data per rendering custom
+    };
+    
+    loadedNotesData.unshift(fakeNote);
+    renderGrid({ notes: loadedNotesData });
+    
+    closeLinkModal();
+    
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                service: "note", 
+                text: linkText 
+            })
+        });
+        
+        setTimeout(() => loadStats(), 2000);
+        
+    } catch(e) {
+        console.error("Errore:", e);
+        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
+        renderGrid({ notes: loadedNotesData });
+        showCustomAlert("SAVE_ERROR");
+    }
+}
+
+function closeLinkModal() {
+    document.getElementById('link-modal').style.display = 'none';
+    currentLinkData = null;
 }

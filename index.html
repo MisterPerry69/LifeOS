@@ -190,6 +190,7 @@
     <div style="color: var(--accent); font-size: 10px; margin-bottom: 25px; letter-spacing: 2px; font-weight: 700; padding-left: 10px;">FILESYSTEM_ROOT</div>
     <div class="menu-item active" onclick="setFilter('ALL', this)"><i data-lucide="layers"></i> <span>TUTTO</span></div>
     <div class="menu-item" onclick="setFilter('PINNED', this)"><i data-lucide="pin"></i> <span>PINNATI</span></div>
+    <div class="menu-item" onclick="setFilter('LISTA', this)"><i data-lucide="clipboard-list"></i> <span>LISTE</span></div>
     <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="zap"></i> <span>STRAORDINARI</span></div>
     <div class="menu-item" onclick="setFilter('NOTE', this)"><i data-lucide="file-text"></i> <span>NOTE</span></div>
     <div class="menu-item" onclick="setFilter('LINK', this)"><i data-lucide="link"></i> <span>LINK</span></div>
@@ -834,6 +835,47 @@
     </div>
 </div>
 
+    <!-- ============================================ -->
+    <!-- MODAL: LINK -->
+    <!-- ============================================ -->
+
+<div id="link-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
+    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">ADD_LINK</h2>
+        <div class="esc-btn" onclick="closeLinkModal()">[esc X]</div>
+    </div>
+    
+    <div style="flex: 1; padding: 20px; overflow-y: auto;">
+        <input 
+            type="url" 
+            id="link-url-input" 
+            placeholder="PASTE_URL_HERE..." 
+            style="
+                width: 100%; 
+                background: #0a0a0a; 
+                border: 1px solid var(--accent); 
+                padding: 15px; 
+                color: var(--accent); 
+                font-family: 'JetBrains Mono';
+                font-size: 13px;
+                margin-bottom: 20px;
+            "
+            onkeypress="if(event.key==='Enter') fetchLinkPreview()"
+        >
+        
+        <div id="link-preview-container" style="display: none; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 4px; border-left: 3px solid var(--accent);">
+            <div id="link-preview-image" style="width: 100%; height: 200px; background-size: cover; background-position: center; border-radius: 4px; margin-bottom: 15px; background-color: #111;"></div>
+            <h3 id="link-preview-title" style="font-family: 'Rajdhani'; color: var(--accent); margin: 0 0 10px 0;"></h3>
+            <p id="link-preview-description" style="font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; line-height: 1.5;"></p>
+            <p id="link-preview-domain" style="font-size: 10px; color: #666; margin-top: 10px;"></p>
+        </div>
+    </div>
+    
+    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px;">
+        <button onclick="closeLinkModal()" style="background: transparent; color: #666; border: 1px solid #333; padding: 12px 20px; cursor: pointer; font-family: 'Rajdhani';">CANCEL</button>
+        <button id="save-link-btn" onclick="saveLinkNote()" disabled style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; opacity: 0.5;">SAVE_LINK</button>
+    </div>
+</div>
 
   <!-- ============================================ -->
   <!-- MODAL: DELETE CONFIRMATION -->
