@@ -452,7 +452,6 @@ function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
 
-    // FIX: Usa proprietà oggetto invece di array
     currentNoteData = { 
         id: note.id, 
         type: note.type, 
@@ -475,9 +474,22 @@ function openNoteByIndex(index) {
     if(pinTool) pinTool.style.display = "flex";
     
     detailType.innerText = note.title || "NOTA";
-    detailText.value = note.content;
-    detailText.style.display = "block";
-    detailExtraList.style.display = "none";
+    
+    // ← AGGIUNGI QUESTO BLOCCO
+    // CHECK SE È UNA TODO LIST
+    if (note.content.includes('☐') || note.content.includes('☑')) {
+        console.log("TODO RILEVATA - Rendering interattivo");
+        renderInteractiveTodo(note);
+    } else {
+        console.log("NOTA NORMALE - Rendering testo");
+        detailText.value = note.content;
+        detailText.style.display = "block";
+        detailExtraList.style.display = "none";
+        
+        // Nascondi container TODO se presente
+        const todoContainer = document.getElementById('interactive-todo-container');
+        if (todoContainer) todoContainer.style.display = 'none';
+    }
     
     if(pinIcon) pinIcon.style.color = (note.type === "PINNED") ? "var(--accent)" : "var(--dim)";
 
