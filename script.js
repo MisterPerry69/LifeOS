@@ -605,7 +605,7 @@ function closeNoteDetail(forceSave = true) {
     detailMonthOffset = 0;
 }
 
-function saveAndClose() {
+async function saveAndClose() {
     const text = document.getElementById('detail-text').value.trim();
     
     if (!text) {
@@ -613,18 +613,49 @@ function saveAndClose() {
         return;
     }
     
-    // Se è una nota nuova (senza ID)
-    if (!currentNoteData.id) {
-        // Salva come comando normale
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ service: "note", text: text })
-        }).then(() => {
-            setTimeout(() => loadStats(), 2000);
-        });
+    // FEEDBACK IMMEDIATO
+    const saveBtn = document.querySelector('.tool-icon[onclick="saveAndClose()"]');
+    if (saveBtn) {
+        saveBtn.innerHTML = '<span class="blink">...</span>';
+        saveBtn.style.pointerEvents = 'none';
     }
     
-    closeNoteDetail(true);
+    // OPTIMISTIC UI - Crea card fake subito
+    const fakeId = 'temp_' + Date.now();
+    const fakeNote = {
+        id: fakeId,
+        date: new Date(),
+        type: 'NOTE',
+        content: text,
+        color: currentNoteData.color || 'default',
+        title: 'SALVANDO...'
+    };
+    
+    loadedNotesData.unshift(fakeNote); // Aggiungi in cima
+    renderGrid({ notes: loadedNotesData }); // Render subito
+    
+    closeNoteDetail(false);
+    
+    // Salva nel backend
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                service: "note", 
+                text: text 
+            })
+        });
+        
+        // Dopo 2 secondi refresh per avere ID reale
+        setTimeout(() => loadStats(), 2000);
+        
+    } catch(e) {
+        console.error("Errore salvataggio:", e);
+        showCustomAlert("ERRORE_SALVATAGGIO");
+        // Rimuovi nota fake se fallisce
+        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
+        renderGrid({ notes: loadedNotesData });
+    }
 }
 
 function closeModal() {
@@ -1782,18 +1813,105 @@ function createNew(kind) {
 }
 
 // Funzione di supporto per aprire il modal vuoto
-function createNewNote() {
-    console.log("createNewNote chiamato"); // DEBUG
-    currentNoteData = { id: null, type: 'NOTE', color: 'default', index: undefined };
+async function createNew(type) {
+    if (type === 'NOTE') {
+        // Mostra modal
+        document.getElementById('modal-backdrop').style.display = 'block';
+        const modal = document.getElementById('note-detail');
+        modal.style.display = 'flex';
+        
+        // Setup modal per nota NUOVA
+        currentNoteData = { id: null, type: 'NOTE', text: '', color: 'default' };
+        
+        document.getElementById('detail-title').value = '';
+        document.getElementById('detail-text').value = '';
+        document.getElementById('detail-text').focus();
+        
+        // Aggiorna toolbar
+        updateColorPicker('default');
+    }
+
+if (type === 'LISTA') {
+        todoItems = [];
+        document.getElementById('todo-modal').style.display = 'flex';
+        document.getElementById('todo-title').value = '';
+        document.getElementById('todo-items-container').innerHTML = '';
+        document.getElementById('new-todo-item').focus();
+    }
+
+}
+
+function addTodoItem() {
+    const input = document.getElementById('new-todo-item');
+    const text = input.value.trim();
     
-    const modal = document.getElementById('note-detail');
-    console.log("Modal trovato:", modal); // DEBUG
+    if (!text) return;
     
-    document.getElementById('detail-type').innerText = "NUOVA_NOTA";
-    document.getElementById('detail-text').value = "";
-    modal.className = "note-overlay bg-default";
-    modal.style.display = "flex";
-    document.getElementById('modal-backdrop').style.display = "block";
+    const id = 'item_' + Date.now();
+    todoItems.push({ id: id, text: text, checked: false });
+    
+    renderTodoItems();
+    input.value = '';
+    input.focus();
+}
+
+function renderTodoItems() {
+    const container = document.getElementById('todo-items-container');
+    
+    container.innerHTML = todoItems.map(item => `
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #0a0a0a; margin-bottom: 8px; border-radius: 4px;">
+            <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleTodoItem('${item.id}')" style="width: 18px; height: 18px; cursor: pointer;">
+            <span style="flex: 1; ${item.checked ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${item.text}</span>
+            <i data-lucide="x" style="width: 16px; color: #ff0055; cursor: pointer;" onclick="removeTodoItem('${item.id}')"></i>
+        </div>
+    `).join('');
+    
+    if(window.lucide) lucide.createIcons();
+}
+
+function toggleTodoItem(id) {
+    const item = todoItems.find(i => i.id === id);
+    if (item) item.checked = !item.checked;
+    renderTodoItems();
+}
+
+function removeTodoItem(id) {
+    todoItems = todoItems.filter(i => i.id !== id);
+    renderTodoItems();
+}
+
+async function saveTodoList() {
+    const title = document.getElementById('todo-title').value.trim() || 'TODO LIST';
+    
+    if (todoItems.length === 0) {
+        showCustomAlert("AGGIUNGI_ALMENO_1_ITEM");
+        return;
+    }
+    
+    // Formato testo per salvare
+    const todoText = `${title}\n` + todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
+    
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                service: "note", 
+                text: todoText 
+            })
+        });
+        
+        closeTodoModal();
+        setTimeout(() => loadStats(), 2000);
+        
+    } catch(e) {
+        console.error("Errore save todo:", e);
+        showCustomAlert("ERRORE_SALVATAGGIO");
+    }
+}
+
+function closeTodoModal() {
+    document.getElementById('todo-modal').style.display = 'none';
+    todoItems = [];
 }
 
 function filterArchive() {

@@ -799,6 +799,33 @@
     </div>
   </div>
 
+
+<!-- TODO Modal (dopo il note-detail) -->
+<div id="todo-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
+    <div class="header" style="border-bottom: 1px solid #333;">
+        <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani';">NEW_TODO_LIST</h2>
+        <div class="esc-btn" onclick="closeTodoModal()">[esc X]</div>
+    </div>
+    
+    <div style="flex: 1; padding: 20px; overflow-y: auto;">
+        <input type="text" id="todo-title" placeholder="LIST_TITLE..." style="width: 100%; margin-bottom: 20px;">
+        
+        <div id="todo-items-container">
+            <!-- Items aggiunti dinamicamente -->
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <input type="text" id="new-todo-item" placeholder="ADD_ITEM..." style="flex: 1;" onkeypress="if(event.key==='Enter') addTodoItem()">
+            <button onclick="addTodoItem()" style="background: var(--accent); color: #000; border: none; padding: 10px 20px; cursor: pointer;">+</button>
+        </div>
+    </div>
+    
+    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end;">
+        <button onclick="saveTodoList()" style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold;">SAVE</button>
+    </div>
+</div>
+
+
   <!-- ============================================ -->
   <!-- MODAL: DELETE CONFIRMATION -->
   <!-- ============================================ -->
