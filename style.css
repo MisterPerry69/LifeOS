@@ -518,11 +518,12 @@ input:focus {
     left: 0 !important;
     width: 100% !important;
     height: 100% !important;
+    z-index: 10001 !important;
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 10001 !important;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 #note-detail .header {
@@ -1706,11 +1707,10 @@ CSS
         width: 100%;
     }
 
-
 /* 1. Sblocchiamo l'altezza fissa */
     .review-card {
         height: auto !important; /* Lascia che la card si allunghi se serve */
-        min-height: 125px; /* Altezza minima dignitosa */
+        min-height: auto; /* Altezza minima dignitosa */
         padding-right: 10px; /* Un po' di respiro a destra */
         align-items: flex-start; /* Allinea tutto in alto */
     }
@@ -1783,7 +1783,18 @@ CSS
 .review-detail-card::-webkit-scrollbar { width: 4px; }
 .review-detail-card::-webkit-scrollbar-thumb { background: #222; }
 
+#reviews.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+}
 
+#reviews-stats-container {
+    scrollbar-width: none; /* Nasconde scrollbar Firefox */
+}
+#reviews-stats-container::-webkit-scrollbar {
+    display: none; /* Nasconde scrollbar Chrome/Safari */
+}
 
 /* Animazione per far apparire le barre */
 @keyframes growBar {
@@ -1886,10 +1897,3 @@ CSS
     background: transparent;
 }
 
-
-#reviews.page.active {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100vw !important;
-    height: 100vh !important;
-}
