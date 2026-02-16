@@ -35,33 +35,45 @@ window.onload = async () => {
     updateClock();
     setInterval(updateClock, 1000);
     
-    await runBootSequence();
+    // TENTATIVO 1: Carica da cache
+    const cached = loadCachedData();
     
-    // FIX: Carica i dati PRIMA di nascondere boot screen
-    try {
-        await loadStats();
-    } catch (err) {
-        console.error("ERRORE_BOOT_STATS:", err);
+    if (cached) {
+        // CACHE HIT - App usabile SUBITO
+        renderWithData(cached);
+        document.getElementById('boot-screen').style.display = 'none';
+        
+        // Aggiorna in background
+        loadStats().then(freshData => {
+            cacheData(freshData);
+            // Aggiorna silenziosamente
+            renderWithData(freshData);
+        });
+    } else {
+        // CACHE MISS - Prima apertura o cache scaduta
+        await runBootSequence();
+        
+        try {
+            await loadStats();
+            cacheData(lastStatsData);
+        } catch(err) {
+            console.error("ERRORE_BOOT_STATS:", err);
+        }
+        
+        setTimeout(() => {
+            document.getElementById('boot-screen').style.display = 'none';
+        }, 500);
     }
     
-    // Nascondi boot screen solo DOPO che i dati sono caricati
-    setTimeout(() => {
-        const boot = document.getElementById('boot-screen');
-        if(boot) boot.style.display = 'none';
-    }, 500);
-    
-    // FIX: Event listener con controllo null - DOPO che il DOM è pronto
+    // Event listeners (resto del codice)
     setTimeout(() => {
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
             searchInput.addEventListener('blur', function() {
-                if (this.value === "") {
-                    toggleSearch(false);
-                }
+                if (this.value === "") toggleSearch(false);
             });
         }
         
-        // FIX: Event listener Finance Input
         const financeInput = document.getElementById('finance-input');
         if (financeInput) {
             financeInput.addEventListener('keypress', handleFinanceSubmit);
@@ -120,18 +132,28 @@ async function loadStats() {
     try {
         const response = await fetch(`${SCRIPT_URL}?action=getStats&t=${Date.now()}`);
         
-        // FIX: Controllo risposta prima di parsare
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
         
-        // FIX: Controllo status PRIMA di usare i dati
         if (data.status !== "ONLINE") {
             console.warn("Server non online:", data);
             return;
         }
+
+        // SALVA IN CACHE
+        cacheData(data);
+        
+        // Popola app
+        renderWithData(data);
+        
+    } catch (err) {
+        console.error("ERRORE_CRITICO_SYNC:", err);
+        const widgetNotes = document.getElementById('widget-notes');
+        if (widgetNotes) widgetNotes.innerText = "ERR";
+    }
 
         // --- AGGIORNA VARIABILI GLOBALI ---
         historyData = data.history || [];
@@ -3619,5 +3641,84 @@ async function submitNewEvent() {
         btn.innerHTML = originalText;
         btn.disabled = false;
         showCustomAlert("ERRORE_CONNESSIONE");
+    }
+}
+
+// Salva dati in cache
+function cacheData(data) {
+    try {
+        localStorage.setItem('lifeosData', JSON.stringify(data));
+        localStorage.setItem('lifeosDataTimestamp', Date.now());
+    } catch(e) {
+        console.warn("Cache fallita:", e);
+    }
+}
+
+// Carica dati da cache
+function loadCachedData() {
+    try {
+        const cached = localStorage.getItem('lifeosData');
+        const timestamp = localStorage.getItem('lifeosDataTimestamp');
+        
+        if (cached) {
+            const age = Date.now() - parseInt(timestamp || 0);
+            // Se cache ha meno di 30 minuti, usala
+            if (age < 30 * 60 * 1000) {
+                return JSON.parse(cached);
+            }
+        }
+    } catch(e) {
+        console.warn("Lettura cache fallita:", e);
+    }
+    return null;
+}
+
+// Popola l'app con i dati (cache o freschi)
+function renderWithData(data) {
+    if (data.status !== "ONLINE") return;
+    
+    // Aggiorna variabili globali
+    historyData = data.history || [];
+    extraItemsGlobal = data.extraDetails || [];
+    window.agendaData = data.agenda || [];
+    loadedNotesData = data.notes || [];
+    lastStatsData = data;
+    allReviews = data.reviews || [];
+    
+    // Render tutto
+    renderGrid(data);
+    updateAgendaWidget(data.agenda || []);
+    
+    // Finance
+    if (data.finance) {
+        const widgetSpent = document.getElementById('widget-spent');
+        if (widgetSpent) {
+            const spent = parseFloat(data.finance.spent) || 0;
+            const income = parseFloat(data.finance.income) || 0;
+            
+            widgetSpent.innerText = spent.toFixed(2);
+            
+            let color = '#00ff41';
+            if (income > 0) {
+                const spentPercent = (spent / income) * 100;
+                if (spentPercent > 85) color = '#ff0055';
+                else if (spentPercent > 60) color = '#ff9500';
+            } else if (spent > 0) {
+                color = '#ff0055';
+            }
+            widgetSpent.style.color = color;
+        }
+        
+        const totalEl = document.getElementById('total-balance');
+        const bankEl = document.getElementById('bank-val');
+        const cashEl = document.getElementById('cash-val');
+        
+        if (totalEl) totalEl.innerText = (data.finance.total || "0") + " €";
+        if (bankEl) bankEl.innerText = (data.finance.bank || "0") + " €";
+        if (cashEl) cashEl.innerText = (data.finance.cash || "0") + " €";
+        
+        if (data.finance.transactions) {
+            renderFinanceLog(data.finance.transactions);
+        }
     }
 }
