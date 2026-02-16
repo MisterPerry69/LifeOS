@@ -1978,6 +1978,13 @@ function closeTodoModal() {
 
 function openNoteDetail(noteId) {
     const note = loadedNotesData.find(n => String(n.id) === String(noteId));
+
+    console.log("=== DEBUG APERTURA NOTA ===");
+    console.log("ID:", noteId);
+    console.log("Nota trovata:", note);
+    console.log("Contenuto:", note?.content);
+    console.log("Ha ☐?", note?.content.includes('☐'));
+    console.log("Ha ☑?", note?.content.includes('☑'));
     if (!note) {
         console.error("Nota non trovata:", noteId);
         return;
