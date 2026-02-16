@@ -3314,7 +3314,7 @@ async function submitWorkoutFeeling() {
             const coachResponse = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
-                    action: 'ask_body_coach',
+                    service: 'ask_body_coach',  // ← ERA "action", DEVE essere "service"
                     query: `Ho fatto questo workout: ${input}. Dammi un feedback breve.`
                 })
             });
@@ -3360,6 +3360,10 @@ async function submitWeight() {
         return;
     }
     
+    // ← AGGIUNGI FEEDBACK IMMEDIATO
+    input.disabled = true;
+    input.value = "SAVING...";
+    
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
@@ -3370,17 +3374,20 @@ async function submitWeight() {
             })
         });
         
+        // ← MOSTRA SUBITO IL NUOVO PESO (optimistic UI)
+        document.getElementById('body-current-weight').innerText = weight.toFixed(1);
+        
         showCustomAlert(`PESO_REGISTRATO: ${weight}kg`, true);
         
         setTimeout(() => {
             closeWeightLog();
             loadStats();
-            renderBodyDashboard();
         }, 1500);
         
     } catch (e) {
         console.error("Errore peso:", e);
         showCustomAlert("ERRORE_CONNESSIONE");
+        input.disabled = false;
     }
 }
 
@@ -3546,6 +3553,12 @@ async function submitNewEvent() {
         return;
     }
     
+    // ← FEEDBACK CARICAMENTO
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="blink">ADDING...</span>';
+    btn.disabled = true;
+    
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
@@ -3560,23 +3573,29 @@ async function submitNewEvent() {
         const result = await response.text();
         
         if (result === "EVENT_CREATED_SUCCESS") {
-            showCustomAlert("EVENTO AGGIUNTO AL CALENDARIO", true);
+            showCustomAlert("EVENTO AGGIUNTO", true);
+            
+            // ← REFRESH DATI PRIMA DI CAMBIARE VIEW
+            await loadStats();
             
             // Pulisci form
             document.getElementById('new-event-title').value = '';
             document.getElementById('new-event-date').value = '';
             document.getElementById('new-event-time').value = '';
             
-            // Ricarica agenda dopo 2 secondi
+            // Dopo 1 secondo vai su calendar (dove hai appena aggiunto l'evento)
             setTimeout(() => {
-                loadStats();
-                switchAgendaView('chrono');
-            }, 2000);
+                switchAgendaView('calendar');
+            }, 1000);
         } else {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
             showCustomAlert("ERRORE: " + result);
         }
     } catch (e) {
         console.error("Errore submit evento:", e);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
         showCustomAlert("ERRORE_CONNESSIONE");
     }
 }
