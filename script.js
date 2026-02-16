@@ -631,28 +631,24 @@ async function saveAndClose() {
         title: 'SALVANDO...'
     };
     
-    loadedNotesData.unshift(fakeNote); // Aggiungi in cima
-    renderGrid({ notes: loadedNotesData }); // Render subito
+    loadedNotesData.unshift(fakeNote);
+    
+    // ← FIX: Render SOLO le note, non tutto lastStatsData
+    renderGrid({ notes: loadedNotesData });
     
     closeNoteDetail(false);
     
-    // Salva nel backend
+    // Salva backend
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ 
-                service: "note", 
-                text: text 
-            })
+            body: JSON.stringify({ service: "note", text: text })
         });
         
-        // Dopo 2 secondi refresh per avere ID reale
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
-        console.error("Errore salvataggio:", e);
-        showCustomAlert("ERRORE_SALVATAGGIO");
-        // Rimuovi nota fake se fallisce
+        console.error("Errore:", e);
         loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
         renderGrid({ notes: loadedNotesData });
     }
@@ -1815,30 +1811,35 @@ function createNew(kind) {
 // Funzione di supporto per aprire il modal vuoto
 async function createNew(type) {
     if (type === 'NOTE') {
-        // Mostra modal
         document.getElementById('modal-backdrop').style.display = 'block';
         const modal = document.getElementById('note-detail');
         modal.style.display = 'flex';
         
-        // Setup modal per nota NUOVA
+        // ← FIX: Reset completo
         currentNoteData = { id: null, type: 'NOTE', text: '', color: 'default' };
         
         document.getElementById('detail-title').value = '';
-        document.getElementById('detail-text').value = '';
+        document.getElementById('detail-text').value = ''; // ← Reset testo
         document.getElementById('detail-text').focus();
         
-        // Aggiorna toolbar
         updateColorPicker('default');
     }
-
-if (type === 'LISTA') {
+    
+    if (type === 'LISTA') {
         todoItems = [];
-        document.getElementById('todo-modal').style.display = 'flex';
+        const modal = document.getElementById('todo-modal');
+        
+        if (!modal) {
+            console.error("todo-modal non trovato nell'HTML!");
+            showCustomAlert("ERRORE: Modal TODO mancante");
+            return;
+        }
+        
+        modal.style.display = 'flex';
         document.getElementById('todo-title').value = '';
         document.getElementById('todo-items-container').innerHTML = '';
         document.getElementById('new-todo-item').focus();
     }
-
 }
 
 function addTodoItem() {
