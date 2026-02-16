@@ -582,13 +582,33 @@ function closeNoteDetail(forceSave = true) {
     if (!modal || modal.style.display === 'none') return;
 
     if (forceSave && currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
-        const newText = textArea.value.trim();
-
-             console.log("=== CHIUSURA NOTA ===");
-    console.log("ID:", currentNoteData.id);
-    console.log("Testo textarea:", newText);
-    console.log("Tipo:", currentNoteData.type);   
-
+        
+        // ← FIX: Se è una TODO, prendi contenuto dal container TODO
+        const todoContainer = document.getElementById('interactive-todo-container');
+        let newText;
+        
+        if (todoContainer && todoContainer.style.display !== 'none') {
+            // È una TODO - ricostruisci il testo dai checkbox
+            const items = Array.from(todoContainer.children).map(div => {
+                const checkbox = div.querySelector('[data-checked]');
+                const textSpan = div.querySelector('[data-text]');
+                
+                if (!checkbox || !textSpan) return null;
+                
+                const checked = checkbox.getAttribute('data-checked') === 'true';
+                const text = textSpan.getAttribute('data-text');
+                
+                return `${checked ? '☑' : '☐'} ${text}`;
+            }).filter(Boolean);
+            
+            newText = items.join('\n');
+            console.log("TODO - Testo ricostruito:", newText);
+        } else {
+            // Nota normale - prendi da textarea
+            newText = textArea.value.trim();
+            console.log("NOTA - Testo da textarea:", newText);
+        }
+        
         const oldNote = loadedNotesData[currentNoteData.index];
 
         if (oldNote) {
@@ -617,7 +637,6 @@ function closeNoteDetail(forceSave = true) {
     if (colorPicker) colorPicker.style.display = 'none';
     if (deleteModal) deleteModal.style.display = 'none';
     
-    // ← AGGIUNGI QUESTE 3 RIGHE
     const todoContainer = document.getElementById('interactive-todo-container');
     if (textArea) textArea.style.display = 'block';
     if (todoContainer) todoContainer.style.display = 'none';
