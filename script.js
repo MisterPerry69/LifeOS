@@ -634,8 +634,7 @@ async function saveAndClose() {
     loadedNotesData.unshift(fakeNote);
     
     // ← FIX: Render SOLO le note, non tutto lastStatsData
-    renderGrid({ notes: loadedNotesData });
-    
+    renderGrid(lastStatsData);    
     closeNoteDetail(false);
     
     // Salva backend
@@ -3968,6 +3967,11 @@ function loadCachedData() {
 
 // Popola l'app con i dati (cache o freschi)
 function renderWithData(data) {
+    if (!data) {
+        console.warn("renderWithData chiamato senza dati");
+        return;
+    }
+    
     if (data.status !== "ONLINE") return;
     
     // --- AGGIORNA VARIABILI GLOBALI ---
