@@ -1931,24 +1931,42 @@ async function saveTodoList() {
         return;
     }
     
-    // Salva come testo con checkbox unicode
+    // ← FEEDBACK IMMEDIATO (come saveAndClose)
+    const saveBtn = document.querySelector('button[onclick="saveTodoList()"]');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
+    saveBtn.disabled = true;
+    
     const todoText = todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
+    
+    // ← OPTIMISTIC UI
+    const fakeId = 'temp_' + Date.now();
+    const fakeNote = {
+        id: fakeId,
+        date: new Date(),
+        type: 'NOTE',
+        content: todoText,
+        color: 'default',
+        title: 'TODO_LIST'
+    };
+    
+    loadedNotesData.unshift(fakeNote);
+    renderGrid({ notes: loadedNotesData });
+    
+    closeTodoModal();
     
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ 
-                service: "note", 
-                text: todoText 
-            })
+            body: JSON.stringify({ service: "note", text: todoText })
         });
         
-        showCustomAlert("LIST_SAVED", true);
-        closeTodoModal();
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
         console.error("Errore:", e);
+        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
+        renderGrid({ notes: loadedNotesData });
         showCustomAlert("SAVE_ERROR");
     }
 }
@@ -1960,7 +1978,10 @@ function closeTodoModal() {
 
 function openNoteDetail(noteId) {
     const note = loadedNotesData.find(n => String(n.id) === String(noteId));
-    if (!note) return;
+    if (!note) {
+        console.error("Nota non trovata:", noteId);
+        return;
+    }
     
     currentNoteData = note;
     
@@ -1970,13 +1991,21 @@ function openNoteDetail(noteId) {
     
     document.getElementById('detail-title').value = note.title || '';
     
-    // ← CHECK SE È UNA TODO LIST
+    const textArea = document.getElementById('detail-text');
+    
+    // CHECK SE È UNA TODO LIST (contiene checkbox unicode)
     if (note.content.includes('☐') || note.content.includes('☑')) {
-        // È una TODO - Renderizza interattiva
+        console.log("TODO RILEVATA - Rendering interattivo"); // ← Debug
         renderInteractiveTodo(note);
     } else {
-        // Nota normale
-        document.getElementById('detail-text').value = note.content;
+        console.log("NOTA NORMALE - Rendering testo"); // ← Debug
+        // Assicurati che la textarea sia visibile
+        textArea.style.display = 'block';
+        textArea.value = note.content;
+        
+        // Nascondi container TODO se presente
+        const todoContainer = document.getElementById('interactive-todo-container');
+        if (todoContainer) todoContainer.style.display = 'none';
     }
     
     updateColorPicker(note.color || 'default');
