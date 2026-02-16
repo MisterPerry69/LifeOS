@@ -1815,12 +1815,18 @@ async function createNew(type) {
         const modal = document.getElementById('note-detail');
         modal.style.display = 'flex';
         
-        // ← FIX: Reset completo
+        // ← RIMUOVI QUESTA RIGA CHE CAUSA L'ERRORE
+        // document.getElementById('detail-title').value = '';
+        
         currentNoteData = { id: null, type: 'NOTE', text: '', color: 'default' };
         
-        document.getElementById('detail-title').value = '';
-        document.getElementById('detail-text').value = ''; // ← Reset testo
+        document.getElementById('detail-type').innerText = 'NOTA'; // ← Usa questo invece
+        document.getElementById('detail-text').value = '';
         document.getElementById('detail-text').focus();
+        
+        // Nascondi container TODO se c'è
+        const todoContainer = document.getElementById('interactive-todo-container');
+        if (todoContainer) todoContainer.style.display = 'none';
         
         updateColorPicker('default');
     }
@@ -1830,7 +1836,7 @@ async function createNew(type) {
         const modal = document.getElementById('todo-modal');
         
         if (!modal) {
-            console.error("todo-modal non trovato nell'HTML!");
+            console.error("todo-modal non trovato!");
             showCustomAlert("ERRORE: Modal TODO mancante");
             return;
         }
@@ -1978,13 +1984,12 @@ function closeTodoModal() {
 
 function openNoteDetail(noteId) {
     const note = loadedNotesData.find(n => String(n.id) === String(noteId));
-
+    
     console.log("=== DEBUG APERTURA NOTA ===");
-    console.log("ID:", noteId);
-    console.log("Nota trovata:", note);
+    console.log("Nota:", note);
     console.log("Contenuto:", note?.content);
-    console.log("Ha ☐?", note?.content.includes('☐'));
-    console.log("Ha ☑?", note?.content.includes('☑'));
+    console.log("Ha checkbox?", note?.content.includes('☐') || note?.content.includes('☑'));
+    
     if (!note) {
         console.error("Nota non trovata:", noteId);
         return;
@@ -1996,21 +2001,20 @@ function openNoteDetail(noteId) {
     const modal = document.getElementById('note-detail');
     modal.style.display = 'flex';
     
-    document.getElementById('detail-title').value = note.title || '';
+    // ← USA QUESTO invece di detail-title
+    document.getElementById('detail-type').innerText = note.type || 'NOTA';
     
     const textArea = document.getElementById('detail-text');
     
-    // CHECK SE È UNA TODO LIST (contiene checkbox unicode)
+    // CHECK SE È UNA TODO LIST
     if (note.content.includes('☐') || note.content.includes('☑')) {
-        console.log("TODO RILEVATA - Rendering interattivo"); // ← Debug
+        console.log("→ Rendering TODO interattiva");
         renderInteractiveTodo(note);
     } else {
-        console.log("NOTA NORMALE - Rendering testo"); // ← Debug
-        // Assicurati che la textarea sia visibile
+        console.log("→ Rendering nota normale");
         textArea.style.display = 'block';
         textArea.value = note.content;
         
-        // Nascondi container TODO se presente
         const todoContainer = document.getElementById('interactive-todo-container');
         if (todoContainer) todoContainer.style.display = 'none';
     }
