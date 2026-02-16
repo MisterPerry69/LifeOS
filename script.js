@@ -146,110 +146,8 @@ async function loadStats() {
         // SALVA IN CACHE
         cacheData(data);
         
-        // Popola app
+        // POPOLA APP (usa la funzione renderWithData)
         renderWithData(data);
-        
-    } catch (err) {
-        console.error("ERRORE_CRITICO_SYNC:", err);
-        const widgetNotes = document.getElementById('widget-notes');
-        if (widgetNotes) widgetNotes.innerText = "ERR";
-    }
-
-        // --- AGGIORNA VARIABILI GLOBALI ---
-        historyData = data.history || [];
-        extraItemsGlobal = data.extraDetails || [];
-        window.agendaData = data.agenda || [];
-        loadedNotesData = data.notes || [];
-        lastStatsData = data;
-        allReviews = data.reviews || []; 
-
-        // Se la sezione Reviews è aperta, aggiorna la lista
-        if (document.getElementById('reviews')?.classList.contains('active')) {
-            const activeChip = document.querySelector('.filter-chip.active');
-            const currentCat = activeChip ? activeChip.innerText.split(' ')[0] : 'ALL';
-            filterByCategory(currentCat, activeChip || document.querySelector('.filter-chip'));
-        }
-        
-        // Se Body è aperto, aggiorna
-        if (document.getElementById('body')?.classList.contains('active')) {
-            loadBodyData();
-        }
-        
-        // Render griglia note
-        renderGrid(data);
-        
-        // Render agenda se attiva
-        updateAgendaWidget(data.agenda || []);
-
-        // --- BLOCCO FINANCE CON CONTROLLI NULL ---
-        if (data.finance) {
-            // 1. Widget home con COLORE DINAMICO
-            const widgetSpent = document.getElementById('widget-spent');
-            
-            if (widgetSpent) {
-                const spent = parseFloat(data.finance.spent) || 0;
-                const income = parseFloat(data.finance.income) || 0;
-                
-                widgetSpent.innerText = spent.toFixed(2);
-                
-                // Calcola colore in base a % spesa/entrate
-                let color = '#00ff41'; // Verde default
-                
-                if (income > 0) {
-                    const spentPercent = (spent / income) * 100;
-                    
-                    if (spentPercent > 85) {
-                        color = '#ff0055'; // Rosso - stai spendendo troppo!
-                    } else if (spentPercent > 60) {
-                        color = '#ff9500'; // Arancione - occhio
-                    } else {
-                        color = '#00ff41'; // Verde - ok
-                    }
-                } else if (spent > 0) {
-                    color = '#ff0055'; // Rosso - spendi ma non hai entrate!
-                }
-                
-                widgetSpent.style.color = color;
-            }
-            
-            const widgetCash = document.getElementById('widget-cash');
-            if (widgetCash) widgetCash.innerText = data.finance.cash || "--";
-
-            // 2. Pagina Finance - Saldi
-            const totalEl = document.getElementById('total-balance');
-            const bankEl = document.getElementById('bank-val');
-            const cashEl = document.getElementById('cash-val');
-            
-            if (totalEl) totalEl.innerText = (data.finance.total || "0") + " €";
-            if (bankEl) bankEl.innerText = (data.finance.bank || "0") + " €";
-            if (cashEl) cashEl.innerText = (data.finance.cash || "0") + " €";
-
-            // 3. Burn Rate Bar
-            const inc = parseFloat(data.finance.income) || 0;
-            const out = parseFloat(data.finance.spent) || 0;
-            const fill = document.getElementById('efficiency-fill');
-            const infoText = document.getElementById('burn-info-text');
-
-            if (fill && infoText) {
-                if (inc > 0) {
-                    const lifePct = Math.max(0, ((inc - out) / inc) * 100);
-                    const spentPct = ((out / inc) * 100).toFixed(1);
-                    
-                    fill.style.width = lifePct + "%";
-                    fill.style.background = lifePct < 20 ? "#ff4d4d" : "var(--accent)";
-                    infoText.innerText = `STAI_SPENDENDO_IL_${spentPct}%_DELLE_TUE_ENTRATE`;
-                } else {
-                    fill.style.width = "0%";
-                    fill.style.background = "#ff4d4d";
-                    infoText.innerText = "NESSUNA_ENTRATA_RILEVATA";
-                }
-            }
-
-            // 4. Log Transazioni
-            if (data.finance.transactions) {
-                renderFinanceLog(data.finance.transactions);
-            }
-        }
         
     } catch (err) {
         console.error("ERRORE_CRITICO_SYNC:", err);
@@ -3677,38 +3575,67 @@ function loadCachedData() {
 function renderWithData(data) {
     if (data.status !== "ONLINE") return;
     
-    // Aggiorna variabili globali
+    // --- AGGIORNA VARIABILI GLOBALI ---
     historyData = data.history || [];
     extraItemsGlobal = data.extraDetails || [];
     window.agendaData = data.agenda || [];
     loadedNotesData = data.notes || [];
     lastStatsData = data;
-    allReviews = data.reviews || [];
+    allReviews = data.reviews || []; 
+
+    // Se la sezione Reviews è aperta, aggiorna la lista
+    if (document.getElementById('reviews')?.classList.contains('active')) {
+        const activeChip = document.querySelector('.filter-chip.active');
+        const currentCat = activeChip ? activeChip.innerText.split(' ')[0] : 'ALL';
+        filterByCategory(currentCat, activeChip || document.querySelector('.filter-chip'));
+    }
     
-    // Render tutto
+    // Se Body è aperto, aggiorna
+    if (document.getElementById('body')?.classList.contains('active')) {
+        loadBodyData();
+    }
+    
+    // Render griglia note
     renderGrid(data);
-    updateAgendaWidget(data.agenda || []);
     
-    // Finance
+    // Render agenda se attiva
+    updateAgendaWidget(data.agenda || []);
+
+    // --- BLOCCO FINANCE CON CONTROLLI NULL ---
     if (data.finance) {
+        // 1. Widget home con COLORE DINAMICO
         const widgetSpent = document.getElementById('widget-spent');
+        
         if (widgetSpent) {
             const spent = parseFloat(data.finance.spent) || 0;
             const income = parseFloat(data.finance.income) || 0;
             
             widgetSpent.innerText = spent.toFixed(2);
             
-            let color = '#00ff41';
+            // Calcola colore in base a % spesa/entrate
+            let color = '#00ff41'; // Verde default
+            
             if (income > 0) {
                 const spentPercent = (spent / income) * 100;
-                if (spentPercent > 85) color = '#ff0055';
-                else if (spentPercent > 60) color = '#ff9500';
+                
+                if (spentPercent > 85) {
+                    color = '#ff0055'; // Rosso - stai spendendo troppo!
+                } else if (spentPercent > 60) {
+                    color = '#ff9500'; // Arancione - occhio
+                } else {
+                    color = '#00ff41'; // Verde - ok
+                }
             } else if (spent > 0) {
-                color = '#ff0055';
+                color = '#ff0055'; // Rosso - spendi ma non hai entrate!
             }
+            
             widgetSpent.style.color = color;
         }
         
+        const widgetCash = document.getElementById('widget-cash');
+        if (widgetCash) widgetCash.innerText = data.finance.cash || "--";
+
+        // 2. Pagina Finance - Saldi
         const totalEl = document.getElementById('total-balance');
         const bankEl = document.getElementById('bank-val');
         const cashEl = document.getElementById('cash-val');
@@ -3716,7 +3643,29 @@ function renderWithData(data) {
         if (totalEl) totalEl.innerText = (data.finance.total || "0") + " €";
         if (bankEl) bankEl.innerText = (data.finance.bank || "0") + " €";
         if (cashEl) cashEl.innerText = (data.finance.cash || "0") + " €";
-        
+
+        // 3. Burn Rate Bar
+        const inc = parseFloat(data.finance.income) || 0;
+        const out = parseFloat(data.finance.spent) || 0;
+        const fill = document.getElementById('efficiency-fill');
+        const infoText = document.getElementById('burn-info-text');
+
+        if (fill && infoText) {
+            if (inc > 0) {
+                const lifePct = Math.max(0, ((inc - out) / inc) * 100);
+                const spentPct = ((out / inc) * 100).toFixed(1);
+                
+                fill.style.width = lifePct + "%";
+                fill.style.background = lifePct < 20 ? "#ff4d4d" : "var(--accent)";
+                infoText.innerText = `STAI_SPENDENDO_IL_${spentPct}%_DELLE_TUE_ENTRATE`;
+            } else {
+                fill.style.width = "0%";
+                fill.style.background = "#ff4d4d";
+                infoText.innerText = "NESSUNA_ENTRATA_RILEVATA";
+            }
+        }
+
+        // 4. Log Transazioni
         if (data.finance.transactions) {
             renderFinanceLog(data.finance.transactions);
         }
