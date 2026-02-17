@@ -2607,17 +2607,70 @@ async function processReviewWithAI() {
     loadingCard.className = "review-card";
     loadingCard.style.opacity = "0.5";
     loadingCard.style.borderLeft = "3px solid var(--dim)";
-    loadingCard.innerHTML = `
-        <div class="poster-mini" style="background: #111; display: flex; align-items: center; justify-content: center;">
-            <div class="blink-dot"></div>
-        </div>
-        <div class="review-info">
-            <div class="review-top">
-                <span class="review-title" style="color:var(--dim)">ANALISI_IN_CORSO...</span>
+    if (note.type === 'LINK') {
+    // Parse dati link
+    const lines = note.content.split('\n');
+    const title = lines[0]?.replace('🔗 ', '') || 'Link';
+    const url = lines[1] || '';
+    const description = lines.slice(3).join(' ').substring(0, 80) || '';
+    
+    let domain = '';
+    try {
+        domain = new URL(url).hostname.replace('www.', '');
+    } catch(e) {
+        domain = 'link';
+    }
+    
+    card.innerHTML = `
+        ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
+        <div style="
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid #0088ff;
+        ">🔗</div>
+        <div class="title-row" style="color: #0088ff;">${title.toUpperCase()}</div>
+        <div class="content-preview" style="font-size: 10px;">${description}</div>
+        <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${domain}</div>
+    `;
+    
+} else if (note.type === 'LISTA') {
+    // Card LISTA con progresso
+    const lines = note.content.split('\n');
+    const totalItems = lines.filter(l => l.startsWith('☐') || l.startsWith('☑')).length;
+    const checkedItems = lines.filter(l => l.startsWith('☑')).length;
+    
+    card.innerHTML = `
+        ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
+        <div class="title-row" style="color: #00ff41;">📋 ${(note.title || "LISTA").toUpperCase()}</div>
+        <div class="content-preview">${note.content.substring(0, 100)}</div>
+        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+            <div class="label" style="font-size:9px; opacity:0.4;">
+                ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
             </div>
-            <div class="review-comment">${input.substring(0, 50)}...</div>
+            <div style="font-size: 10px; color: #00ff41;">
+                ${checkedItems}/${totalItems} ✓
+            </div>
         </div>
     `;
+    
+} else {
+    // NOTE NORMALI (codice originale)
+    card.innerHTML = `
+        ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
+        <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
+        <div class="content-preview">${note.content}</div>
+        <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
+            ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+        </div>
+    `;
+}
     list.prepend(loadingCard);
 
     try {
