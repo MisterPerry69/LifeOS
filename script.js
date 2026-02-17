@@ -237,27 +237,105 @@ function renderGrid(data) {
         });
 
     // Generazione card
-    filteredNotes.forEach((item) => {
-    const note = item.note;  // Ora note è un OGGETTO
+filteredNotes.forEach((item) => {
+    const note = item.note;
     const index = item.originalIndex;
-    const isPinned = note.type === "PINNED";  // Usa .type invece di note[2]
+    const isPinned = note.type === "PINNED";
     
     const card = document.createElement('div');
-    card.className = `keep-card bg-${note.color} ${isPinned ? 'pinnato' : ''}`;  // .color invece di note[3]
-    card.id = `card-${note.id}`;  // .id invece di note[4]
-    card.dataset.type = note.type;  // .type invece di note[2]
+    card.className = `keep-card bg-${note.color} ${isPinned ? 'pinnato' : ''}`;
+    card.id = `card-${note.id}`;
+    card.dataset.type = note.type;
     
     const isDraggable = (currentFilter === 'ALL' && !isSearching);
     card.draggable = isDraggable;
 
-    card.innerHTML = `
-        ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
-        <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
-        <div class="content-preview">${note.content}</div>
-        <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
-            ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
-        </div>
-    `;
+    // ← RENDERING DIVERSO PER LINK
+    if (note.type === 'LINK') {
+        // Parse dati link dal content
+        const lines = note.content.split('\n');
+        const title = lines[0]?.replace('🔗 ', '') || 'Link';
+        const url = lines[1] || '';
+        const description = lines.slice(3).join(' ').substring(0, 80) || '';
+        
+        let domain = '';
+        try {
+            domain = new URL(url).hostname.replace('www.', '');
+        } catch(e) {
+            domain = 'link';
+        }
+        
+        card.innerHTML = `
+            ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
+            <div style="
+                width: 100%;
+                height: 60px;
+                background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+                border-radius: 4px;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                border: 1px solid #0088ff;
+            ">🔗</div>
+            <div class="title-row" style="color: #0088ff;">${title.toUpperCase()}</div>
+            <div class="content-preview" style="font-size: 10px; line-height: 1.3;">${description}</div>
+            <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${domain}</div>
+        `;
+        
+        // ← CLICK APRE URL invece di modal
+        card.onclick = (e) => {
+            if (!card.classList.contains('dragging')) {
+                e.stopPropagation();
+                
+                // Chiedi conferma prima di aprire
+                if (confirm(`Aprire ${domain}?`)) {
+                    window.open(url, '_blank');
+                }
+            }
+        };
+        
+    } else if (note.type === 'LISTA') {
+        // ← RENDERING CUSTOM ANCHE PER LISTE (opzionale)
+        const lines = note.content.split('\n');
+        const totalItems = lines.filter(l => l.startsWith('☐') || l.startsWith('☑')).length;
+        const checkedItems = lines.filter(l => l.startsWith('☑')).length;
+        
+        card.innerHTML = `
+            ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
+            <div class="title-row" style="color: #00ff41;">📋 ${(note.title || "LISTA").toUpperCase()}</div>
+            <div class="content-preview">${note.content.substring(0, 100)}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                <div class="label" style="font-size:9px; opacity:0.4;">
+                    ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+                </div>
+                <div style="font-size: 10px; color: #00ff41;">
+                    ${checkedItems}/${totalItems} ✓
+                </div>
+            </div>
+        `;
+        
+        card.onclick = () => {
+            if (!card.classList.contains('dragging')) openNoteByIndex(index);
+        };
+        
+    } else {
+        // NOTE NORMALI (codice originale)
+        card.innerHTML = `
+            ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
+            <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
+            <div class="content-preview">${note.content}</div>
+            <div class="label" style="font-size:9px; margin-top:5px; opacity:0.4;">
+                ${new Date(note.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+            </div>
+        `;
+        
+        card.onclick = () => {
+            if (!card.classList.contains('dragging')) openNoteByIndex(index);
+        };
+    }
+
 
     // Eventi Drag & Drop (resto del codice rimane uguale)
     card.ondragstart = (e) => {
