@@ -1937,7 +1937,7 @@ async function createNew(type) {
         document.getElementById('link-url-input').focus();
     }
 }
-}
+
 
 function addTodoItem() {
     const input = document.getElementById('new-todo-item');
