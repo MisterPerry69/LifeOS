@@ -4216,7 +4216,11 @@ async function fetchLinkPreview() {
 }
 
 async function saveLinkNote() {
+        console.log("🔗 saveLinkNote chiamata!");
+    console.log("currentLinkData:", currentLinkData);
     if (!currentLinkData) return;
+        console.log("✅ Procedo con salvataggio...");
+
     
     const saveBtn = document.getElementById('save-link-btn');
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
