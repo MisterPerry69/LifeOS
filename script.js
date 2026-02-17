@@ -567,7 +567,52 @@ function openNoteByIndex(index) {
     
     // ← AGGIUNGI QUESTO BLOCCO
     // CHECK SE È UNA TODO LIST
-    if (note.content.includes('☐') || note.content.includes('☑')) {
+        // ← AGGIUNGI: Check se è un LINK
+    if (note.type === 'LINK') {
+        const lines = note.content.split('\n');
+        const url = lines[1] || '';
+        
+        // Mostra URL cliccabile invece di textarea
+        detailText.style.display = 'none';
+        
+        let linkContainer = document.getElementById('link-view-container');
+        if (!linkContainer) {
+            linkContainer = document.createElement('div');
+            linkContainer.id = 'link-view-container';
+            linkContainer.style.cssText = 'flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px;';
+            detailText.parentElement.appendChild(linkContainer);
+        }
+        
+        linkContainer.style.display = 'flex';
+        linkContainer.innerHTML = `
+            <div style="background: #0a0a0a; padding: 20px; border-radius: 8px; border-left: 3px solid #0088ff;">
+                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">LINK SALVATO</div>
+                <a href="${url}" target="_blank" style="
+                    color: #0088ff; 
+                    font-size: 14px; 
+                    text-decoration: none;
+                    word-break: break-all;
+                    display: block;
+                    margin-bottom: 15px;
+                ">${url}</a>
+                <button onclick="window.open('${url}', '_blank')" style="
+                    background: #0088ff;
+                    color: #000;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-family: 'Rajdhani';
+                    font-weight: bold;
+                    width: 100%;
+                ">APRI_LINK ↗</button>
+            </div>
+            <div style="color: #aaa; font-size: 13px; line-height: 1.6;">
+                ${note.content.split('\n').slice(3).join('\n')}
+            </div>
+        `;
+        
+    } else if (note.content.includes('☐') || note.content.includes('☑')) {
         console.log("TODO RILEVATA - Rendering interattivo");
         renderInteractiveTodo(note);
     } else {

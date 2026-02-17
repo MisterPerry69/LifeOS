@@ -314,9 +314,10 @@ input:focus {
     padding: 12px; 
     border-radius: 8px;
     position: relative; 
-    min-height: 120px; 
-    max-height: 160px; 
-    overflow: hidden;
+    min-height: 120px;  /* ← Minimo */
+    max-height: none;    /* ← Rimuovi max */
+    height: auto;        /* ← Auto per adattarsi */
+    overflow: visible;   /* ← Mostra tutto */
     display: flex; 
     flex-direction: column; 
     transition: transform 0.1s;
