@@ -4222,24 +4222,9 @@ async function saveLinkNote() {
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    // Formato testo per salvare
     const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n\n${currentLinkData.description}`;
     
-    // Optimistic UI
-    const fakeId = 'temp_' + Date.now();
-    const fakeNote = {
-        id: fakeId,
-        date: new Date(),
-        type: 'LINK',
-        content: linkText,
-        color: 'default',
-        title: currentLinkData.title,
-        linkData: currentLinkData // Extra data per rendering custom
-    };
-    
-    loadedNotesData.unshift(fakeNote);
-    renderGrid({ notes: loadedNotesData });
-    
+    // ← CAMBIA: Non fare optimistic UI, chiudi e basta
     closeLinkModal();
     
     try {
@@ -4251,15 +4236,14 @@ async function saveLinkNote() {
             })
         });
         
+        showCustomAlert("LINK_SAVED", true);
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
         console.error("Errore:", e);
-        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
-        renderGrid({ notes: loadedNotesData });
         showCustomAlert("SAVE_ERROR");
     }
-}
+} 
 
 function closeLinkModal() {
     document.getElementById('link-modal').style.display = 'none';
