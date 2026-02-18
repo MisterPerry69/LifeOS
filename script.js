@@ -4520,10 +4520,10 @@ function closeLinkModal() {
 
 async function generateGhostText() {
     const input = document.getElementById('ghost-input').value.trim();
-    if (!input) return;
+    if (!input) return showCustomAlert("SCRIVI_QUALCOSA");
 
     const btn = document.getElementById('ghost-generate-btn');
-    const saveBtn = document.getElementById('ghost-save-btn'); // Verifica che questo ID esista!
+    const saveBtn = document.getElementById('ghost-save-btn'); // Prendiamo il tasto salva
     
     btn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
     btn.disabled = true;
@@ -4538,27 +4538,21 @@ async function generateGhostText() {
         });
 
         const result = await response.text();
-        console.log("Risultato AI:", result); // DEBUG: Vedi se arriva qualcosa
-
-        if (result) {
-            ghostGeneratedText = result;
+        
+        if (result && result.length > 0) {
+            ghostGeneratedText = result; // Salviamo il testo nella variabile globale
             document.getElementById('ghost-output').innerText = result;
             document.getElementById('ghost-output-container').style.display = 'block';
 
-            // FORZATURA ATTIVAZIONE
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.style.opacity = "1";
-                saveBtn.style.cursor = "pointer";
-                saveBtn.style.backgroundColor = "var(--accent)"; // Diventa azzurro/giallo
-                saveBtn.style.color = "#000";
-                console.log("Tasto salva attivato!");
-            } else {
-                console.error("ERRORE: Non trovo il tasto ghost-save-btn nell'HTML");
-            }
+            // --- QUI SI ACCENDE IL TASTO ---
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            saveBtn.style.filter = 'brightness(1.2)'; // Opzionale: lo illuminiamo
+            saveBtn.style.cursor = 'pointer';
         }
     } catch(e) {
-        console.error("Errore fetch:", e);
+        console.error("Errore Ghost:", e);
+        showCustomAlert("ERRORE_AI");
     } finally {
         btn.innerHTML = 'GENERA_AI';
         btn.disabled = false;
@@ -4566,37 +4560,46 @@ async function generateGhostText() {
 }
 
 async function saveGhostNote() {
-    if (!ghostGeneratedText) return;
-
-    const saveBtn = document.getElementById('ghost-save-btn');
-    saveBtn.innerHTML = 'SAVING...';
+    const input = document.getElementById('ghost-input').value.trim();
     
-    // Creiamo l'oggetto da mandare
-    const payload = {
-        action: "addNote", // Deve corrispondere al tuo caso nel .gs
-        service: "note",
-        text: `[GHOST]\n${ghostGeneratedText}`
-    };
-
+    if (!input) {
+        showCustomAlert("SCRIVI_QUALCOSA_PRIMA");
+        return;
+    }
+    
+    const saveBtn = document.getElementById('ghost-save-btn');
+    saveBtn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
+    saveBtn.disabled = true;
+    
+    closeGhostModal(); // ← Chiudi subito (optimistic UI)
+    
     try {
-        // Usiamo il metodo "segreto" per evitare blocchi CORS con Google Script
+        // 1. Genera con AI
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'ghost_rewrite',
+                text: input
+            })
+        });
+        
+        const rewrittenText = await response.text();
+        
+        // 2. Salva immediatamente
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Questo evita che il browser si lamenti se Google non risponde "OK"
-            cache: 'no-cache',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ 
+                service: "note", 
+                text: `[GHOST]\n${rewrittenText}`
+            })
         });
-
-        // Siccome 'no-cors' non ci dà una risposta leggibile, 
-        // assumiamo che sia andata bene dopo l'invio
-        showCustomAlert("NOTA_SALVATA");
-        closeGhostModal(); // Sblocca lo schermo
-        setTimeout(() => loadStats(), 1000);
-
+        
+        showCustomAlert("NOTA_AI_SALVATA", true);
+        setTimeout(() => loadStats(), 2000);
+        
     } catch(e) {
-        console.error("Errore salvataggio:", e);
-        showCustomAlert("ERRORE_CONNESSIONE");
+        console.error("Errore Ghost:", e);
+        showCustomAlert("ERRORE_GHOST");
     }
 }
 
