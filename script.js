@@ -2097,10 +2097,6 @@ async function createNew(type) {
         ghostInput.value = '';
         document.getElementById('ghost-output-container').style.display = 'none';
         
-        const ghostSave = document.getElementById('ghost-save-btn');
-        ghostSave.disabled = true;
-        ghostSave.style.opacity = '0.5';
-        
         ghostGeneratedText = '';
         setTimeout(() => ghostInput.focus(), 50);
     }
