@@ -581,7 +581,6 @@ function openNoteByIndex(index) {
     const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
     const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
     const detailType = document.getElementById('detail-type');
-    const detailText = document.getElementById('detail-text');
     const detailExtraList = document.getElementById('detail-extra-list');
     const backdrop = document.getElementById('modal-backdrop');
 
