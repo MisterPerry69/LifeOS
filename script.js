@@ -258,8 +258,10 @@ filteredNotes.forEach((item) => {
         // Parse dati link dal content
         const lines = note.content.split('\n');
         const title = lines[0]?.replace('🔗 ', '') || 'Link';
-        const url = lines[1] || '';
-        const description = lines.slice(3).join(' ').substring(0, 80) || '';
+        const url = lines[1] || '';   
+        const imageUrl = lines[2] || ''; // ← Leggi immagine
+        const description = lines.slice(4).join(' ').substring(0, 80) || ''; // ← Slice da 4
+   
         
         let domain = '';
         try {
@@ -269,23 +271,25 @@ filteredNotes.forEach((item) => {
         }
         
         card.innerHTML = `
-            ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
-            <div style="
-                width: 100%;
-                height: 60px;
-                background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-                border-radius: 4px;
-                margin-bottom: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.5rem;
-                border: 1px solid #0088ff;
-            ">🔗</div>
-            <div class="title-row" style="color: #0088ff;">${title.toUpperCase()}</div>
-            <div class="content-preview" style="font-size: 10px; line-height: 1.3;">${description}</div>
-            <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${domain}</div>
-        `;
+             ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
+        <div style="
+            width: 100%;
+            height: 80px;
+            background: ${imageUrl ? `url('${imageUrl}')` : 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'};
+            background-size: cover;
+            background-position: center;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid #0088ff;
+        ">${imageUrl ? '' : '🔗'}</div>
+        <div class="title-row" style="color: #0088ff;">${title.toUpperCase()}</div>
+        <div class="content-preview" style="font-size: 10px;">${description}</div>
+        <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${domain}</div>
+    `;
         
         // ← CLICK APRE URL invece di modal
         card.onclick = (e) => {
@@ -4409,18 +4413,15 @@ async function fetchLinkPreview() {
 }
 
 async function saveLinkNote() {
-        console.log("🔗 saveLinkNote chiamata!");
-    console.log("currentLinkData:", currentLinkData);
     if (!currentLinkData) return;
-        console.log("✅ Procedo con salvataggio...");
-
     
     const saveBtn = document.getElementById('save-link-btn');
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
-    
-    const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n\n${currentLinkData.description}`;
-    
+
+    const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n${currentLinkData.image || ''}\n${currentLinkData.description}`;
+        
+   
     // ← CAMBIA: Non fare optimistic UI, chiudi e basta
     closeLinkModal();
     
