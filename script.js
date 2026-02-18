@@ -724,8 +724,18 @@ function closeNoteDetail(forceSave = true) {
         // ← FIX: Se è una TODO, prendi contenuto dal container TODO
         const todoContainer = document.getElementById('interactive-todo-container');
         let newText;
-        
-        if (todoContainer && todoContainer.style.display !== 'none') {
+
+        // ← AGGIUNGI GESTIONE LINK
+        const linkContainer = document.getElementById('link-view-container');
+        const todoContainer = document.getElementById('interactive-todo-container');
+
+        if (linkContainer && linkContainer.style.display !== 'none') {
+            // È un LINK - NON modificare il contenuto, mantieni quello originale
+            const oldNote = loadedNotesData[currentNoteData.index];
+            newText = oldNote.content; // ← Usa contenuto originale
+            console.log("LINK - Mantengo contenuto originale:", newText.substring(0, 50));
+            
+        } else if (todoContainer && todoContainer.style.display !== 'none') {
             // È una TODO - ricostruisci il testo dai checkbox
             const items = Array.from(todoContainer.children).map(div => {
                 const checkbox = div.querySelector('[data-checked]');
