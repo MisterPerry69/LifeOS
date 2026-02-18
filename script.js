@@ -25,6 +25,7 @@ let charts = {};
 let deleteTarget = null;
 let currentReviews = [];
 let chronoDisplayLimit = 7; // Mostra 7 giorni alla volta
+let ghostGeneratedText = '';
 
 
 // ============================================
@@ -4519,16 +4520,14 @@ function closeLinkModal() {
 
 async function generateGhostText() {
     const input = document.getElementById('ghost-input').value.trim();
-    
-    if (!input) {
-        showCustomAlert("SCRIVI_QUALCOSA_PRIMA");
-        return;
-    }
-    
+    if (!input) return showCustomAlert("SCRIVI_QUALCOSA");
+
     const btn = document.getElementById('ghost-generate-btn');
+    const saveBtn = document.getElementById('ghost-save-btn'); // Prendiamo il tasto salva
+    
     btn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
     btn.disabled = true;
-    
+
     try {
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
@@ -4537,18 +4536,22 @@ async function generateGhostText() {
                 text: input
             })
         });
-        
+
         const result = await response.text();
         
-        ghostGeneratedText = result;
-        document.getElementById('ghost-output').innerText = result;
-        document.getElementById('ghost-output-container').style.display = 'block';
-        
-        document.getElementById('ghost-save-btn').disabled = false;
-        document.getElementById('ghost-save-btn').style.opacity = '1';
-        
+        if (result && result.length > 0) {
+            ghostGeneratedText = result; // Salviamo il testo nella variabile globale
+            document.getElementById('ghost-output').innerText = result;
+            document.getElementById('ghost-output-container').style.display = 'block';
+
+            // --- QUI SI ACCENDE IL TASTO ---
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            saveBtn.style.filter = 'brightness(1.2)'; // Opzionale: lo illuminiamo
+            saveBtn.style.cursor = 'pointer';
+        }
     } catch(e) {
-        console.error("Errore Ghost AI:", e);
+        console.error("Errore Ghost:", e);
         showCustomAlert("ERRORE_AI");
     } finally {
         btn.innerHTML = 'GENERA_AI';
