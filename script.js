@@ -549,26 +549,30 @@ function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
 
-    // --- PULIZIA MODAL PRIMA DI RENDER ---
-    const detailExtraList = document.getElementById('detail-extra-list');
+    // 1. DICHIARAZIONE UNICA DI TUTTI GLI ELEMENTI
+    const modal = document.getElementById('note-detail');
+    const detailType = document.getElementById('detail-type');
     const detailText = document.getElementById('detail-text');
+    const detailExtraList = document.getElementById('detail-extra-list');
+    const backdrop = document.getElementById('modal-backdrop');
     const linkContainer = document.getElementById('link-view-container');
     const todoContainer = document.getElementById('interactive-todo-container');
-
-    if (detailExtraList) detailExtraList.style.display = 'none'; // Nasconde SEMPRE la lista ore
-    if (linkContainer) linkContainer.style.display = 'none';    // Nasconde SEMPRE i link
-    if (todoContainer) todoContainer.style.display = 'none';    // Nasconde SEMPRE le todo
-    if (detailText) detailText.style.display = 'block';         // Reset base del testo
-
-
+    
     const todoModal = document.getElementById('todo-modal');
     const linkModal = document.getElementById('link-modal');
     const ghostModal = document.getElementById('ghost-modal');
-    
+
+    // 2. PULIZIA IMMEDIATA (RESET VISIBILITÀ)
+    if (detailExtraList) detailExtraList.style.display = 'none';
+    if (linkContainer) linkContainer.style.display = 'none';
+    if (todoContainer) todoContainer.style.display = 'none';
+    if (detailText) detailText.style.display = 'block'; 
+
     if (todoModal) todoModal.style.display = 'none';
     if (linkModal) linkModal.style.display = 'none';
     if (ghostModal) ghostModal.style.display = 'none';
 
+    // 3. LOGICA DATI
     currentNoteData = { 
         id: note.id, 
         type: note.type, 
@@ -576,12 +580,9 @@ function openNoteByIndex(index) {
         index: index 
     };
     
-    const modal = document.getElementById('note-detail');
     const colorBtn = document.querySelector('.color-selector-container');
     const pinTool = document.querySelector('.tool-icon i.fa-thumbtack')?.parentElement;
     const pinIcon = document.querySelector('.tool-icon i.fa-thumbtack');
-    const detailType = document.getElementById('detail-type');
-    const backdrop = document.getElementById('modal-backdrop');
 
     if (!modal || !detailType || !detailText || !detailExtraList) return;
 
@@ -590,85 +591,42 @@ function openNoteByIndex(index) {
     
     detailType.innerText = note.title || "NOTA";
     
-    // ← AGGIUNGI QUESTO BLOCCO
-    // CHECK SE È UNA TODO LIST
-        // ← AGGIUNGI: Check se è un LINK
-if (note.type === 'LINK') {
-    const lines = note.content.split('\n');
-    const title = lines[0]?.replace('🔗 ', '') || 'Link';
-    const url = lines[1] || '';
-    const imageUrl = lines[2] || ''; // ← Leggi immagine
-    const description = lines.slice(4).join('\n') || ''; // ← Description da riga 4
-    
-    detailText.style.display = 'none';
-    
-    let linkContainer = document.getElementById('link-view-container');
-    if (!linkContainer) {
-        linkContainer = document.createElement('div');
-        linkContainer.id = 'link-view-container';
-        linkContainer.style.cssText = 'flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;';
-        detailText.parentElement.appendChild(linkContainer);
-    }
-    
-    linkContainer.style.display = 'flex';
-    linkContainer.innerHTML = `
-        ${imageUrl ? `
-            <div style="
-                width: 100%;
-                height: 200px;
-                background: url('${imageUrl}');
-                background-size: cover;
-                background-position: center;
-                border-radius: 8px;
-                border: 1px solid #0088ff;
-            "></div>
-        ` : ''}
+    // 4. RENDERING SPECIFICO PER TIPO
+    if (note.type === 'LINK') {
+        const lines = note.content.split('\n');
+        const url = lines[1] || '';
+        const imageUrl = lines[2] || '';
+        const description = lines.slice(4).join('\n') || '';
         
-        <div style="background: #0a0a0a; padding: 20px; border-radius: 8px; border-left: 3px solid #0088ff;">
-            <div style="font-size: 10px; color: #666; margin-bottom: 5px;">LINK SALVATO</div>
-            <a href="${url}" target="_blank" style="
-                color: #0088ff; 
-                font-size: 14px; 
-                text-decoration: none;
-                word-break: break-all;
-                display: block;
-                margin-bottom: 15px;
-            ">${url}</a>
-            <button onclick="window.open('${url}', '_blank')" style="
-                background: #0088ff;
-                color: #000;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-family: 'Rajdhani';
-                font-weight: bold;
-                width: 100%;
-            ">APRI_LINK ↗</button>
-        </div>
+        detailText.style.display = 'none';
         
-        ${description ? `
-            <div style="color: #aaa; font-size: 13px; line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                ${description}
+        let linkView = document.getElementById('link-view-container');
+        if (!linkView) {
+            linkView = document.createElement('div');
+            linkView.id = 'link-view-container';
+            linkView.style.cssText = 'flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;';
+            detailText.parentElement.appendChild(linkView);
+        }
+        
+        linkView.style.display = 'flex';
+        linkView.innerHTML = `
+            ${imageUrl ? `<div style="width: 100%; height: 200px; background: url('${imageUrl}'); background-size: cover; background-position: center; border-radius: 8px; border: 1px solid #0088ff;"></div>` : ''}
+            <div style="background: #0a0a0a; padding: 20px; border-radius: 8px; border-left: 3px solid #0088ff;">
+                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">LINK SALVATO</div>
+                <a href="${url}" target="_blank" style="color: #0088ff; font-size: 14px; text-decoration: none; word-break: break-all; display: block; margin-bottom: 15px;">${url}</a>
+                <button onclick="window.open('${url}', '_blank')" style="background: #0088ff; color: #000; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; width: 100%;">APRI_LINK ↗</button>
             </div>
-        ` : ''}
-    `;
-} else if (note.content.includes('☐') || note.content.includes('☑')) {
-        console.log("TODO RILEVATA - Rendering interattivo");
+            ${description ? `<div style="color: #aaa; font-size: 13px; line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 4px;">${description}</div>` : ''}
+        `;
+    } else if (note.content.includes('☐') || note.content.includes('☑')) {
         renderInteractiveTodo(note);
     } else {
-        console.log("NOTA NORMALE - Rendering testo");
         detailText.value = note.content;
         detailText.style.display = "block";
-        detailExtraList.style.display = "none";
-        
-        // Nascondi container TODO se presente
-        const todoContainer = document.getElementById('interactive-todo-container');
-        if (todoContainer) todoContainer.style.display = 'none';
     }
     
+    // 5. FINISH UI
     if(pinIcon) pinIcon.style.color = (note.type === "PINNED") ? "var(--accent)" : "var(--dim)";
-
     modal.className = `note-overlay bg-${note.color}`;
     modal.style.display = 'flex';
     if (backdrop) backdrop.style.display = 'block';
