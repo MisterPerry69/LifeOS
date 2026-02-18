@@ -240,6 +240,9 @@ function renderGrid(data) {
 filteredNotes.forEach((item) => {
     const note = item.note;
     const index = item.originalIndex;
+
+    console.log("Card:", note.id, "Tipo:", note.type);
+
     const isPinned = note.type === "PINNED";
     
     const card = document.createElement('div');
