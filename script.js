@@ -2021,23 +2021,32 @@ function createNew(kind) {
 
 // Funzione di supporto per aprire il modal vuoto
 async function createNew(type) {
-    closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
+        const noteDetail = document.getElementById('note-detail');
+    if (noteDetail && noteDetail.style.display === 'flex') {
+        closeNoteDetail(false);
+    }
+
+
     if (type === 'NOTE') {
         document.getElementById('modal-backdrop').style.display = 'block';
         const modal = document.getElementById('note-detail');
         modal.style.display = 'flex';
         
 
-        
-        currentNoteData = { id: null, type: 'NOTE', text: '', color: 'default' };
+        currentNoteData = { id: null, type: 'NOTE', text: '', color: 'default', index: null };
         
         document.getElementById('detail-type').innerText = 'NOTA'; // ← Usa questo invece
         document.getElementById('detail-text').value = '';
-        document.getElementById('detail-text').focus();
+        document.getElementById('detail-text').style.display = 'block'; // ← Assicurati sia visibile
         
-        // Nascondi container TODO se c'è
         const todoContainer = document.getElementById('interactive-todo-container');
+        const linkContainer = document.getElementById('link-view-container');
         if (todoContainer) todoContainer.style.display = 'none';
+        if (linkContainer) linkContainer.style.display = 'none';
+        
+        modal.className = 'note-overlay bg-default'; // ← Reset classe
+        
+        document.getElementById('detail-text').focus();
         
         changeNoteColor('default');
     }
