@@ -549,6 +549,18 @@ function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
 
+    // --- PULIZIA MODAL PRIMA DI RENDER ---
+    const detailExtraList = document.getElementById('detail-extra-list');
+    const detailText = document.getElementById('detail-text');
+    const linkContainer = document.getElementById('link-view-container');
+    const todoContainer = document.getElementById('interactive-todo-container');
+
+    if (detailExtraList) detailExtraList.style.display = 'none'; // Nasconde SEMPRE la lista ore
+    if (linkContainer) linkContainer.style.display = 'none';    // Nasconde SEMPRE i link
+    if (todoContainer) todoContainer.style.display = 'none';    // Nasconde SEMPRE le todo
+    if (detailText) detailText.style.display = 'block';         // Reset base del testo
+
+
     const todoModal = document.getElementById('todo-modal');
     const linkModal = document.getElementById('link-modal');
     const ghostModal = document.getElementById('ghost-modal');
@@ -2040,6 +2052,24 @@ function createNew(kind) {
 // Funzione di supporto per aprire il modal vuoto
 async function createNew(type) {
         const noteDetail = document.getElementById('note-detail');
+const detailText = document.getElementById('detail-text');
+    const detailExtraList = document.getElementById('detail-extra-list');
+    const linkContainer = document.getElementById('link-view-container');
+
+    // Reset totale
+    if (detailExtraList) detailExtraList.style.display = 'none';
+    if (linkContainer) linkContainer.style.display = 'none';
+    if (detailText) {
+        detailText.style.display = 'block';
+        detailText.value = "";
+    }
+    
+    document.getElementById('detail-type').innerText = "NUOVA NOTA";
+    modal.className = 'note-overlay bg-default';
+    modal.style.display = 'flex';
+
+
+
     if (noteDetail && noteDetail.style.display === 'flex') {
         closeNoteDetail(false);
     }
