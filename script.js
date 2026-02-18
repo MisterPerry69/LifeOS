@@ -2040,7 +2040,7 @@ async function createNew(type) {
         const todoContainer = document.getElementById('interactive-todo-container');
         if (todoContainer) todoContainer.style.display = 'none';
         
-        updateColorPicker('default');
+        changeNoteColor('default');
     }
     closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'LISTA') {
@@ -2291,7 +2291,7 @@ function openNoteDetail(noteId) {
         if (todoContainer) todoContainer.style.display = 'none';
     }
     
-    updateColorPicker(note.color || 'default');
+            changeNoteColor(note.color || 'default');
 }
 
 function renderInteractiveTodo(note) {
