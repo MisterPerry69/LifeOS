@@ -4520,10 +4520,10 @@ function closeLinkModal() {
 
 async function generateGhostText() {
     const input = document.getElementById('ghost-input').value.trim();
-    if (!input) return showCustomAlert("SCRIVI_QUALCOSA");
+    if (!input) return;
 
     const btn = document.getElementById('ghost-generate-btn');
-    const saveBtn = document.getElementById('ghost-save-btn'); // Prendiamo il tasto salva
+    const saveBtn = document.getElementById('ghost-save-btn'); // Verifica che questo ID esista!
     
     btn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
     btn.disabled = true;
@@ -4538,21 +4538,27 @@ async function generateGhostText() {
         });
 
         const result = await response.text();
-        
-        if (result && result.length > 0) {
-            ghostGeneratedText = result; // Salviamo il testo nella variabile globale
+        console.log("Risultato AI:", result); // DEBUG: Vedi se arriva qualcosa
+
+        if (result) {
+            ghostGeneratedText = result;
             document.getElementById('ghost-output').innerText = result;
             document.getElementById('ghost-output-container').style.display = 'block';
 
-            // --- QUI SI ACCENDE IL TASTO ---
-            saveBtn.disabled = false;
-            saveBtn.style.opacity = '1';
-            saveBtn.style.filter = 'brightness(1.2)'; // Opzionale: lo illuminiamo
-            saveBtn.style.cursor = 'pointer';
+            // FORZATURA ATTIVAZIONE
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = "1";
+                saveBtn.style.cursor = "pointer";
+                saveBtn.style.backgroundColor = "var(--accent)"; // Diventa azzurro/giallo
+                saveBtn.style.color = "#000";
+                console.log("Tasto salva attivato!");
+            } else {
+                console.error("ERRORE: Non trovo il tasto ghost-save-btn nell'HTML");
+            }
         }
     } catch(e) {
-        console.error("Errore Ghost:", e);
-        showCustomAlert("ERRORE_AI");
+        console.error("Errore fetch:", e);
     } finally {
         btn.innerHTML = 'GENERA_AI';
         btn.disabled = false;
@@ -4560,39 +4566,37 @@ async function generateGhostText() {
 }
 
 async function saveGhostNote() {
-    // Usiamo il testo già generato dall'AI che abbiamo salvato in generateGhostText
-    if (!ghostGeneratedText) {
-        showCustomAlert("GENERA_PRIMA_IL_TESTO");
-        return;
-    }
-    
+    if (!ghostGeneratedText) return;
+
     const saveBtn = document.getElementById('ghost-save-btn');
-    saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
-    saveBtn.disabled = true;
+    saveBtn.innerHTML = 'SAVING...';
     
+    // Creiamo l'oggetto da mandare
+    const payload = {
+        action: "addNote", // Deve corrispondere al tuo caso nel .gs
+        service: "note",
+        text: `[GHOST]\n${ghostGeneratedText}`
+    };
+
     try {
-        // Invio al database (Google Sheets)
+        // Usiamo il metodo "segreto" per evitare blocchi CORS con Google Script
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Spesso necessario per gli Sheets se non gestisci i CORS
-            body: JSON.stringify({ 
-                action: "addNote", // Assicurati che l'action nel .gs sia corretta
-                service: "note", 
-                text: `[GHOST]\n${ghostGeneratedText}`
-            })
+            mode: 'no-cors', // Questo evita che il browser si lamenti se Google non risponde "OK"
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         });
-        
-        closeGhostModal(); // Chiude tutto e sblocca lo schermo
-        showCustomAlert("NOTA_AI_SALVATA", true);
-        
-        // Refresh dati dopo 1 secondo
+
+        // Siccome 'no-cors' non ci dà una risposta leggibile, 
+        // assumiamo che sia andata bene dopo l'invio
+        showCustomAlert("NOTA_SALVATA");
+        closeGhostModal(); // Sblocca lo schermo
         setTimeout(() => loadStats(), 1000);
-        
+
     } catch(e) {
-        console.error("Errore Ghost Save:", e);
-        showCustomAlert("ERRORE_SALVATAGGIO");
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = 'SALVA_NOTA';
+        console.error("Errore salvataggio:", e);
+        showCustomAlert("ERRORE_CONNESSIONE");
     }
 }
 
