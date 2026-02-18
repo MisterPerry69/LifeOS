@@ -549,6 +549,14 @@ function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
 
+    const todoModal = document.getElementById('todo-modal');
+    const linkModal = document.getElementById('link-modal');
+    const ghostModal = document.getElementById('ghost-modal');
+    
+    if (todoModal) todoModal.style.display = 'none';
+    if (linkModal) linkModal.style.display = 'none';
+    if (ghostModal) ghostModal.style.display = 'none';
+
     currentNoteData = { 
         id: note.id, 
         type: note.type, 
@@ -657,6 +665,16 @@ if (note.type === 'LINK') {
 }
 
 function openExtraDetail() {
+    const todoModal = document.getElementById('todo-modal');
+    const linkModal = document.getElementById('link-modal');
+    const ghostModal = document.getElementById('ghost-modal');
+    const noteModal = document.getElementById('note-detail');
+    
+    if (todoModal) todoModal.style.display = 'none';
+    if (linkModal) linkModal.style.display = 'none';
+    if (ghostModal) ghostModal.style.display = 'none';
+    if (noteModal) noteModal.style.display = 'none';
+
     currentNoteData = { type: "EXTRA" };
     const modal = document.getElementById('note-detail');
     const list = document.getElementById('detail-extra-list');
