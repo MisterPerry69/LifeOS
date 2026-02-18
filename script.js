@@ -575,51 +575,67 @@ function openNoteByIndex(index) {
     // ← AGGIUNGI QUESTO BLOCCO
     // CHECK SE È UNA TODO LIST
         // ← AGGIUNGI: Check se è un LINK
-    if (note.type === 'LINK') {
-        const lines = note.content.split('\n');
-        const url = lines[1] || '';
+if (note.type === 'LINK') {
+    const lines = note.content.split('\n');
+    const title = lines[0]?.replace('🔗 ', '') || 'Link';
+    const url = lines[1] || '';
+    const imageUrl = lines[2] || ''; // ← Leggi immagine
+    const description = lines.slice(4).join('\n') || ''; // ← Description da riga 4
+    
+    detailText.style.display = 'none';
+    
+    let linkContainer = document.getElementById('link-view-container');
+    if (!linkContainer) {
+        linkContainer = document.createElement('div');
+        linkContainer.id = 'link-view-container';
+        linkContainer.style.cssText = 'flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;';
+        detailText.parentElement.appendChild(linkContainer);
+    }
+    
+    linkContainer.style.display = 'flex';
+    linkContainer.innerHTML = `
+        ${imageUrl ? `
+            <div style="
+                width: 100%;
+                height: 200px;
+                background: url('${imageUrl}');
+                background-size: cover;
+                background-position: center;
+                border-radius: 8px;
+                border: 1px solid #0088ff;
+            "></div>
+        ` : ''}
         
-        // Mostra URL cliccabile invece di textarea
-        detailText.style.display = 'none';
+        <div style="background: #0a0a0a; padding: 20px; border-radius: 8px; border-left: 3px solid #0088ff;">
+            <div style="font-size: 10px; color: #666; margin-bottom: 5px;">LINK SALVATO</div>
+            <a href="${url}" target="_blank" style="
+                color: #0088ff; 
+                font-size: 14px; 
+                text-decoration: none;
+                word-break: break-all;
+                display: block;
+                margin-bottom: 15px;
+            ">${url}</a>
+            <button onclick="window.open('${url}', '_blank')" style="
+                background: #0088ff;
+                color: #000;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-family: 'Rajdhani';
+                font-weight: bold;
+                width: 100%;
+            ">APRI_LINK ↗</button>
+        </div>
         
-        let linkContainer = document.getElementById('link-view-container');
-        if (!linkContainer) {
-            linkContainer = document.createElement('div');
-            linkContainer.id = 'link-view-container';
-            linkContainer.style.cssText = 'flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px;';
-            detailText.parentElement.appendChild(linkContainer);
-        }
-        
-        linkContainer.style.display = 'flex';
-        linkContainer.innerHTML = `
-            <div style="background: #0a0a0a; padding: 20px; border-radius: 8px; border-left: 3px solid #0088ff;">
-                <div style="font-size: 10px; color: #666; margin-bottom: 5px;">LINK SALVATO</div>
-                <a href="${url}" target="_blank" style="
-                    color: #0088ff; 
-                    font-size: 14px; 
-                    text-decoration: none;
-                    word-break: break-all;
-                    display: block;
-                    margin-bottom: 15px;
-                ">${url}</a>
-                <button onclick="window.open('${url}', '_blank')" style="
-                    background: #0088ff;
-                    color: #000;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-family: 'Rajdhani';
-                    font-weight: bold;
-                    width: 100%;
-                ">APRI_LINK ↗</button>
+        ${description ? `
+            <div style="color: #aaa; font-size: 13px; line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                ${description}
             </div>
-            <div style="color: #aaa; font-size: 13px; line-height: 1.6;">
-                ${note.content.split('\n').slice(3).join('\n')}
-            </div>
-        `;
-        
-    } else if (note.content.includes('☐') || note.content.includes('☑')) {
+        ` : ''}
+    `;
+} else if (note.content.includes('☐') || note.content.includes('☑')) {
         console.log("TODO RILEVATA - Rendering interattivo");
         renderInteractiveTodo(note);
     } else {
@@ -4418,30 +4434,77 @@ async function saveLinkNote() {
     const saveBtn = document.getElementById('save-link-btn');
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
-
+    
     const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n${currentLinkData.image || ''}\n${currentLinkData.description}`;
+    
+    // ← OPTIMISTIC UI
+    const fakeId = 'temp_' + Date.now();
+    const fakeNote = {
+        id: fakeId,
+        date: new Date(),
+        type: 'LINK',
+        content: linkText,
+        color: 'default',
+        title: currentLinkData.title
+    };
+    
+    loadedNotesData.unshift(fakeNote);
+    
+    // ← Aggiungi card manualmente (come TODO)
+    const grid = document.getElementById('keep-grid');
+    if (grid) {
+        const lines = linkText.split('\n');
+        const title = lines[0]?.replace('🔗 ', '');
+        const url = lines[1];
+        const imageUrl = lines[2];
+        const description = lines.slice(4).join(' ').substring(0, 80);
         
-   
-    // ← CAMBIA: Non fare optimistic UI, chiudi e basta
+        let domain = '';
+        try {
+            domain = new URL(url).hostname.replace('www.', '');
+        } catch(e) {}
+        
+        const cardHTML = `
+            <div class="keep-card bg-default" style="cursor: pointer;">
+                <div style="
+                    width: 100%;
+                    height: 80px;
+                    background: ${imageUrl ? `url('${imageUrl}')` : 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'};
+                    background-size: cover;
+                    background-position: center;
+                    border-radius: 4px;
+                    margin-bottom: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.5rem;
+                    border: 1px solid #0088ff;
+                ">${imageUrl ? '' : '🔗'}</div>
+                <div class="title-row" style="color: #0088ff;">${title.toUpperCase()}</div>
+                <div class="content-preview" style="font-size: 10px;">${description}</div>
+                <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${domain}</div>
+            </div>
+        `;
+        
+        grid.insertAdjacentHTML('afterbegin', cardHTML);
+    }
+    
     closeLinkModal();
     
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ 
-                service: "note", 
-                text: linkText 
-            })
+            body: JSON.stringify({ service: "note", text: linkText })
         });
         
-        showCustomAlert("LINK_SAVED", true);
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
         console.error("Errore:", e);
+        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
         showCustomAlert("SAVE_ERROR");
     }
-} 
+}
 
 function closeLinkModal() {
     document.getElementById('link-modal').style.display = 'none';
