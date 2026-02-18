@@ -2007,124 +2007,103 @@ function createNew(kind) {
 
 // Funzione di supporto per aprire il modal vuoto
 async function createNew(type) {
-        const noteDetail = document.getElementById('note-detail');
-const detailText = document.getElementById('detail-text');
+    // 1. Riferimenti agli elementi comuni
+    const noteDetail = document.getElementById('note-detail');
+    const detailText = document.getElementById('detail-text');
     const detailExtraList = document.getElementById('detail-extra-list');
-    const linkContainer = document.getElementById('link-view-container');
+    const linkViewContainer = document.getElementById('link-view-container');
+    const todoContainer = document.getElementById('interactive-todo-container');
+    const backdrop = document.getElementById('modal-backdrop');
 
-    // Reset totale
-    if (detailExtraList) detailExtraList.style.display = 'none';
-    if (linkContainer) linkContainer.style.display = 'none';
-    if (detailText) {
-        detailText.style.display = 'block';
-        detailText.value = "";
-    }
-    
-    document.getElementById('detail-type').innerText = "NUOVA NOTA";
-    modal.className = 'note-overlay bg-default';
-    modal.style.display = 'flex';
-
-
-
+    // Se il dettaglio nota è già aperto, chiudilo per resettare
     if (noteDetail && noteDetail.style.display === 'flex') {
         closeNoteDetail(false);
     }
 
-
+    // 2. LOGICA PER TIPO
     if (type === 'NOTE') {
-        document.getElementById('modal-backdrop').style.display = 'block';
-        const modal = document.getElementById('note-detail');
-        modal.style.display = 'flex';
+        if (backdrop) backdrop.style.display = 'block';
         
-
+        // Reset UI specifica per nota
+        if (detailExtraList) detailExtraList.style.display = 'none';
+        if (linkViewContainer) linkViewContainer.style.display = 'none';
+        if (todoContainer) todoContainer.style.display = 'none';
+        
+        if (detailText) {
+            detailText.style.display = 'block';
+            detailText.value = "";
+        }
+        
         currentNoteData = { id: null, type: 'NOTE', text: '', color: 'default', index: null };
         
-        document.getElementById('detail-type').innerText = 'NOTA'; // ← Usa questo invece
-        document.getElementById('detail-text').value = '';
-        document.getElementById('detail-text').style.display = 'block'; // ← Assicurati sia visibile
+        document.getElementById('detail-type').innerText = 'NOTA';
+        noteDetail.className = 'note-overlay bg-default';
+        noteDetail.style.display = 'flex';
         
-        const todoContainer = document.getElementById('interactive-todo-container');
-        const linkContainer = document.getElementById('link-view-container');
-        if (todoContainer) todoContainer.style.display = 'none';
-        if (linkContainer) linkContainer.style.display = 'none';
-        
-        modal.className = 'note-overlay bg-default'; // ← Reset classe
-        
-        document.getElementById('detail-text').focus();
-        
+        setTimeout(() => detailText.focus(), 50);
         changeNoteColor('default');
     }
+
     if (type === 'LISTA') {
-    try {
-        todoItems = [];
-
-    const todoContainer = document.getElementById('interactive-todo-container');
-    if (todoContainer) todoContainer.style.display = 'none';
-
-        const modal = document.getElementById('todo-modal');
-        
-        console.log("1. Modal trovato:", modal);
-        
-        if (!modal) {
-            console.error("todo-modal non trovato!");
-            showCustomAlert("ERRORE: Modal TODO mancante");
-            return;
+        try {
+            todoItems = [];
+            const modalTodo = document.getElementById('todo-modal');
+            
+            if (!modalTodo) return console.error("todo-modal mancante!");
+            
+            modalTodo.style.display = 'flex';
+            if (backdrop) backdrop.style.display = 'block';
+            
+            document.getElementById('todo-items-container').innerHTML = '';
+            
+            const input = document.getElementById('new-todo-item');
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 50);
+            }
+        } catch(e) {
+            console.error("Errore LISTA:", e);
         }
-        
-        console.log("2. Mostrando modal...");
-        modal.style.display = 'flex';
-        
-        console.log("3. Pulendo container...");
-        document.getElementById('todo-items-container').innerHTML = '';
-        
-        console.log("4. Cercando input...");
-        const input = document.getElementById('new-todo-item');
-        console.log("   Input trovato:", input);
-        
-        console.log("5. Focus su input...");
-        input.focus(); // ← QUESTA È LA RIGA 1845 che da errore
-        
-        console.log("6. Todo modal aperto!");
-        
-    } catch(e) {
-        console.error("ERRORE in createNew LISTA:", e);
-        console.error("Stack:", e.stack);
     }
-    }
+
     if (type === 'LINK') {
-        const modal = document.getElementById('link-modal');
-        if (!modal) {
-            console.error("link-modal non trovato!");
-            return;
-        }
+        const modalLink = document.getElementById('link-modal');
+        if (!modalLink) return;
         
-        modal.style.display = 'flex';
-        document.getElementById('link-url-input').value = '';
+        modalLink.style.display = 'flex';
+        if (backdrop) backdrop.style.display = 'block';
+        
+        const linkInput = document.getElementById('link-url-input');
+        linkInput.value = '';
         document.getElementById('link-preview-container').style.display = 'none';
-        document.getElementById('save-link-btn').disabled = true;
-        document.getElementById('save-link-btn').style.opacity = '0.5';
+        
+        const saveBtn = document.getElementById('save-link-btn');
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        
         currentLinkData = null;
-        
-        document.getElementById('link-url-input').focus();
+        setTimeout(() => linkInput.focus(), 50);
     }
+
     if (type === 'GHOST') {
-        const modal = document.getElementById('ghost-modal');
-        if (!modal) {
-            console.error("ghost-modal non trovato!");
-            return;
-        }
+        const modalGhost = document.getElementById('ghost-modal');
+        if (!modalGhost) return;
         
-        modal.style.display = 'flex';
-        document.getElementById('ghost-input').value = '';
+        modalGhost.style.display = 'flex';
+        if (backdrop) backdrop.style.display = 'block';
+        
+        const ghostInput = document.getElementById('ghost-input');
+        ghostInput.value = '';
         document.getElementById('ghost-output-container').style.display = 'none';
-        document.getElementById('ghost-save-btn').disabled = true;
-        document.getElementById('ghost-save-btn').style.opacity = '0.5';
-        ghostGeneratedText = '';
         
-        document.getElementById('ghost-input').focus();
+        const ghostSave = document.getElementById('ghost-save-btn');
+        ghostSave.disabled = true;
+        ghostSave.style.opacity = '0.5';
+        
+        ghostGeneratedText = '';
+        setTimeout(() => ghostInput.focus(), 50);
     }
 }
-
 
 function addTodoItem() {
     const input = document.getElementById('new-todo-item');
