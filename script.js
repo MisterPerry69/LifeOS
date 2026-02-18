@@ -2021,6 +2021,7 @@ function createNew(kind) {
 
 // Funzione di supporto per aprire il modal vuoto
 async function createNew(type) {
+    closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'NOTE') {
         document.getElementById('modal-backdrop').style.display = 'block';
         const modal = document.getElementById('note-detail');
@@ -2041,7 +2042,7 @@ async function createNew(type) {
         
         updateColorPicker('default');
     }
-    
+    closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'LISTA') {
     try {
         todoItems = [];
@@ -2079,7 +2080,7 @@ async function createNew(type) {
         console.error("Stack:", e.stack);
     }
     }
-
+    closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'LINK') {
         const modal = document.getElementById('link-modal');
         if (!modal) {
@@ -2096,7 +2097,7 @@ async function createNew(type) {
         
         document.getElementById('link-url-input').focus();
     }
-
+closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'GHOST') {
         const modal = document.getElementById('ghost-modal');
         if (!modal) {
@@ -4568,23 +4569,37 @@ async function generateGhostText() {
 }
 
 async function saveGhostNote() {
-    if (!ghostGeneratedText) return;
+    const input = document.getElementById('ghost-input').value.trim();
+    
+    if (!input) {
+        showCustomAlert("SCRIVI_QUALCOSA_PRIMA");
+        return;
+    }
     
     const saveBtn = document.getElementById('ghost-save-btn');
-    saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
+    saveBtn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
     saveBtn.disabled = true;
     
-    // Salva con marker AI
-    const noteText = `[GHOST]\n${ghostGeneratedText}`;
-    
-    closeGhostModal();
+    closeGhostModal(); // ← Chiudi subito
     
     try {
+        // 1. Genera con AI
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'ghost_rewrite',
+                text: input
+            })
+        });
+        
+        const rewrittenText = await response.text();
+        
+        // 2. Salva immediatamente
         await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ 
                 service: "note", 
-                text: noteText 
+                text: `[GHOST]\n${rewrittenText}`
             })
         });
         
@@ -4592,12 +4607,30 @@ async function saveGhostNote() {
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
-        console.error("Errore:", e);
-        showCustomAlert("SAVE_ERROR");
+        console.error("Errore Ghost:", e);
+        showCustomAlert("ERRORE_GHOST");
     }
 }
 
 function closeGhostModal() {
     document.getElementById('ghost-modal').style.display = 'none';
     ghostGeneratedText = '';
+}
+
+function closeAllModals() {
+    document.getElementById('modal-backdrop').style.display = 'none';
+    document.getElementById('note-detail').style.display = 'none';
+    document.getElementById('todo-modal').style.display = 'none';
+    document.getElementById('link-modal').style.display = 'none';
+    document.getElementById('ghost-modal').style.display = 'none';
+    
+    const textArea = document.getElementById('detail-text');
+    const todoContainer = document.getElementById('interactive-todo-container');
+    const linkContainer = document.getElementById('link-view-container');
+    
+    if (textArea) textArea.style.display = 'block';
+    if (todoContainer) todoContainer.style.display = 'none';
+    if (linkContainer) linkContainer.style.display = 'none';
+    
+    currentNoteData = null;
 }
