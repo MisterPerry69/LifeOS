@@ -2096,6 +2096,23 @@ async function createNew(type) {
         
         document.getElementById('link-url-input').focus();
     }
+
+    if (type === 'GHOST') {
+        const modal = document.getElementById('ghost-modal');
+        if (!modal) {
+            console.error("ghost-modal non trovato!");
+            return;
+        }
+        
+        modal.style.display = 'flex';
+        document.getElementById('ghost-input').value = '';
+        document.getElementById('ghost-output-container').style.display = 'none';
+        document.getElementById('ghost-save-btn').disabled = true;
+        document.getElementById('ghost-save-btn').style.opacity = '0.5';
+        ghostGeneratedText = '';
+        
+        document.getElementById('ghost-input').focus();
+    }
 }
 
 
@@ -4509,4 +4526,78 @@ async function saveLinkNote() {
 function closeLinkModal() {
     document.getElementById('link-modal').style.display = 'none';
     currentLinkData = null;
+}
+
+async function generateGhostText() {
+    const input = document.getElementById('ghost-input').value.trim();
+    
+    if (!input) {
+        showCustomAlert("SCRIVI_QUALCOSA_PRIMA");
+        return;
+    }
+    
+    const btn = document.getElementById('ghost-generate-btn');
+    btn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'ghost_rewrite',
+                text: input
+            })
+        });
+        
+        const result = await response.text();
+        
+        ghostGeneratedText = result;
+        document.getElementById('ghost-output').innerText = result;
+        document.getElementById('ghost-output-container').style.display = 'block';
+        
+        document.getElementById('ghost-save-btn').disabled = false;
+        document.getElementById('ghost-save-btn').style.opacity = '1';
+        
+    } catch(e) {
+        console.error("Errore Ghost AI:", e);
+        showCustomAlert("ERRORE_AI");
+    } finally {
+        btn.innerHTML = 'GENERA_AI';
+        btn.disabled = false;
+    }
+}
+
+async function saveGhostNote() {
+    if (!ghostGeneratedText) return;
+    
+    const saveBtn = document.getElementById('ghost-save-btn');
+    saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
+    saveBtn.disabled = true;
+    
+    // Salva con marker AI
+    const noteText = `[GHOST]\n${ghostGeneratedText}`;
+    
+    closeGhostModal();
+    
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                service: "note", 
+                text: noteText 
+            })
+        });
+        
+        showCustomAlert("NOTA_AI_SALVATA", true);
+        setTimeout(() => loadStats(), 2000);
+        
+    } catch(e) {
+        console.error("Errore:", e);
+        showCustomAlert("SAVE_ERROR");
+    }
+}
+
+function closeGhostModal() {
+    document.getElementById('ghost-modal').style.display = 'none';
+    ghostGeneratedText = '';
 }

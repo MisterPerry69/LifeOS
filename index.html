@@ -941,6 +941,62 @@
 </div>
 
   <!-- ============================================ -->
+  <!-- GHOST MODAL -->
+  <!-- ============================================ -->
+
+<div id="ghost-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
+    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">👻 GHOST_WRITER</h2>
+        <div class="esc-btn" onclick="closeGhostModal()">[esc X]</div>
+    </div>
+    
+    <div style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+        <div>
+            <label style="font-size: 10px; color: #666; margin-bottom: 5px; display: block;">TESTO_GREZZO</label>
+            <textarea 
+                id="ghost-input" 
+                placeholder="Scrivi qui il testo da sistemare..."
+                style="
+                    width: 100%; 
+                    min-height: 200px;
+                    background: #0a0a0a; 
+                    border: 1px solid #333; 
+                    padding: 15px; 
+                    color: #fff; 
+                    font-family: 'JetBrains Mono';
+                    font-size: 13px;
+                    resize: vertical;
+                "
+            ></textarea>
+        </div>
+        
+        <div id="ghost-output-container" style="display: none;">
+            <label style="font-size: 10px; color: var(--accent); margin-bottom: 5px; display: block;">✨ TESTO_SISTEMATO</label>
+            <div 
+                id="ghost-output" 
+                style="
+                    background: rgba(0,255,65,0.05); 
+                    border: 1px solid var(--accent); 
+                    padding: 15px; 
+                    border-radius: 4px;
+                    font-family: 'JetBrains Mono';
+                    font-size: 13px;
+                    line-height: 1.6;
+                    color: #eee;
+                    white-space: pre-wrap;
+                "
+            ></div>
+        </div>
+    </div>
+    
+    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px;">
+        <button onclick="closeGhostModal()" style="background: transparent; color: #666; border: 1px solid #333; padding: 12px 20px; cursor: pointer; font-family: 'Rajdhani';">CANCEL</button>
+        <button id="ghost-generate-btn" onclick="generateGhostText()" style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold;">GENERA_AI</button>
+        <button id="ghost-save-btn" onclick="saveGhostNote()" disabled style="background: #666; color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; opacity: 0.5;">SALVA</button>
+    </div>
+</div>
+
+  <!-- ============================================ -->
   <!-- WEBPUSHR & LUCIDE INIT -->
   <!-- ============================================ -->
   <script>
