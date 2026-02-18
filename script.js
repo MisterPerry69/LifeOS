@@ -2027,8 +2027,7 @@ async function createNew(type) {
         const modal = document.getElementById('note-detail');
         modal.style.display = 'flex';
         
-        // ← RIMUOVI QUESTA RIGA CHE CAUSA L'ERRORE
-        // document.getElementById('detail-title').value = '';
+
         
         currentNoteData = { id: null, type: 'NOTE', text: '', color: 'default' };
         
@@ -2042,7 +2041,6 @@ async function createNew(type) {
         
         changeNoteColor('default');
     }
-    closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'LISTA') {
     try {
         todoItems = [];
@@ -2080,7 +2078,6 @@ async function createNew(type) {
         console.error("Stack:", e.stack);
     }
     }
-    closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'LINK') {
         const modal = document.getElementById('link-modal');
         if (!modal) {
@@ -2097,7 +2094,6 @@ async function createNew(type) {
         
         document.getElementById('link-url-input').focus();
     }
-closeAllModals(); // ← AGGIUNGI QUESTA ALL'INIZIO
     if (type === 'GHOST') {
         const modal = document.getElementById('ghost-modal');
         if (!modal) {
