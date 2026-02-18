@@ -4557,51 +4557,46 @@ async function generateGhostText() {
 }
 
 async function saveGhostNote() {
-    const input = document.getElementById('ghost-input').value.trim();
-    
-    if (!input) {
-        showCustomAlert("SCRIVI_QUALCOSA_PRIMA");
+    // Usiamo il testo già generato dall'AI che abbiamo salvato in generateGhostText
+    if (!ghostGeneratedText) {
+        showCustomAlert("GENERA_PRIMA_IL_TESTO");
         return;
     }
     
     const saveBtn = document.getElementById('ghost-save-btn');
-    saveBtn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
+    saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    closeGhostModal(); // ← Chiudi subito
-    
     try {
-        // 1. Genera con AI
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'ghost_rewrite',
-                text: input
-            })
-        });
-        
-        const rewrittenText = await response.text();
-        
-        // 2. Salva immediatamente
+        // Invio al database (Google Sheets)
         await fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors', // Spesso necessario per gli Sheets se non gestisci i CORS
             body: JSON.stringify({ 
+                action: "addNote", // Assicurati che l'action nel .gs sia corretta
                 service: "note", 
-                text: `[GHOST]\n${rewrittenText}`
+                text: `[GHOST]\n${ghostGeneratedText}`
             })
         });
         
+        closeGhostModal(); // Chiude tutto e sblocca lo schermo
         showCustomAlert("NOTA_AI_SALVATA", true);
-        setTimeout(() => loadStats(), 2000);
+        
+        // Refresh dati dopo 1 secondo
+        setTimeout(() => loadStats(), 1000);
         
     } catch(e) {
-        console.error("Errore Ghost:", e);
-        showCustomAlert("ERRORE_GHOST");
+        console.error("Errore Ghost Save:", e);
+        showCustomAlert("ERRORE_SALVATAGGIO");
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'SALVA_NOTA';
     }
 }
 
 function closeGhostModal() {
     document.getElementById('ghost-modal').style.display = 'none';
+    const backdrop = document.getElementById('modal-backdrop');
+    if (backdrop) backdrop.style.display = 'none'; // ← FONDAMENTALE per sbloccare lo schermo
     ghostGeneratedText = '';
 }
 
