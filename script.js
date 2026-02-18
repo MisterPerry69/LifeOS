@@ -727,7 +727,6 @@ function closeNoteDetail(forceSave = true) {
 
         // ← AGGIUNGI GESTIONE LINK
         const linkContainer = document.getElementById('link-view-container');
-        const todoContainer = document.getElementById('interactive-todo-container');
 
         if (linkContainer && linkContainer.style.display !== 'none') {
             // È un LINK - NON modificare il contenuto, mantieni quello originale
