@@ -794,6 +794,11 @@ function closeNoteDetail(forceSave = true) {
 
 async function saveAndClose() {
     const text = document.getElementById('detail-text').value.trim();
+
+    if (currentNoteData && currentNoteData.id) {
+        closeNoteDetail(true);
+        return;
+    }
     
     if (!text) {
         closeNoteDetail(false);
