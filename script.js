@@ -1855,11 +1855,6 @@ function renderCategoryChart(categories) {
         }
     });
 }
-```
-
-Per TOP 3, **apri la console (F12)** e dimmi se esce:
-```
-Uncaught TypeError: Cannot read properties of undefined (reading 'map')
 
     // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
 
