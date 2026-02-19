@@ -1561,7 +1561,7 @@ CSS
     bottom: 100px; /* ← Sopra la navbar */
     right: 20px;
     
-    width: 200px;
+    width: 145px;
     
     background: rgba(10, 10, 10, 0.95);
     backdrop-filter: blur(20px);
