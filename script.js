@@ -4486,7 +4486,6 @@ function renderWithData(data) {
 
 // Nuova funzione che SOLO calcola (non renderizza)
 function calculateFinanceStats(financeData) {
-function calculateFinanceStats(financeData) {
     console.log("=== DEBUG calculateFinanceStats ===");
     console.log("financeData ricevuto:", financeData);
     console.log("financeData.categories:", financeData.categories);
