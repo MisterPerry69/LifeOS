@@ -3999,14 +3999,15 @@ function closeWeightLog() {
 
 // In submitWorkoutFeeling(), SOSTITUISCI la parte del coach con questo:
 
-async function submitWorkoutFeeling() {
+async function submitWorkoutFeeling(event) { // Aggiunto 'event' come parametro
     const input = document.getElementById('workout-feeling-input').value.trim();
     if (!input) {
         showCustomAlert("SCRIVI_QUALCOSA_SUL_WORKOUT");
         return;
     }
     
-    const btn = event.target;
+    // Recupero il bottone correttamente
+    const btn = event.currentTarget || event.target;
     const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="blink">PROCESSING...</span>';
     btn.disabled = true;
@@ -4026,10 +4027,9 @@ async function submitWorkoutFeeling() {
         if (parseResult.status === "SUCCESS") {
             const parsedData = parseResult.parsed;
             
-            // Step 2: Salva workout con dati parsati
+            // Step 2: Salva workout (RIMOSSO no-cors per evitare problemi di flusso)
             await fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 body: JSON.stringify({
                     service: 'save_workout',
                     raw_input: input,
@@ -4041,32 +4041,41 @@ async function submitWorkoutFeeling() {
             const coachResponse = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
-                    service: 'ask_body_coach',  // ← ERA "action", DEVE essere "service"
+                    service: 'ask_body_coach',
                     query: `Ho fatto questo workout: ${input}. Dammi un feedback breve.`
                 })
             });
             
+            // Se il server risponde con JSON, usa .json(), se risponde testo usa .text()
             const coachText = await coachResponse.text();
             
             // Mostra risposta coach
             const coachZone = document.getElementById('coach-response-zone');
-            coachZone.style.display = 'block';
-            coachZone.innerHTML = `
-                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px;">COACH:</div>
-                <div style="color: #fff; line-height: 1.6;">"${coachText}"</div>
-                <button onclick="closeWorkoutFeeling(); loadStats(); renderBodyDashboard();" 
-                        style="margin-top: 15px; padding: 10px 20px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold;">
-                    OK, CHIUDI
-                </button>
-            `;
+            if (coachZone) {
+                coachZone.style.display = 'block';
+                coachZone.innerHTML = `
+                    <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; font-family: 'Rajdhani';">COACH:</div>
+                    <div style="color: #fff; line-height: 1.6; font-style: italic;">"${coachText}"</div>
+                    <button onclick="closeWorkoutFeeling(); loadStats();" 
+                            style="margin-top: 15px; padding: 10px 20px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold; letter-spacing: 1px;">
+                        OK, CHIUDI
+                    </button>
+                `;
+            }
             
+            // Nascondi l'area di input originale per pulizia
+            document.getElementById('workout-feeling-input').value = "";
+            
+        } else {
+            throw new Error("Errore nel parsing dei dati");
+        }
 
-        
-    } catch (e) {
-        console.error("Errore workout:", e);
+    } catch (error) {
+        console.error("Errore:", error);
+        showCustomAlert("ERRORE_DURANTE_L_INVIO");
+    } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
-        showCustomAlert("ERRORE_CONNESSIONE");
     }
 }
 
