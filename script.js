@@ -1985,11 +1985,21 @@ function updateUI(data) {
 }
 
 function toggleQuickMenu() {
-    const qMenu = document.getElementById('quick-menu');
-    if (qMenu) {
-        qMenu.classList.toggle('quick-menu-hidden');
-    }
+    const menu = document.getElementById('quick-menu');
+    menu.classList.toggle('active');
 }
+
+// Click fuori chiude il menu
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('quick-menu');
+    const entryBtn = document.querySelector('#nav-entry');
+    
+    if (menu.classList.contains('active') && 
+        !menu.contains(e.target) && 
+        !entryBtn?.contains(e.target)) {
+        menu.classList.remove('active');
+    }
+});
 
 // Funzione chiamata dalle opzioni del menu
 function createNew(kind) {

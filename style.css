@@ -1318,20 +1318,45 @@ CSS
 
 .nav-home {
     flex: 1.2;
-    transform: translateY(-10px);
 }
 
 .home-btn-circle {
-    background: var(--accent);
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    background: transparent;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px; /* ← Quadrato arrotondato invece di cerchio */
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto;
-    box-shadow: 0 0 15px var(--accent);
-    border: 3px solid #000;
+    border: 2px solid var(--accent);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+/* Glow sottile */
+.home-btn-circle::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 14px;
+    background: var(--accent);
+    opacity: 0;
+    filter: blur(8px);
+    transition: opacity 0.3s;
+}
+
+.nav-home.active .home-btn-circle {
+    background: var(--accent);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+}
+
+.nav-home.active .home-btn-circle::before {
+    opacity: 0.3;
+}
+
+.nav-home.active .home-btn-circle i {
+    color: #000 !important;
 }
 
 /* Icone navbar */
@@ -1532,20 +1557,67 @@ CSS
 
 /* QUICK MENU STYLE */
 #quick-menu {
-    position: fixed; bottom: 85px; right: 10px; 
-    background: #111; border: 1px solid var(--accent);
-    border-radius: 12px; padding: 10px; z-index: 9001;
-    display: flex; flex-direction: column; gap: 10px;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transform-origin: bottom right;
+    position: fixed;
+    bottom: 100px; /* ← Sopra la navbar */
+    right: 20px;
+    
+    width: 200px;
+    
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 12px;
+    
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(0, 255, 65, 0.1);
+    
+    z-index: 9001;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.quick-menu-hidden { opacity: 0; transform: scale(0) translateY(20px); pointer-events: none; }
-.quick-option { 
-    display: flex; align-items: center; gap: 10px; 
-    padding: 10px 20px; color: #fff; font-size: 12px; cursor: pointer;
+#quick-menu.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
 }
-.quick-option:hover { background: rgba(0,212,255,0.1); border-radius: 8px; }
+
+.quick-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.2s;
+    font-family: 'Rajdhani';
+    font-weight: 500;
+}
+
+.quick-option:hover,
+.quick-option:active {
+    background: rgba(0, 255, 65, 0.1);
+    transform: translateX(4px);
+}
+
+.quick-option i {
+    width: 18px;
+    height: 18px;
+    color: var(--accent);
+}
 
 /* REVIEWs */
 
