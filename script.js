@@ -209,6 +209,8 @@ function renderGrid(data) {
         fragment.appendChild(extraCard);
     }
 
+    
+
     // Filtraggio e ordinamento note
     const filteredNotes = loadedNotesData
         .map((note, originalIndex) => ({ note, originalIndex }))
@@ -221,12 +223,12 @@ function renderGrid(data) {
             const matchesSearch = !isSearching || title.includes(searchLower) || content.includes(searchLower);
             if (!matchesSearch) return false;
 
-            if (currentFilter === 'ALL') return true;
+            if (currentFilter === 'ALL') return type !== 'ARCHIVE';
             if (currentFilter === 'PINNED') return type === 'PINNED';
             if (currentFilter === 'NOTE') return type === 'NOTE' && !content.includes('http');
             if (currentFilter === 'LINK') return content.includes('http');
             if (currentFilter === 'EXTRA') return false;
-            if (currentFilter === 'ARCHIVE') return note.type === 'NOTE';
+            if (currentFilter === 'ARCHIVE') return type === 'ARCHIVE';
             return true;
         })
         .sort((a, b) => {
@@ -4622,4 +4624,34 @@ function closeAllModals() {
     if (linkContainer) linkContainer.style.display = 'none';
     
     currentNoteData = null;
+}
+
+async function toggleArchive() {
+    if (!currentNoteData || !currentNoteData.id) return;
+    
+    const note = loadedNotesData[currentNoteData.index];
+    if (!note) return;
+    
+    // Toggle: se è ARCHIVE torna NOTE, se è NOTE diventa ARCHIVE
+    const newType = note.type === 'ARCHIVE' ? 'NOTE' : 'ARCHIVE';
+    
+    // Aggiorna locale
+    note.type = newType;
+    currentNoteData.type = newType;
+    
+    // Salva backend
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+            service: 'update_note_type',
+            id: currentNoteData.id,
+            type: newType
+        })
+    });
+    
+    // Feedback e chiudi
+    showCustomAlert(newType === 'ARCHIVE' ? "ARCHIVIATA" : "RIPRISTINATA", true);
+    closeNoteDetail(false);
+    
+    setTimeout(() => loadStats(), 1000);
 }
