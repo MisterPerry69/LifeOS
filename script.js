@@ -1722,7 +1722,13 @@ function switchFinanceTab(target) {
         searchView.style.display = 'block';
     } else if (target === 'stats') {
         statsView.style.display = 'block';
-        initStats(); // <--- GENERA I GRAFICI
+        
+        // ← USA STATS PRE-CALCOLATE invece di initStats()
+        if (cachedFinanceStats) {
+            renderFinanceStatsView(cachedFinanceStats);
+        } else {
+            showCustomAlert("DATI_NON_DISPONIBILI");
+        }
     } else {
         dashboard.style.display = 'block';
     }
