@@ -1520,11 +1520,10 @@ CSS
 }
 
 .stats-card {
-    background: #0a0a0a; 
-    border: 1px solid #222; 
-    padding: 15px; 
-    border-radius: 8px;
-    margin-bottom: 15px;
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    padding: 12px; /* ← Era probabilmente 20px */
+    border-radius: 4px;
 }
 
 .survival-bar-container {
@@ -1564,10 +1563,9 @@ CSS
 /* Griglia adattiva: 1 colonna su mobile, 2 su desktop */
 .stats-grid-container {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
-    max-width: 1200px; /* Larghezza massima su desktop */
-    margin: 0 auto;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px; /* ← Era probabilmente 20px */
+    padding: 10px;
 }
 
 @media (min-width: 768px) {
@@ -1576,9 +1574,10 @@ CSS
     }
     
     /* Facciamo in modo che la Survival Bar e l'Audit occupino tutta la riga se vuoi */
-    .full-width-card {
-        grid-column: span 2;
-    }
+
+   .full-width-card {
+    grid-column: 1 / -1;
+}
 }
 
 /* QUICK MENU STYLE */
