@@ -117,6 +117,8 @@ body {
     min-height: 100vh; 
     box-sizing: border-box; 
     padding: 20px;
+    padding-bottom: 110px; /* ← Spazio per navbar flottante */
+
 }
 
 .page.active { 
@@ -1223,10 +1225,7 @@ input:focus {
 }
 
 /* Effetto pressione tasti menu */
-.nav-item:active {
-    transform: scale(0.9);
-    filter: brightness(1.5);
-}
+
 
 /* Overlay input più pulito */
 #finance-input-zone {
@@ -1285,15 +1284,86 @@ CSS
     padding: 0 15px;
 }
 
-/* Assicuriamoci che la nav sia sempre sopra */
+/* INIZIO NAVBAR */
 .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 20px; /* ← Staccata dal fondo */
+    left: 50%;
+    transform: translateX(-50%); /* ← Centrata */
+    
+    width: calc(100% - 40px); /* ← Margini laterali */
+    max-width: 400px; /* ← Max larghezza */
+    height: 65px;
+    
+    background: rgba(10, 10, 10, 0.9); /* ← Semi-trasparente */
+    backdrop-filter: blur(20px); /* ← Blur moderno */
+    -webkit-backdrop-filter: blur(20px);
+    
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 25px; /* ← Tutto arrotondato */
+    
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 15px;
+    
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(0, 255, 65, 0.1); /* ← Glow sottile */
+    
     z-index: 9000;
-    background: #000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Effetto hover (opzionale) */
+.bottom-nav:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(0, 255, 65, 0.2);
+}
+
+/* Icone navbar */
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 12px;
+}
+
+.nav-item:active {
+    transform: scale(0.95);
+    background: rgba(0, 255, 65, 0.1);
+}
+
+.nav-item svg, .nav-item i {
+    width: 22px;
+    height: 22px;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.nav-item.active svg,
+.nav-item.active i {
+    color: var(--accent);
+}
+
+.nav-item div {
+    font-size: 9px;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.nav-item.active div {
+    color: var(--accent);
+}
+
+/* FINE NAVBAR */
 
 .dot-ani {
     display: inline-block;
