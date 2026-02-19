@@ -184,9 +184,15 @@ function renderGrid(data) {
     const widgetNotes = document.getElementById('widget-notes');
     const widgetWeight = document.getElementById('widget-weight');
     const widgetReviews = document.getElementById('widget-reviews'); // <-- Nuovo widget
+    const widgetWeight = document.getElementById('widget-weight');
+
     
     if (widgetNotes) widgetNotes.innerText = (loadedNotesData.length + 1);
-    if (widgetWeight) widgetWeight.innerText = data.weight || "94.5";
+
+    if (widgetWeight && data.body && data.body.weight) {
+        widgetWeight.innerText = data.body.weight.toFixed(1);
+    }
+
     if (widgetReviews) {
         const totalDone = loadedReviewsData.filter(r => {
             const cat = r.categoria ? r.categoria.toUpperCase() : "";
@@ -4047,19 +4053,15 @@ async function submitWorkoutFeeling() {
             const coachZone = document.getElementById('coach-response-zone');
             coachZone.style.display = 'block';
             coachZone.innerHTML = `
-                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 1px;">COACH_RESPONSE:</div>
+                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px;">COACH:</div>
                 <div style="color: #fff; line-height: 1.6;">"${coachText}"</div>
+                <button onclick="closeWorkoutFeeling(); loadStats(); renderBodyDashboard();" 
+                        style="margin-top: 15px; padding: 10px 20px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold;">
+                    OK, CHIUDI
+                </button>
             `;
             
-            // Reset e ricarica dopo 3 secondi
-            setTimeout(() => {
-                closeWorkoutFeeling();
-                loadStats();
-                renderBodyDashboard();
-            }, 3000);
-        } else {
-            throw new Error("Parse failed");
-        }
+
         
     } catch (e) {
         console.error("Errore workout:", e);
@@ -4118,8 +4120,8 @@ async function submitWeight() {
 // ============================================
 
 function toggleBodyCoach() {
-    const bubble = document.getElementById('analyst-bubble');
-    const text = document.getElementById('analyst-text');
+    const bubble = document.getElementById('body-coach-bubble'); // ← Cambia
+    const text = document.getElementById('body-coach-text'); // ← Cambia
     const navItem = document.getElementById('body-nav-ai');
     
     if (bubble.classList.contains('active')) {
