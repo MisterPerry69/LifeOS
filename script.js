@@ -1816,91 +1816,52 @@ async function initStats() {
     }
 }
 
-    // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
+let financeChart = null; // Variabile globale
+
 function renderCategoryChart(categories) {
     const canvas = document.getElementById('categoryChart');
     if (!canvas) {
-        console.error("ERRORE: Canvas 'categoryChart' non trovato nel DOM!");
+        console.error("Canvas categoryChart non trovato!");
         return;
     }
+    
     const ctx = canvas.getContext('2d');
     
-    if (myChart) myChart.destroy();
+    // Distruggi grafico precedente se esiste
+    if (financeChart) {
+        financeChart.destroy();
+    }
 
-    const labels = Object.keys(categories);
-    const values = Object.values(categories);
-
-    myChart = new Chart(ctx, {
+    financeChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: labels,
+            labels: Object.keys(categories),
             datasets: [{
-                data: values,
-                backgroundColor: ['#00f3ff', '#ff4d4d', '#7000ff', '#ff00c1', '#00ff41', '#ff9a00'],
+                data: Object.values(categories),
+                backgroundColor: ['#00f3ff', '#ff0055', '#9d00ff', '#00ff88', '#ffb300'],
                 borderWidth: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '75%', // Lo rende un anello elegante
+            cutout: '75%',
             plugins: {
-                legend: { position: 'bottom', labels: { color: '#666', font: { family: 'Rajdhani', size: 10 } } }
+                legend: { 
+                    position: 'bottom', 
+                    labels: { color: '#aaa', font: { family: 'Rajdhani', size: 10 } } 
+                }
             }
         }
     });
 }
+```
 
-function renderCategoryChart(data) {
-    const ctx = document.getElementById('categoryChart').getContext('2d');
-    if (charts.cat) charts.cat.destroy();
+Per TOP 3, **apri la console (F12)** e dimmi se esce:
+```
+Uncaught TypeError: Cannot read properties of undefined (reading 'map')
 
-    charts.cat = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(data),
-            datasets: [{
-                data: Object.values(data),
-                backgroundColor: [
-                    '#00f3ff', // Cyan
-                    '#ff0055', // Magenta
-                    '#9d00ff', // Purple
-                    '#00ff88', // Green
-                    '#ffb300'  // Amber
-                ],
-                hoverBackgroundColor: '#fff',
-                borderColor: '#080808', // Sfondo scuro tra le fette
-                borderWidth: 3,
-                hoverOffset: 15
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: '#aaa',
-                        font: { family: 'Rajdhani', size: 11, weight: 'bold' },
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'rectRot' // Icone a diamante
-                    }
-                },
-                tooltip: {
-                    backgroundColor: '#000',
-                    titleFont: { family: 'Rajdhani' },
-                    bodyFont: { family: 'Rajdhani' },
-                    borderColor: 'var(--accent)',
-                    borderWidth: 1,
-                    displayColors: false
-                }
-            },
-            cutout: '75%' // Cerchio molto sottile, stile interfaccia futuristica
-        }
-    });
-}
+    // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
 
 async function openTimeFilter() {
     const period = prompt("Inserisci Mese e Anno (es: Gennaio 2026):");
@@ -3071,9 +3032,11 @@ function renderFinanceStatsView(stats) {
     `;
     
     // Render grafico
-    if (stats.categories && Object.keys(stats.categories).length > 0) {
-        renderCategoryChart(stats.categories);
-    }
+ setTimeout(() => {
+        if (stats.categories && Object.keys(stats.categories).length > 0) {
+            renderCategoryChart(stats.categories);
+        }
+    }, 100);
 }
 
 function generateStatsHTML(period = '6M', filterCat = 'ALL') {
