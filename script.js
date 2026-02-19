@@ -4519,7 +4519,7 @@ function renderWithData(data) {
     }
 }
 
-/ Nuova funzione che SOLO calcola (non renderizza)
+// Nuova funzione che SOLO calcola (non renderizza)
 function calculateFinanceStats(financeData) {
     const inc = parseFloat(financeData.income) || 0;
     const out = parseFloat(financeData.spent) || 0;
