@@ -541,10 +541,9 @@
     <main style="padding: 0 15px; max-width: 100%;">
         <div id="finance-home-view">
             <div class="finance-card-main" style="background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 20px; border-radius: 8px;">
-            <div style="text-align: center;">
-                <div class="label" style="font-size: 9px; color: var(--dim);">TOTAL_LIQUID_ASSETS</div>
-                <div id="total-balance" style="font-size: 2.8rem; font-family: 'Rajdhani'; font-weight: 700; color: #fff;">0.00 €</div>
-            </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <h2 class="big-money" id="total-balance">***,** €</h2>
+                <i data-lucide="eye-off" id="balance-toggle" onclick="toggleBalanceVisibility()" style="width: 24px; color: var(--dim); cursor: pointer;"></i>
 
             <div class="survival-box" style="border-top: 1px solid #222; pt: 15px; padding-top: 10px;">
                 <div id="burn-info-text" style="font-size: 10px; color: #fff; text-align: center; margin-bottom: 8px; font-weight: bold;">
@@ -560,7 +559,7 @@
                 <div style="color: #fff;"><span class="label" style="color: var(--dim);">PHYSICAL:</span> <span id="cash-val">0.00 €</span></div>
             </div>
         </div>
-            <div id="finance-log" style="margin-top: 20px;">
+            <div id="finance-log">
             </div>
         </div>
  

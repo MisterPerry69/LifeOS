@@ -26,6 +26,7 @@ let deleteTarget = null;
 let currentReviews = [];
 let chronoDisplayLimit = 7; // Mostra 7 giorni alla volta
 let ghostGeneratedText = '';
+let balanceHidden = true; // Default nascosto
 
 
 // ============================================
@@ -1748,6 +1749,29 @@ function nav(page) {
     if (page === 'reviews') {
     loadReviews();
     }
+
+    if (page === 'finance') {
+        // Pre-calcola stats appena entri
+        setTimeout(() => {
+            if (lastStatsData?.finance) {
+                renderFinanceStats(lastStatsData.finance);
+            }
+        }, 100);
+    }
+}
+
+function renderFinanceStats(financeData) {
+    // Calcola stats una volta sola
+    const stats = {
+        categories: financeData.categories || {},
+        income: financeData.income || 0,
+        spent: financeData.spent || 0
+    };
+    
+    // Salva in variabile globale
+    window.preCalculatedStats = stats;
+    
+    // Quando switchi su STATS view, usa dati pre-calcolati
 }
 
 async function initStats() {
@@ -4343,6 +4367,8 @@ function renderWithData(data) {
         const totalEl = document.getElementById('total-balance');
         const bankEl = document.getElementById('bank-val');
         const cashEl = document.getElementById('cash-val');
+
+        
         
         if (totalEl) totalEl.innerText = (data.finance.total || "0") + " €";
         if (bankEl) bankEl.innerText = (data.finance.bank || "0") + " €";
@@ -4374,6 +4400,33 @@ function renderWithData(data) {
             renderFinanceLog(data.finance.transactions);
         }
     }
+}
+
+function toggleBalanceVisibility() {
+    balanceHidden = !balanceHidden;
+    
+    const icon = document.getElementById('balance-toggle');
+    const totalEl = document.getElementById('total-balance');
+    const bankEl = document.getElementById('bank-val');
+    const cashEl = document.getElementById('cash-val');
+    
+    if (balanceHidden) {
+        // Nascondi
+        totalEl.innerText = '***,** €';
+        if (bankEl) bankEl.innerText = '***,** €';
+        if (cashEl) cashEl.innerText = '***,** €';
+        icon.setAttribute('data-lucide', 'eye-off');
+    } else {
+        // Mostra
+        if (lastStatsData?.finance) {
+            totalEl.innerText = (lastStatsData.finance.total || "0") + " €";
+            if (bankEl) bankEl.innerText = (lastStatsData.finance.bank || "0") + " €";
+            if (cashEl) cashEl.innerText = (lastStatsData.finance.cash || "0") + " €";
+        }
+        icon.setAttribute('data-lucide', 'eye');
+    }
+    
+    if (window.lucide) lucide.createIcons();
 }
 
 const LINK_PREVIEW_API_KEY = "76862f86fbf805677b3ee8f57b38702e"; // ← Inserisci la tua key
