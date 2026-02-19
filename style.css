@@ -1465,47 +1465,52 @@ CSS
 
 .fin-categories-grid {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap; /* ← Vanno a capo */
+    justify-content: center;
+    gap: 10px;
     padding: 15px;
-    overflow-x: auto;
-    scrollbar-width: none; /* Nascondi scrollbar */
+    max-width: 100%;
 }
+
 
 .fin-categories-grid::-webkit-scrollbar {
     display: none;
 }
 
 .cat-btn {
-    background: rgba(10, 10, 10, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    color: #666;
-    padding: 8px 16px;
-    font-size: 11px;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    color: #aaa; /* ← Più chiaro */
+    padding: 10px 18px;
+    font-size: 12px; /* ← Più grande */
     font-family: 'Rajdhani', sans-serif;
     text-transform: uppercase;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
     backdrop-filter: blur(10px);
+    
+    display: flex;
+    align-items: center;
+    gap: 8px; /* ← Spazio tra icona e testo */
 }
 
 .cat-btn i {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
+}
+
+.cat-btn.active {
+    background: rgba(0, 255, 65, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .cat-btn:hover {
     border-color: var(--accent);
     color: var(--accent);
     background: rgba(0, 255, 255, 0.05);
-}
-
-.cat-btn.active,
-.cat-btn:active {
-    background: rgba(0, 255, 65, 0.1);
-    border-color: var(--accent);
-    color: var(--accent);
 }
 
 .time-btn {

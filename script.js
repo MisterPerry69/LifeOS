@@ -1732,6 +1732,17 @@ function nav(page) {
     console.log("NAV chiamato con:", page); // ← DEBUG
     // Nascondi tutte le pagine principali (.page)
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+    if (page === 'finance' && lastStatsData?.finance) {
+        // Pre-renderizza stats in background
+        setTimeout(() => {
+            const statsView = document.getElementById('finance-stats-view');
+            if (statsView && statsView.innerHTML.trim() === '') {
+                // Se stats view è vuota, pre-popola i dati
+                renderFinanceStatsContent(lastStatsData.finance);
+            }
+        }, 500);
+    }
     
     // Mostra la pagina target (es. 'home' per le note o 'finance' per i soldi)
     const targetPage = document.getElementById(page);
@@ -1750,14 +1761,6 @@ function nav(page) {
     loadReviews();
     }
 
-    if (page === 'finance') {
-        // Pre-calcola stats appena entri
-        setTimeout(() => {
-            if (lastStatsData?.finance) {
-                renderFinanceStats(lastStatsData.finance);
-            }
-        }, 100);
-    }
 }
 
 function renderFinanceStats(financeData) {
@@ -2934,7 +2937,14 @@ function promoteToReview(id) {
 
 let isStatsView = false;
 
-function toggleStats() {
+function renderFinanceStatsContent(financeData) {
+    const statsContainer = document.getElementById('finance-stats-view');
+    if (!statsContainer) return;
+    
+    // Qui metti tutto il codice che calcola e renderizza le stats
+    // (quello che ora è dentro toggleStats())
+
+
     isStatsView = !isStatsView;
     
     const statsBtn = document.getElementById('nav-stats');
@@ -4373,6 +4383,26 @@ function renderWithData(data) {
         if (totalEl) totalEl.innerText = (data.finance.total || "0") + " €";
         if (bankEl) bankEl.innerText = (data.finance.bank || "0") + " €";
         if (cashEl) cashEl.innerText = (data.finance.cash || "0") + " €";
+
+        if (totalEl) {
+    const totalValue = (data.finance.total || "0") + " €";
+    totalEl.innerText = balanceHidden ? '***,** €' : totalValue;
+        }
+        if (bankEl) {
+            const bankValue = (data.finance.bank || "0") + " €";
+            bankEl.innerText = balanceHidden ? '***,** €' : bankValue;
+        }
+        if (cashEl) {
+            const cashValue = (data.finance.cash || "0") + " €";
+            cashEl.innerText = balanceHidden ? '***,** €' : cashValue;
+        }
+
+        // Aggiorna icona
+        const icon = document.getElementById('balance-toggle');
+        if (icon) {
+            icon.setAttribute('data-lucide', balanceHidden ? 'eye-off' : 'eye');
+            if (window.lucide) lucide.createIcons();
+        }
 
         // 3. Burn Rate Bar
         const inc = parseFloat(data.finance.income) || 0;
