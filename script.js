@@ -182,7 +182,6 @@ function renderGrid(data) {
 
     // FIX: Controlli null prima di aggiornare
     const widgetNotes = document.getElementById('widget-notes');
-    const widgetWeight = document.getElementById('widget-weight');
     const widgetReviews = document.getElementById('widget-reviews'); // <-- Nuovo widget
     const widgetWeight = document.getElementById('widget-weight');
 
