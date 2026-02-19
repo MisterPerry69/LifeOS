@@ -3029,56 +3029,51 @@ function renderFinanceStatsView(stats) {
     container.innerHTML = `
         <div class="stats-grid-container">
             
-            <!-- MONTHLY SPENT -->
             <div class="stats-card">
-                <h3 style="color: #ff0055; font-family: 'Rajdhani'; margin-bottom: 15px;">💸 SPESO QUESTO MESE</h3>
-                <div style="font-size: 2rem; color: #ff0055; font-family: 'JetBrains Mono';">${stats.spent.toFixed(2)} €</div>
+                <h3 style="color: #ff0055; font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💸 SPESO MESE</h3>
+                <div style="font-size: 1.5rem; color: #ff0055; font-family: 'JetBrains Mono';">${stats.spent.toFixed(2)} €</div>
             </div>
             
-            <!-- MONTHLY INCOME -->
             <div class="stats-card">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">💰 ENTRATE QUESTO MESE</h3>
-                <div style="font-size: 2rem; color: var(--accent); font-family: 'JetBrains Mono';">${stats.income.toFixed(2)} €</div>
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💰 ENTRATE MESE</h3>
+                <div style="font-size: 1.5rem; color: var(--accent); font-family: 'JetBrains Mono';">${stats.income.toFixed(2)} €</div>
             </div>
             
-            <!-- SURVIVAL INDEX -->
             <div class="stats-card full-width-card">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">🛡️ AUTONOMIA FINANZIARIA</h3>
-                <div style="font-size: 1.2rem; color: #aaa; margin-bottom: 10px;">
-                    Con il saldo attuale (${stats.total.toFixed(2)} €) e la spesa mensile media, puoi vivere per:
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">🛡️ AUTONOMIA</h3>
+                <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 10px;">
+                    Saldo: ${stats.total.toFixed(2)}€ | Spesa media: ${stats.spent.toFixed(2)}€
                 </div>
-                <div style="font-size: 3rem; color: var(--accent); font-family: 'Rajdhani'; font-weight: 700;">
-                    ${stats.survivalMonths} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
+                <div style="font-size: 2rem; color: var(--accent); font-family: 'Rajdhani'; font-weight: 700;">
+                    ${stats.survivalMonths === '∞' ? '∞' : Math.abs(parseFloat(stats.survivalMonths)).toFixed(1)} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
                 </div>
-                <div class="survival-bar-container">
-                    <div id="survival-bar-fill" style="width: ${Math.min(100, parseFloat(stats.survivalMonths) * 10)}%;"></div>
+                <div style="width: 100%; height: 8px; background: #111; border-radius: 4px; margin-top: 15px; overflow: hidden;">
+                    <div style="width: ${Math.min(100, Math.max(0, parseFloat(stats.survivalMonths) * 10))}%; height: 100%; background: ${parseFloat(stats.survivalMonths) < 2 ? '#ff0055' : 'var(--accent)'};"></div>
                 </div>
             </div>
             
-            <!-- CATEGORY BREAKDOWN -->
-            <div class="stats-card full-width-card">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">📊 DISTRIBUZIONE SPESE</h3>
-                <canvas id="categoryChart" style="max-height: 200px;"></canvas>
-            </div>
-            
-            <!-- TOP 3 -->
-            <div class="stats-card full-width-card">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">🔥 TOP 3 CATEGORIE</h3>
+            <div class="stats-card full-width-card" style="display: ${stats.topCategories.length > 0 ? 'block' : 'none'}">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">📊 CATEGORIE</h3>
                 ${stats.topCategories.map((cat, idx) => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); margin-bottom: 8px; border-radius: 4px; border-left: 3px solid ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">
-                        <span style="font-family: 'Rajdhani'; font-size: 14px;">${idx + 1}. ${cat[0]}</span>
-                        <span style="font-family: 'JetBrains Mono'; color: ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">${cat[1].toFixed(2)} €</span>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.02); margin-bottom: 6px; border-radius: 4px; border-left: 3px solid ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">
+                        <span style="font-size: 0.85rem;">${idx + 1}. ${cat[0]}</span>
+                        <span style="font-family: 'JetBrains Mono'; font-size: 0.85rem; color: ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">${cat[1].toFixed(2)} €</span>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="stats-card full-width-card" style="display: ${stats.topTransactions?.length > 0 ? 'block' : 'none'}">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">🔥 TOP 3 SPESE</h3>
+                ${(stats.topTransactions || []).map((tx, idx) => `
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.02); margin-bottom: 6px; border-radius: 4px;">
+                        <span style="font-size: 0.85rem;">${tx.desc}</span>
+                        <span style="font-family: 'JetBrains Mono'; font-size: 0.85rem; color: #ff0055;">-${Math.abs(tx.amt).toFixed(2)} €</span>
                     </div>
                 `).join('')}
             </div>
             
         </div>
     `;
-    
-    // Render grafico
-    if (stats.categories && Object.keys(stats.categories).length > 0) {
-        renderCategoryChart(stats.categories);
-    }
 }
 
 function generateStatsHTML(period = '6M', filterCat = 'ALL') {
@@ -4531,13 +4526,25 @@ function calculateFinanceStats(financeData) {
     const out = parseFloat(financeData.spent) || 0;
     const categories = financeData.categories || {};
     
-    // Survival Index = Quanti mesi puoi vivere col totale attuale
     const total = parseFloat(financeData.total) || 0;
-    const survivalMonths = out > 0 ? (total / out).toFixed(1) : '∞';
+    
+    // Fix survival con valori negativi
+    let survivalMonths = '∞';
+    if (out > 0 && total > 0) {
+        survivalMonths = (total / out).toFixed(1);
+    } else if (total < 0) {
+        survivalMonths = '0';
+    }
     
     // Top 3 categorie
     const sortedCats = Object.entries(categories)
         .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+    
+    // ← AGGIUNGI: Top 3 transazioni singole più grosse
+    const topTransactions = (financeData.transactions || [])
+        .filter(t => t.amt < 0) // Solo uscite
+        .sort((a, b) => a.amt - b.amt) // Ordina dal più negativo
         .slice(0, 3);
     
     return {
@@ -4546,10 +4553,10 @@ function calculateFinanceStats(financeData) {
         categories: categories,
         survivalMonths: survivalMonths,
         topCategories: sortedCats,
+        topTransactions: topTransactions,
         total: total
     };
 }
-
 
 function toggleBalanceVisibility() {
     balanceHidden = !balanceHidden;
