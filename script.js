@@ -2980,6 +2980,12 @@ function toggleStats() {
 }
 
 function renderFinanceStatsView(stats) {
+
+        console.log("=== DEBUG STATS ===");
+    console.log("stats completo:", stats);
+    console.log("categories:", stats.categories);
+    console.log("topCategories:", stats.topCategories);
+    console.log("===================");
     const container = document.getElementById('finance-stats-view');
     
     container.innerHTML = `
