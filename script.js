@@ -4486,11 +4486,21 @@ function renderWithData(data) {
 
 // Nuova funzione che SOLO calcola (non renderizza)
 function calculateFinanceStats(financeData) {
+function calculateFinanceStats(financeData) {
+    console.log("=== DEBUG calculateFinanceStats ===");
+    console.log("financeData ricevuto:", financeData);
+    console.log("financeData.categories:", financeData.categories);
+    
     const inc = parseFloat(financeData.income) || 0;
     const out = parseFloat(financeData.spent) || 0;
     const categories = financeData.categories || {};
     const total = parseFloat(financeData.total) || 0;
     
+    console.log("categories dopo assignment:", categories);
+    console.log("Object.keys(categories):", Object.keys(categories));
+    console.log("Object.entries(categories):", Object.entries(categories));
+    
+
     // Survival Index
     let survivalMonths = '∞';
     let isNegative = false;
