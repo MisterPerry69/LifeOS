@@ -27,6 +27,8 @@ let currentReviews = [];
 let chronoDisplayLimit = 7; // Mostra 7 giorni alla volta
 let ghostGeneratedText = '';
 let balanceHidden = true; // Default nascosto
+let cachedFinanceStats = null;
+
 
 
 // ============================================
@@ -2993,6 +2995,86 @@ function renderFinanceStatsContent(financeData) {
     if(window.lucide) lucide.createIcons();
 }
 
+function toggleStats() {
+    const listView = document.getElementById('finance-list-view');
+    const statsView = document.getElementById('finance-stats-view');
+    
+    if (statsView.style.display === 'block') {
+        statsView.style.display = 'none';
+        listView.style.display = 'block';
+        return;
+    }
+    
+    // Usa stats già calcolate
+    if (!cachedFinanceStats) {
+        showCustomAlert("DATI_NON_DISPONIBILI");
+        return;
+    }
+    
+    renderFinanceStatsView(cachedFinanceStats);
+    
+    statsView.style.display = 'block';
+    listView.style.display = 'none';
+}
+
+function renderFinanceStatsView(stats) {
+    const container = document.getElementById('finance-stats-view');
+    
+    container.innerHTML = `
+        <div class="stats-grid-container">
+            
+            <!-- MONTHLY SPENT -->
+            <div class="stats-card">
+                <h3 style="color: #ff0055; font-family: 'Rajdhani'; margin-bottom: 15px;">💸 SPESO QUESTO MESE</h3>
+                <div style="font-size: 2rem; color: #ff0055; font-family: 'JetBrains Mono';">${stats.spent.toFixed(2)} €</div>
+            </div>
+            
+            <!-- MONTHLY INCOME -->
+            <div class="stats-card">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">💰 ENTRATE QUESTO MESE</h3>
+                <div style="font-size: 2rem; color: var(--accent); font-family: 'JetBrains Mono';">${stats.income.toFixed(2)} €</div>
+            </div>
+            
+            <!-- SURVIVAL INDEX -->
+            <div class="stats-card full-width-card">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">🛡️ AUTONOMIA FINANZIARIA</h3>
+                <div style="font-size: 1.2rem; color: #aaa; margin-bottom: 10px;">
+                    Con il saldo attuale (${stats.total.toFixed(2)} €) e la spesa mensile media, puoi vivere per:
+                </div>
+                <div style="font-size: 3rem; color: var(--accent); font-family: 'Rajdhani'; font-weight: 700;">
+                    ${stats.survivalMonths} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
+                </div>
+                <div class="survival-bar-container">
+                    <div id="survival-bar-fill" style="width: ${Math.min(100, parseFloat(stats.survivalMonths) * 10)}%;"></div>
+                </div>
+            </div>
+            
+            <!-- CATEGORY BREAKDOWN -->
+            <div class="stats-card full-width-card">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">📊 DISTRIBUZIONE SPESE</h3>
+                <canvas id="categoryChart" style="max-height: 200px;"></canvas>
+            </div>
+            
+            <!-- TOP 3 -->
+            <div class="stats-card full-width-card">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; margin-bottom: 15px;">🔥 TOP 3 CATEGORIE</h3>
+                ${stats.topCategories.map((cat, idx) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); margin-bottom: 8px; border-radius: 4px; border-left: 3px solid ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">
+                        <span style="font-family: 'Rajdhani'; font-size: 14px;">${idx + 1}. ${cat[0]}</span>
+                        <span style="font-family: 'JetBrains Mono'; color: ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">${cat[1].toFixed(2)} €</span>
+                    </div>
+                `).join('')}
+            </div>
+            
+        </div>
+    `;
+    
+    // Render grafico
+    if (stats.categories && Object.keys(stats.categories).length > 0) {
+        renderCategoryChart(stats.categories);
+    }
+}
+
 function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     const container = document.getElementById('reviews-stats-container');
     const isAll = filterCat === 'ALL';
@@ -4429,8 +4511,39 @@ function renderWithData(data) {
         if (data.finance.transactions) {
             renderFinanceLog(data.finance.transactions);
         }
+
+            if (data.finance) {
+        // Pre-calcola stats in background
+        cachedFinanceStats = calculateFinanceStats(data.finance);
+    }
     }
 }
+
+/ Nuova funzione che SOLO calcola (non renderizza)
+function calculateFinanceStats(financeData) {
+    const inc = parseFloat(financeData.income) || 0;
+    const out = parseFloat(financeData.spent) || 0;
+    const categories = financeData.categories || {};
+    
+    // Survival Index = Quanti mesi puoi vivere col totale attuale
+    const total = parseFloat(financeData.total) || 0;
+    const survivalMonths = out > 0 ? (total / out).toFixed(1) : '∞';
+    
+    // Top 3 categorie
+    const sortedCats = Object.entries(categories)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+    
+    return {
+        income: inc,
+        spent: out,
+        categories: categories,
+        survivalMonths: survivalMonths,
+        topCategories: sortedCats,
+        total: total
+    };
+}
+
 
 function toggleBalanceVisibility() {
     balanceHidden = !balanceHidden;
