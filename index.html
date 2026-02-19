@@ -241,29 +241,29 @@
         </div>
     </main>
 
-    <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 9000; backdrop-filter: blur(10px);">
-<div class="nav-item" onclick="switchAgendaView('synth')" style="flex:1; text-align:center; color:#fcee0a;">
+    <div class="bottom-nav">
+<div class="nav-item" onclick="switchAgendaView('synth')" >
     <i data-lucide="cpu" style="width:22px;"></i>
     <div style="font-size:8px; margin-top:4px;">SYNTH</div>
 </div>
         
-<div class="nav-item" onclick="switchAgendaView('chrono')" style="flex:1; text-align:center; color:var(--dim);">
+<div class="nav-item" onclick="switchAgendaView('chrono')" >
     <i data-lucide="list" style="width:22px;"></i>
     <div style="font-size:8px; margin-top:4px;">CHRONO</div>
 </div>
 
-        <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
-            <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
+        <div class="nav-item" onclick="nav('home')">
+            <div>
                 <i data-lucide="home" style="width: 28px; color: #000;"></i>
             </div>
         </div>
 
-<div class="nav-item" onclick="switchAgendaView('calendar')" style="flex:1; text-align:center; color:var(--dim);">
+<div class="nav-item" onclick="switchAgendaView('calendar')" >
     <i data-lucide="calendar" style="width:22px;"></i>
     <div style="font-size:8px; margin-top:4px;">CALENDAR</div>
 </div>
 
-<div class="nav-item" onclick="switchAgendaView('add')" style="flex:1; text-align:center; color:var(--dim);">
+<div class="nav-item" onclick="switchAgendaView('add')">
     <i data-lucide="plus-square" style="width:22px;"></i>
     <div style="font-size:8px; margin-top:4px;">ADD</div>
 </div>
@@ -635,30 +635,30 @@
     </div>
     </main>
 
-<div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 9000; backdrop-filter: blur(10px);">
+<div class="bottom-nav">
     
-    <div class="nav-item" id="nav-analyst" onclick="toggleAnalyst()" style="flex:1; text-align: center; color: var(--dim);">
+    <div class="nav-item" id="nav-analyst" onclick="toggleAnalyst()">
         <i data-lucide="cpu" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
     </div>
     
-    <div class="nav-item" id="nav-log" onclick="switchFinanceTab('log')" style="flex:1; text-align: center; color: var(--dim);">
+    <div class="nav-item" id="nav-log" onclick="switchFinanceTab('log')">
         <i data-lucide="filter" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
     </div>
 
-    <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
+    <div class="nav-item" onclick="nav('home')">
         <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
             <i data-lucide="home" style="width: 28px; color: #000;"></i>
         </div>
     </div>
 
-    <div class="nav-item" id="nav-stats" onclick="switchFinanceTab('stats')" style="flex:1; text-align: center; color: #222;"> 
+    <div class="nav-item" id="nav-stats" onclick="switchFinanceTab('stats')"> 
         <i data-lucide="bar-chart-3" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">STATS</div>
     </div>
 
-    <div class="nav-item" id="nav-entry" onclick="toggleFinanceInput(true)" style="flex:1; text-align: center; color: var(--dim);">
+    <div class="nav-item" id="nav-entry" onclick="toggleFinanceInput(true)">
         <i data-lucide="plus-square" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
     </div>
@@ -735,30 +735,30 @@
   <div id="reviews-stats-container" style="display:none; padding: 20px; overflow-y: auto; height: calc(100vh - 150px); background: #050505;">
   </div>
 
-  <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 9000; backdrop-filter: blur(10px);">
+  <div class="bottom-nav">
     
-    <div class="nav-item" id="nav-critic" onclick="toggleCriticAI()" style="flex:1; text-align: center; color: var(--dim);">
+    <div class="nav-item" id="nav-critic" onclick="toggleCriticAI()" >
         <i data-lucide="sparkles" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">CRITIC</div>
     </div>
     
-    <div class="nav-item" id="nav-stats" onclick="toggleStats()" style="flex:1; text-align: center; color: var(--dim);">
+    <div class="nav-item" id="nav-stats" onclick="toggleStats()" >
         <i data-lucide="bar-chart-2" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">STATS</div>
     </div>
 
-    <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
+    <div class="nav-item" onclick="nav('home')" >
         <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
             <i data-lucide="home" style="width: 28px; color: #000;"></i>
         </div>
     </div>
 
-    <div class="nav-item" id="nav-wish" onclick="toggleWishlist()" style="flex:1; text-align: center; color: var(--dim);"> 
+    <div class="nav-item" id="nav-wish" onclick="toggleWishlist()" > 
         <i data-lucide="bookmark" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">WISHLIST</div>
     </div>
 
-    <div class="nav-item" id="nav-review-entry" onclick="openReviewEntry()" style="flex:1; text-align: center; color: var(--dim);">
+    <div class="nav-item" id="nav-review-entry" onclick="openReviewEntry()" >
         <i data-lucide="plus-square" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
     </div>
