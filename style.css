@@ -1587,6 +1587,19 @@ CSS
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Desktop - centrato sotto la navbar */
+@media (min-width: 768px) {
+    #quick-menu {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%) translateY(10px) scale(0.95);
+    }
+    
+    #quick-menu.active {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
 #quick-menu.active {
     opacity: 1;
     transform: translateY(0) scale(1);
