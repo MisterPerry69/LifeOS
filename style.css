@@ -1590,7 +1590,7 @@ CSS
 /* Desktop - centrato sotto la navbar */
 @media (min-width: 768px) {
     #quick-menu {
-        left: 50%;
+        left: 54%;
         right: auto;
         transform: translateX(-50%) translateY(10px) scale(0.95);
     }

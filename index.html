@@ -252,11 +252,12 @@
     <div style="font-size:8px; margin-top:4px;">CHRONO</div>
 </div>
 
-        <div class="nav-item" onclick="nav('home')">
-            <div>
-                <i data-lucide="home" style="width: 28px; color: #000;"></i>
-            </div>
+    <div class="nav-item nav-home" onclick="nav('home')">
+        <div class="home-btn-circle">
+            <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
+    </div>
+
 
 <div class="nav-item" onclick="switchAgendaView('calendar')" >
     <i data-lucide="calendar" style="width:22px;"></i>
@@ -292,12 +293,34 @@
       <div id="viewLabel" class="view-label" style="text-align: center; margin-top: 10px; color: var(--dim); font-size: 10px; letter-spacing: 2px;">MESE</div>
       <div id="pixels" class="pixel-container grid-30"></div>
     </main>
-    <div class="footer">
-      <button class="btn view-toggle" id="cycleBtn" onclick="cycleView()">MESE</button>
-      <button class="btn"><i data-lucide="calendar"></i></button>
-      <button class="btn"><i data-lucide="settings"></i></button>
-      <button class="btn" onclick="loadStats()"><i data-lucide="refresh-cw"></i></button>
+<div class="bottom-nav">
+    <div class="nav-item" id="nav-analyst" onclick="createNew('GHOST')">
+        <i data-lucide="cpu" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">GHOST</div>
     </div>
+    
+    <div class="nav-item" id="nav-search" onclick="toggleBrainSearch()">
+        <i data-lucide="search" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">SEARCH</div>
+    </div>
+
+    <div class="nav-item nav-home" onclick="nav('home')">
+        <div class="home-btn-circle">
+            <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
+        </div>
+    </div>
+
+    <div class="nav-item" id="nav-stats" onclick="filterArchive()">
+        <i data-lucide="archive" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ARCHIVE</div>
+    </div>
+
+    <div class="nav-item" id="nav-entry" onclick="toggleQuickMenu()">
+        <i data-lucide="plus-square" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
+    </div>
+</div>
+
   </div>
 
 <!-- ============================================ -->
@@ -420,30 +443,31 @@
     </main>
 
     <!-- BOTTOM NAV -->
-    <div class="bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5,5,5,0.95); border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); z-index: 9000; backdrop-filter: blur(10px);">
+    <div class="bottom-nav">
         
-        <div class="nav-item" id="body-nav-ai" onclick="toggleBodyCoach()" style="flex:1; text-align: center; color: var(--dim);">
+        <div class="nav-item" id="body-nav-ai" onclick="toggleBodyCoach()">
             <i data-lucide="message-circle" style="width: 22px;"></i>
             <div style="font-size: 8px; margin-top: 4px;">COACH</div>
         </div>
         
-        <div class="nav-item" id="body-nav-stats" onclick="switchBodyView('stats')" style="flex:1; text-align: center; color: var(--dim);">
+        <div class="nav-item" id="body-nav-stats" onclick="switchBodyView('stats')" >
             <i data-lucide="trending-up" style="width: 22px;"></i>
             <div style="font-size: 8px; margin-top: 4px;">STATS</div>
         </div>
 
-        <div class="nav-item" onclick="nav('home')" style="flex:1.2; text-align: center; transform: translateY(-10px);">
-            <div style="background: #00ff41; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px #00ff41; border: 3px solid #000;">
-                <i data-lucide="home" style="width: 28px; color: #000;"></i>
-            </div>
+    <div class="nav-item nav-home" onclick="nav('home')">
+        <div class="home-btn-circle">
+            <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
+    </div>
 
-        <div class="nav-item" id="body-nav-log" onclick="openQuickLog('workout')" style="flex:1; text-align: center; color: var(--dim);">
+
+        <div class="nav-item" id="body-nav-log" onclick="openQuickLog('workout')" >
             <i data-lucide="plus-circle" style="width: 22px;"></i>
             <div style="font-size: 8px; margin-top: 4px;">LOG</div>
         </div>
 
-        <div class="nav-item" id="body-nav-history" onclick="switchBodyView('history')" style="flex:1; text-align: center; color: var(--dim);">
+        <div class="nav-item" id="body-nav-history" onclick="switchBodyView('history')" >
             <i data-lucide="calendar-days" style="width: 22px;"></i>
             <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
         </div>
@@ -647,9 +671,9 @@
         <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
     </div>
 
-    <div class="nav-item" onclick="nav('home')">
-        <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
-            <i data-lucide="home" style="width: 28px; color: #000;"></i>
+    <div class="nav-item nav-home" onclick="nav('home')">
+        <div class="home-btn-circle">
+            <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
     </div>
 
@@ -747,9 +771,9 @@
         <div style="font-size: 8px; margin-top: 4px;">STATS</div>
     </div>
 
-    <div class="nav-item" onclick="nav('home')" >
-        <div style="background: var(--accent); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; box-shadow: 0 0 15px var(--accent); border: 3px solid #000;">
-            <i data-lucide="home" style="width: 28px; color: #000;"></i>
+    <div class="nav-item nav-home" onclick="nav('home')">
+        <div class="home-btn-circle">
+            <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
     </div>
 
