@@ -4237,6 +4237,112 @@ function renderBodyHistory() {
     }
 }
 
+function renderFullHistory() {
+    const container = document.getElementById('body-history-container');
+    if (!container) return;
+
+    if (!bodyData.workouts || bodyData.workouts.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#333; padding:40px;">NESSUN_LOG_TROVATO</div>';
+        return;
+    }
+
+    container.innerHTML = bodyData.workouts.map(w => {
+        const date = new Date(w.date).toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: 'long' }).toUpperCase();
+        const moodEmoji = w.mood === -2 ? '😫' : w.mood === -1 ? '😐' : w.mood === 0 ? '😊' : w.mood === 1 ? '😄' : '🔥';
+        
+        // Formattazione testo esercizi (gestisce stringhe con freccette)
+        const exercises = Array.isArray(w.exercises) ? w.exercises.join(', ') : w.exercises;
+        const formattedEx = (exercises || 'Log rapido')
+            .replace(/;/g, '<br>')
+            .replace(/\(↑\)/g, '<b style="color:#00ff41">↑</b>')
+            .replace(/\(↓\)/g, '<b style="color:#ff4d4d">↓</b>');
+
+        return `
+            <div style="background:#0a0a0a; border:1px solid #222; margin-bottom:15px; border-radius:8px; overflow:hidden;">
+                <div style="background:#111; padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-family:'Rajdhani'; font-weight:bold; font-size:0.8rem; color:var(--accent);">${date}</span>
+                    <span>${moodEmoji}</span>
+                </div>
+                <div style="padding:15px;">
+                    <div style="font-size:0.85rem; color:#eee; line-height:1.4;">${formattedEx}</div>
+                    ${w.notes ? `<div style="margin-top:10px; font-size:0.75rem; color:var(--dim); border-top:1px solid #222; padding-top:8px; font-style:italic;">Note: ${w.notes}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+let weightChartInstance = null;
+let workoutChartInstance = null;
+
+function renderBodyCharts() {
+    // 1. GRAFICO PESO (Trend ultimi 30 log)
+    const weightCtx = document.getElementById('weight-chart');
+    if (weightCtx && bodyData.weightHistory) {
+        if (weightChartInstance) weightChartInstance.destroy();
+        
+        const labels = bodyData.weightHistory.map(h => new Date(h.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}));
+        const values = bodyData.weightHistory.map(h => h.weight);
+
+        weightChartInstance = new Chart(weightCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'KG',
+                    data: values,
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: '#222' }, ticks: { color: '#666' } },
+                    x: { grid: { display: false }, ticks: { color: '#666' } }
+                }
+            }
+        });
+    }
+
+    // 2. GRAFICO FREQUENZA (Workout per settimana)
+    const workoutCtx = document.getElementById('workout-chart');
+    if (workoutCtx && bodyData.workouts) {
+        if (workoutChartInstance) workoutChartInstance.destroy();
+
+        // Raggruppiamo per mese o ultime settimane
+        const lastWorkouts = bodyData.workouts.slice(0, 10).reverse();
+        const labels = lastWorkouts.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}));
+        const moods = lastWorkouts.map(w => w.mood);
+
+        workoutChartInstance = new Chart(workoutCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Mood',
+                    data: moods,
+                    backgroundColor: moods.map(m => m >= 0 ? '#00ff41' : '#ff4d4d'),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: -2, max: 2, grid: { color: '#222' }, ticks: { stepSize: 1, color: '#666' } },
+                    x: { grid: { display: false }, ticks: { color: '#666' } }
+                }
+            }
+        });
+    }
+}
+
+
 // ============================================
 // INIT
 // ============================================
