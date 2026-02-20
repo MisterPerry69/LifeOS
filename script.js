@@ -4009,70 +4009,50 @@ async function submitWorkoutFeeling() {
         return;
     }
     
-    const btn = document.querySelector('#workout-feeling-modal button'); // ← Trova bottone senza event
-    const originalText = btn ? btn.innerHTML : '';
+    const btn = document.querySelector('#workout-feeling-modal button');
     if (btn) {
         btn.innerHTML = '<span class="blink">PROCESSING...</span>';
         btn.disabled = true;
     }
     
     try {
-        // Step 1: Parse workout
-        const parseResponse = await fetch(SCRIPT_URL, {
+        // Salva workout direttamente
+        await fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             body: JSON.stringify({
-                service: 'parse_workout',
-                text: input
+                service: 'save_workout',
+                raw_input: input
             })
         });
         
-        const parseResult = await parseResponse.json();
+        // Chiedi feedback al coach
+        const coachResponse = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                service: 'ask_body_coach',
+                query: `Ho fatto questo workout: ${input}. Dammi un feedback breve e motivante.`
+            })
+        });
         
-        if (parseResult.status === "SUCCESS") {
-            const parsedData = parseResult.parsed;
-            
-            // Step 2: Salva workout
-            await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({
-                    service: 'save_workout',
-                    raw_input: input,
-                    parsed_data: parsedData
-                })
-            });
-            
-            // Step 3: Chiedi al coach
-            const coachResponse = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    service: 'ask_body_coach',
-                    query: `Ho fatto questo workout: ${input}. Dammi un feedback breve.`
-                })
-            });
-            
-            const coachText = await coachResponse.text();
-            
-            // Mostra risposta coach CON BOTTONE
-            const coachZone = document.getElementById('coach-response-zone');
-            coachZone.style.display = 'block';
-            coachZone.innerHTML = `
-                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px;">COACH:</div>
-                <div style="color: #fff; line-height: 1.6; margin-bottom: 15px;">"${coachText}"</div>
-                <button onclick="closeWorkoutFeeling(); loadStats(); renderBodyDashboard();" 
-                        style="padding: 12px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold; border-radius: 4px;">
-                    OK, CHIUDI
-                </button>
-            `;
-            
-        } else {
-            throw new Error("Parse failed");
-        }
+        const coachText = await coachResponse.text();
+        
+        // Mostra risposta
+        const coachZone = document.getElementById('coach-response-zone');
+        coachZone.style.display = 'block';
+        coachZone.innerHTML = `
+            <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px;">COACH:</div>
+            <div style="color: #fff; line-height: 1.6; margin-bottom: 15px;">"${coachText}"</div>
+            <button onclick="closeWorkoutFeeling(); setTimeout(() => { loadStats(); renderBodyDashboard(); }, 500);" 
+                    style="padding: 12px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold; border-radius: 4px;">
+                OK, CHIUDI
+            </button>
+        `;
         
     } catch (e) {
         console.error("Errore workout:", e);
         if (btn) {
-            btn.innerHTML = originalText;
+            btn.innerHTML = 'SALVA_WORKOUT';
             btn.disabled = false;
         }
         showCustomAlert("ERRORE_CONNESSIONE");
