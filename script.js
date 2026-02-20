@@ -4214,9 +4214,9 @@ function switchBodyView(view) {
     if (view === 'dashboard') {
         document.getElementById('body-dashboard').style.display = 'block';
     } else if (view === 'stats') {
-        document.getElementById('body-stats-view').style.display = 'block';
-        document.getElementById('body-nav-stats').style.color = '#00ff41';
-        renderBodyStats();
+        stats.style.display = 'block';
+        renderBodyCharts(); // Inizializza grafici
+    }
     } else if (view === 'history') {
         document.getElementById('body-history-view').style.display = 'block';
         document.getElementById('body-nav-history').style.color = '#00ff41';
