@@ -4203,20 +4203,22 @@ function switchBodyView(view) {
     
     currentBodyView = view;
     
-    // Nascondi tutte le view
+    // Nascondi tutte le view tramite ID precisi
     document.getElementById('body-dashboard').style.display = 'none';
     document.getElementById('body-stats-view').style.display = 'none';
     document.getElementById('body-history-view').style.display = 'none';
     
-    // Reset colori nav
+    // Reset colori nav (usa var(--dim) come base)
     document.querySelectorAll('#body .nav-item').forEach(el => el.style.color = 'var(--dim)');
     
     if (view === 'dashboard') {
         document.getElementById('body-dashboard').style.display = 'block';
+        // La dashboard non ha un'icona specifica attiva di solito, o puoi colorare la home
     } else if (view === 'stats') {
-        stats.style.display = 'block';
-        renderBodyCharts(); // Inizializza grafici
-    
+        // CORREZIONE: Uso del selettore ID corretto
+        document.getElementById('body-stats-view').style.display = 'block';
+        document.getElementById('body-nav-stats').style.color = '#00ff41'; 
+        renderBodyCharts(); 
     } else if (view === 'history') {
         document.getElementById('body-history-view').style.display = 'block';
         document.getElementById('body-nav-history').style.color = '#00ff41';
