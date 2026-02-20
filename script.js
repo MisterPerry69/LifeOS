@@ -4349,39 +4349,50 @@ function renderBodyCharts() {
     }
 
     // 2. GRAFICO MOOD FREQUENCY
-    const workoutCtx = document.getElementById('workout-chart');
-    if (workoutCtx && bodyData.workouts && bodyData.workouts.length > 0) {
-        if (window.workoutChartInstance) window.workoutChartInstance.destroy();
+    // MODIFICA DEL DATASET MOOD (dentro renderBodyCharts)
+const moods = lastWorkouts.map(w => {
+    const val = (w.mood !== undefined && w.mood !== null) ? Number(w.mood) : 0;
+    return val;
+});
 
-        const lastWorkouts = [...bodyData.workouts].slice(0, 12).reverse();
-        const labels = lastWorkouts.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit'}));
-        const moods = lastWorkouts.map(w => (w.mood !== undefined && w.mood !== null) ? Number(w.mood) : 0);
-
-        window.workoutChartInstance = new Chart(workoutCtx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: moods,
-                    backgroundColor: moods.map(m => m > 0 ? '#00ff41' : m < 0 ? '#ff4d4d' : '#333'),
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { 
-                        min: -2, max: 2, 
-                        grid: { color: '#111' }, 
-                        ticks: { stepSize: 1, color: '#444', font: { size: 9 } } 
-                    },
-                    x: { grid: { display: false }, ticks: { color: '#444', font: { size: 9 } } }
+window.workoutChartInstance = new Chart(workoutCtx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Mood',
+            data: moods.map(m => m === 0 ? 0.2 : m), // Forza un minimo di altezza visiva per gli 0
+            backgroundColor: moods.map(m => {
+                if (m > 0) return '#00ff41'; // Verde per i positivi
+                if (m < 0) return '#ff4d4d'; // Rosso per i negativi
+                return '#333';               // Grigio scuro per lo 0 (neutro)
+            }),
+            borderRadius: 4,
+            barThickness: 12
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                min: -2.5, // Spazio extra sotto
+                max: 2.5,  // Spazio extra sopra
+                grid: { color: '#111' },
+                ticks: { 
+                    stepSize: 1, 
+                    color: '#444',
+                    callback: function(value) {
+                        if (value === 2) return '🔥';
+                        if (value === 0) return '•';
+                        if (value === -2) return '💀';
+                        return '';
+                    }
                 }
             }
-        });
+        }
     }
+});
 
     // 3. TOP IMPROVEMENTS
     renderTopImprovements();
