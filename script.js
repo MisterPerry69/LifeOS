@@ -4311,10 +4311,6 @@ function renderFullHistory() {
 
 let weightChartInstance = null;
 let workoutChartInstance = null;
-let currentViewMonth = new Date().getMonth(); // Mese corrente (0-11)
-let currentViewYear = new Date().getFullYear();
-
-// Variabili globali per la navigazione (Mese Corrente di default)
 let currentViewMonth = new Date().getMonth();
 let currentViewYear = new Date().getFullYear();
 let weightViewMonth = new Date().getMonth();
