@@ -4311,29 +4311,44 @@ function renderFullHistory() {
 
 let weightChartInstance = null;
 let workoutChartInstance = null;
+let currentViewMonth = new Date().getMonth(); // Mese corrente (0-11)
+let currentViewYear = new Date().getFullYear();
+
+// Variabili globali per la navigazione (Mese Corrente di default)
+let currentViewMonth = new Date().getMonth();
+let currentViewYear = new Date().getFullYear();
+let weightViewMonth = new Date().getMonth();
+let weightViewYear = new Date().getFullYear();
+
+const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
 
 function renderBodyCharts() {
-    // 1. GRAFICO PESO (Invariato)
+    // --- A. GESTIONE GRAFICO PESO ---
     const weightCtx = document.getElementById('weight-chart');
-    if (weightCtx && bodyData.weightHistory && bodyData.weightHistory.length > 0) {
+    if (weightCtx && bodyData.weightHistory) {
         if (window.weightChartInstance) window.weightChartInstance.destroy();
         
-        const labels = bodyData.weightHistory.map(h => new Date(h.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}));
-        const values = bodyData.weightHistory.map(h => h.weight);
+        // Filtro dati peso per mese selezionato
+        const filteredWeight = bodyData.weightHistory.filter(h => {
+            const d = new Date(h.date);
+            return d.getMonth() === weightViewMonth && d.getFullYear() === weightViewYear;
+        }).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const wLabels = filteredWeight.map(h => new Date(h.date).toLocaleDateString('it-IT', {day:'2-digit'}));
+        const wValues = filteredWeight.map(h => h.weight);
 
         window.weightChartInstance = new Chart(weightCtx, {
             type: 'line',
             data: {
-                labels: labels,
+                labels: wLabels,
                 datasets: [{
-                    label: 'KG',
-                    data: values,
+                    data: wValues,
                     borderColor: '#00d4ff',
                     backgroundColor: 'rgba(0, 212, 255, 0.1)',
                     borderWidth: 2,
                     fill: true,
                     tension: 0.3,
-                    pointRadius: 2
+                    pointRadius: 3
                 }]
             },
             options: {
@@ -4346,80 +4361,90 @@ function renderBodyCharts() {
                 }
             }
         });
+        document.getElementById('weight-month-display').innerText = `${monthNames[weightViewMonth]} ${weightViewYear}`;
     }
 
-// 2. GRAFICO MOOD & ENERGY FREQUENCY
+    // --- B. GESTIONE GRAFICO WORKOUT (MOOD + LINEA ENERGIA) ---
     const workoutCtx = document.getElementById('workout-chart');
-    if (workoutCtx && bodyData.workouts && bodyData.workouts.length > 0) {
+    if (workoutCtx && bodyData.workouts) {
         if (window.workoutChartInstance) window.workoutChartInstance.destroy();
 
-        const lastWorkouts = [...bodyData.workouts].slice(0, 12).reverse();
-        const labels = lastWorkouts.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit'}));
-        
-        // MOOD: Normalizziamo da 0 a 4 per il grafico (trasformiamo -2/+2 in 0/4)
-        const moodValues = lastWorkouts.map(w => {
-            const m = (w.mood !== undefined) ? Number(w.mood) : 0;
-            return m + 2; // -2 diventa 0, 0 diventa 2, +2 diventa 4
-        });
+        const filteredWorkouts = bodyData.workouts.filter(w => {
+            const d = new Date(w.date);
+            return d.getMonth() === currentViewMonth && d.getFullYear() === currentViewYear;
+        }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
-        // ENERGY: Definiamo l'opacità dello sfondo in base all'energia
-        const energyBackgrounds = lastWorkouts.map(w => {
-            const e = String(w.energy).toLowerCase();
-            if (e === 'high') return 'rgba(0, 255, 65, 0.15)'; // Verde tech
-            if (e === 'low') return 'rgba(255, 77, 77, 0.15)';  // Rosso alert
-            return 'rgba(255, 255, 255, 0.05)';                // Neutro
-        });
+        if (filteredWorkouts.length > 0) {
+            const labels = filteredWorkouts.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit'}));
+            const moodValues = filteredWorkouts.map(w => Number(w.mood || 0) + 2); 
+            const backgroundFill = moodValues.map(v => 4 - v);
+            
+            // Mapping energia: linea blu elettrica
+            const energyMap = { 'low': 0.8, 'medium': 2, 'mid': 2, 'high': 3.2 };
+            const energyValues = filteredWorkouts.map(w => energyMap[String(w.energy).toLowerCase()] || 2);
 
-        // Creiamo il dataset "sfondo" per riempire sempre la barra fino al top (valore 4)
-        const backgroundFill = moodValues.map(v => 4 - v);
-
-        window.workoutChartInstance = new Chart(workoutCtx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Mood Level',
-                        data: moodValues,
-                        backgroundColor: moodValues.map(v => {
-                            if (v > 2) return '#00ff41'; // Positive
-                            if (v < 2) return '#ff4d4d'; // Negative
-                            return '#555';               // Neutral
-                        }),
-                        borderRadius: 4,
-                        borderSkipped: false,
-                    },
-                    {
-                        label: 'Energy Container',
-                        data: backgroundFill,
-                        backgroundColor: energyBackgrounds, // Colore basato sull'energia
-                        borderRadius: 4,
-                        borderSkipped: false,
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: true } },
-                scales: {
-                    x: { 
-                        stacked: true, 
-                        grid: { display: false }, 
-                        ticks: { color: '#444', font: { size: 9 } } 
-                    },
-                    y: { 
-                        stacked: true, 
-                        display: false, // Nascondiamo l'asse Y per pulizia estetica come in foto
-                        max: 4 
+            window.workoutChartInstance = new Chart(workoutCtx, {
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Energia',
+                            data: energyValues,
+                            borderColor: '#00d4ff',
+                            borderWidth: 2,
+                            pointRadius: 2,
+                            tension: 0.4,
+                            order: 1
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Mood',
+                            data: moodValues,
+                            backgroundColor: moodValues.map(v => v > 2 ? '#00ff41' : v < 2 ? '#ff4d4d' : '#555'),
+                            borderRadius: 4,
+                            order: 2
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Capsula',
+                            data: backgroundFill,
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: 4,
+                            order: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#444', font: { size: 9 } } },
+                        y: { stacked: true, display: false, max: 4 }
                     }
                 }
-            }
-        });
+            });
+        }
+        document.getElementById('current-month-display').innerText = `${monthNames[currentViewMonth]} ${currentViewYear}`;
     }
 
-    // 3. TOP IMPROVEMENTS
     renderTopImprovements();
+}
+
+// Funzioni Navigazione
+function changeMonth(delta) {
+    currentViewMonth += delta;
+    if (currentViewMonth > 11) { currentViewMonth = 0; currentViewYear++; }
+    if (currentViewMonth < 0) { currentViewMonth = 11; currentViewYear--; }
+    renderBodyCharts();
+}
+
+function changeWeightMonth(delta) {
+    weightViewMonth += delta;
+    if (weightViewMonth > 11) { weightViewMonth = 0; weightViewYear++; }
+    if (weightViewMonth < 0) { weightViewMonth = 11; weightViewYear--; }
+    renderBodyCharts();
 }
 
 function renderTopImprovements() {

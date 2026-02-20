@@ -421,17 +421,33 @@
         </div>
 
         <!-- STATS VIEW (hidden by default) -->
-        <div id="body-stats-view" style="display: none; margin-top: 20px;">
-            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h3 style="font-family: 'Rajdhani'; font-size: 1rem; color: var(--dim); margin: 0 0 15px 0;">PESO_TREND</h3>
-                <canvas id="weight-chart" style="max-height: 200px;"></canvas>
-            </div>
-
-            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
-                <h3 style="font-family: 'Rajdhani'; font-size: 1rem; color: var(--dim); margin: 0 0 15px 0;">WORKOUT_FREQUENCY</h3>
-                <canvas id="workout-chart" style="max-height: 200px;"></canvas>
+<div id="body-stats-view" style="display: none; margin-top: 20px;">
+    
+    <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-family: 'Rajdhani'; font-size: 0.9rem; color: var(--dim); margin: 0; letter-spacing: 1px;">PESO_TREND</h3>
+            <div style="display: flex; align-items: center; gap: 10px; background: #111; padding: 4px 10px; border-radius: 20px; border: 1px solid #333;">
+                <button onclick="changeWeightMonth(-1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">◀</button>
+                <span id="weight-month-display" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#aaa; min-width:80px; text-align:center;">---</span>
+                <button onclick="changeWeightMonth(1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">▶</button>
             </div>
         </div>
+        <canvas id="weight-chart" style="max-height: 200px;"></canvas>
+    </div>
+
+    <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-family: 'Rajdhani'; font-size: 0.9rem; color: var(--dim); margin: 0; letter-spacing: 1px;">WORKOUT_FREQUENCY</h3>
+            <div style="display: flex; align-items: center; gap: 10px; background: #111; padding: 4px 10px; border-radius: 20px; border: 1px solid #333;">
+                <button onclick="changeMonth(-1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">◀</button>
+                <span id="current-month-display" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#aaa; min-width:80px; text-align:center;">---</span>
+                <button onclick="changeMonth(1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">▶</button>
+            </div>
+        </div>
+        <canvas id="workout-chart" style="max-height: 200px;"></canvas>
+    </div>
+
+</div>
 
         <!-- HISTORY VIEW (hidden by default) -->
         <div id="body-history-view" style="display: none; margin-top: 20px;">
