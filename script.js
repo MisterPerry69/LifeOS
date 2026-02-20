@@ -4004,60 +4004,41 @@ function closeWeightLog() {
 
 async function submitWorkoutFeeling() {
     const input = document.getElementById('workout-feeling-input').value.trim();
-    if (!input) {
-        showCustomAlert("SCRIVI_QUALCOSA_SUL_WORKOUT");
-        return;
-    }
+    if (!input) return;
     
     const btn = document.querySelector('#workout-feeling-modal button');
-    if (btn) {
-        btn.innerHTML = '<span class="blink">PROCESSING...</span>';
-        btn.disabled = true;
-    }
+    btn.innerHTML = '<span class="blink">ANALISI & SALVATAGGIO...</span>';
+    btn.disabled = true;
     
     try {
-        // Salva workout direttamente
+        // Inviamo solo il testo grezzo, il server fa tutto il resto
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             body: JSON.stringify({
-                service: 'save_workout',
+                service: 'save_workout', // Il servizio che abbiamo appena modificato
                 raw_input: input
             })
         });
-        
-        // Chiedi feedback al coach
-        const coachResponse = await fetch(SCRIPT_URL, {
+
+        // Feedback del coach (opzionale, ma carino)
+        const coachRes = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                service: 'ask_body_coach',
-                query: `Ho fatto questo workout: ${input}. Dammi un feedback breve e motivante.`
-            })
+            body: JSON.stringify({ service: 'ask_body_coach', query: input })
         });
-        
-        const coachText = await coachResponse.text();
-        
-        // Mostra risposta
+        const coachText = await coachRes.text();
+
+        // Mostra risultato
         const coachZone = document.getElementById('coach-response-zone');
         coachZone.style.display = 'block';
-        coachZone.innerHTML = `
-            <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px;">COACH:</div>
-            <div style="color: #fff; line-height: 1.6; margin-bottom: 15px;">"${coachText}"</div>
-            <button onclick="closeWorkoutFeeling(); setTimeout(() => { loadStats(); renderBodyDashboard(); }, 500);" 
-                    style="padding: 12px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold; border-radius: 4px;">
-                OK, CHIUDI
-            </button>
-        `;
+        coachZone.innerHTML = `<p>${coachText}</p><button onclick="location.reload()">CHIUDI</button>`;
         
     } catch (e) {
-        console.error("Errore workout:", e);
-        if (btn) {
-            btn.innerHTML = 'SALVA_WORKOUT';
-            btn.disabled = false;
-        }
-        showCustomAlert("ERRORE_CONNESSIONE");
+        console.error(e);
+        btn.innerHTML = 'ERRORE';
+        btn.disabled = false;
     }
 }
+
 // ============================================
 // SUBMIT WEIGHT
 // ============================================
