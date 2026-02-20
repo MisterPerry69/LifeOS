@@ -3981,9 +3981,36 @@ function renderRecentWorkouts() {
 
 // Nel tuo script.js, SOSTITUISCI la funzione openQuickLog:
 
+let selectedMood = 0; // Default: 😊
+let selectedEnergy = 'mid'; // Default: MID
+
+function selectWorkoutMood(value, btn) {
+    selectedMood = value;
+    // Reset bordi
+    document.querySelectorAll('#mood-selector button').forEach(b => b.style.borderColor = '#333');
+    // Attiva selezionato
+    btn.style.borderColor = '#00ff41';
+}
+
+function selectWorkoutEnergy(value, btn) {
+    selectedEnergy = value;
+    // Reset colori e bordi
+    document.querySelectorAll('#energy-selector button').forEach(b => {
+        b.style.borderColor = '#333';
+        b.style.color = '#666';
+    });
+    // Attiva selezionato (colore basato sul livello)
+    const colors = { 'low': '#555', 'mid': '#ff9500', 'high': '#00d4ff' };
+    btn.style.borderColor = colors[value];
+    btn.style.color = colors[value];
+}
+
 function openQuickLog(type) {
     if (type === 'workout') {
+        selectedMood = 0;
+        selectedEnergy = 'mid';
         document.getElementById('workout-feeling-modal').style.display = 'block';
+        // (Opzionale: resetta graficamente i bordi dei bottoni ai default qui)
         setTimeout(() => document.getElementById('workout-feeling-input').focus(), 300);
     } else if (type === 'weight') {
         // FIX: Non usare modal-backdrop, crea backdrop inline nel modal stesso
@@ -4032,35 +4059,43 @@ async function submitWorkoutFeeling() {
     const input = document.getElementById('workout-feeling-input').value.trim();
     if (!input) return;
     
-    const btn = document.querySelector('#workout-feeling-modal button');
+    const btn = document.querySelector('#workout-feeling-modal button[onclick="submitWorkoutFeeling()"]');
     btn.innerHTML = '<span class="blink">ANALISI & SALVATAGGIO...</span>';
     btn.disabled = true;
     
     try {
-        // Inviamo solo il testo grezzo, il server fa tutto il resto
+        // Inviamo il testo + i dati certi selezionati dai bottoni
         await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({
-                service: 'save_workout', // Il servizio che abbiamo appena modificato
-                raw_input: input
+                service: 'save_workout',
+                raw_input: input,
+                manual_mood: selectedMood,      // Da variabile globale
+                manual_energy: selectedEnergy   // Da variabile globale
             })
         });
 
-        // Feedback del coach (opzionale, ma carino)
+        // Feedback del coach
         const coachRes = await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ service: 'ask_body_coach', query: input })
+            body: JSON.stringify({ 
+                service: 'ask_body_coach', 
+                query: input,
+                mood: selectedMood,
+                energy: selectedEnergy
+            })
         });
         const coachText = await coachRes.text();
 
         // Mostra risultato
         const coachZone = document.getElementById('coach-response-zone');
         coachZone.style.display = 'block';
-        coachZone.innerHTML = `<p>${coachText}</p><button onclick="location.reload()">CHIUDI</button>`;
+        coachZone.innerHTML = `<p style="color:#00ff41; font-family:'JetBrains Mono'; font-size:0.85rem; line-height:1.4;">${coachText}</p>
+                               <button onclick="location.reload()" style="width:100%; margin-top:10px; padding:10px; background:transparent; border:1px solid #00ff41; color:#00ff41; font-family:'Rajdhani'; cursor:pointer;">CHIUDI_SESSIONE</button>`;
         
     } catch (e) {
         console.error(e);
-        btn.innerHTML = 'ERRORE';
+        btn.innerHTML = 'ERRORE_SINC';
         btn.disabled = false;
     }
 }
@@ -4278,19 +4313,48 @@ let weightChartInstance = null;
 let workoutChartInstance = null;
 
 function renderBodyCharts() {
-    // 1. GRAFICO PESO (Invariato, già funzionante)
-    renderWeightChart();
+    // 1. GRAFICO PESO
+    const weightCtx = document.getElementById('weight-chart');
+    if (weightCtx && bodyData.weightHistory && bodyData.weightHistory.length > 0) {
+        if (window.weightChartInstance) window.weightChartInstance.destroy();
+        
+        const labels = bodyData.weightHistory.map(h => new Date(h.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}));
+        const values = bodyData.weightHistory.map(h => h.weight);
 
-    // 2. GRAFICO MOOD FREQUENCY (Con fix dati)
+        window.weightChartInstance = new Chart(weightCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'KG',
+                    data: values,
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: '#111' }, ticks: { color: '#666', font: { size: 9 } } },
+                    x: { grid: { display: false }, ticks: { color: '#666', font: { size: 9 } } }
+                }
+            }
+        });
+    }
+
+    // 2. GRAFICO MOOD FREQUENCY
     const workoutCtx = document.getElementById('workout-chart');
     if (workoutCtx && bodyData.workouts && bodyData.workouts.length > 0) {
         if (window.workoutChartInstance) window.workoutChartInstance.destroy();
 
-        // Prendiamo gli ultimi 12 workout per una visuale migliore
         const lastWorkouts = [...bodyData.workouts].slice(0, 12).reverse();
         const labels = lastWorkouts.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit'}));
-        
-        // Fix: se il mood è undefined o null, mettiamo 0
         const moods = lastWorkouts.map(w => (w.mood !== undefined && w.mood !== null) ? Number(w.mood) : 0);
 
         window.workoutChartInstance = new Chart(workoutCtx, {
@@ -4311,15 +4375,15 @@ function renderBodyCharts() {
                     y: { 
                         min: -2, max: 2, 
                         grid: { color: '#111' }, 
-                        ticks: { stepSize: 1, color: '#444' } 
+                        ticks: { stepSize: 1, color: '#444', font: { size: 9 } } 
                     },
-                    x: { grid: { display: false }, ticks: { color: '#444' } }
+                    x: { grid: { display: false }, ticks: { color: '#444', font: { size: 9 } } }
                 }
             }
         });
     }
 
-    // 3. RENDER TOP IMPROVEMENTS CON KG
+    // 3. TOP IMPROVEMENTS
     renderTopImprovements();
 }
 

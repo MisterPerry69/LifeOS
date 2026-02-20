@@ -478,29 +478,47 @@
     </div>
 
     <!-- WORKOUT FEELING MODAL -->
-    <div id="workout-feeling-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; padding: 20px; overflow-y: auto;">
-        <div style="max-width: 500px; margin: 50px auto; background: #0a0a0a; border: 2px solid #00ff41; border-radius: 8px; padding: 25px;">
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-family: 'Rajdhani'; font-size: 1.3rem; color: #00ff41; margin: 0;">COME È ANDATA?</h3>
-                <button onclick="closeWorkoutFeeling()" style="background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.2rem;">✕</button>
-            </div>
+<div id="workout-feeling-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; padding: 20px; overflow-y: auto;">
+    <div style="max-width: 500px; margin: 50px auto; background: #0a0a0a; border: 2px solid #00ff41; border-radius: 8px; padding: 25px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-family: 'Rajdhani'; font-size: 1.3rem; color: #00ff41; margin: 0;">WORKOUT_SESSION_LOG</h3>
+            <button onclick="closeWorkoutFeeling()" style="background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.2rem;">✕</button>
+        </div>
 
-            <textarea id="workout-feeling-input" 
-                      placeholder="Scrivi a flusso... es: 'Oggi panca malissimo, fatto 40kg x8 invece di 10. Stacco ok 100kg x5. Ero stanco morto.'"
-                      style="width: 100%; height: 150px; background: #111; border: 1px solid #222; color: #fff; padding: 15px; font-family: 'JetBrains Mono'; font-size: 0.9rem; outline: none; border-radius: 4px; resize: vertical; box-sizing: border-box;"></textarea>
-
-            <button onclick="submitWorkoutFeeling()" 
-                    style="width: 100%; margin-top: 15px; padding: 15px; background: #00ff41; color: #000; border: none; font-family: 'Rajdhani'; font-weight: bold; font-size: 1rem; cursor: pointer; border-radius: 4px;">
-                INVIA AL COACH
-            </button>
-
-            <div id="coach-response-zone" style="margin-top: 20px; padding: 15px; background: #050505; border-left: 3px solid #00ff41; display: none;">
-                <!-- Risposta coach apparirà qui -->
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 10px; color: var(--dim); margin-bottom: 10px; letter-spacing: 1px;">MOOD_FEELING</div>
+            <div id="mood-selector" style="display: flex; justify-content: space-between; gap: 5px;">
+                <button onclick="selectWorkoutMood(-2, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">😫</button>
+                <button onclick="selectWorkoutMood(-1, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">😐</button>
+                <button onclick="selectWorkoutMood(0, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer; border-color:#00ff41;">😊</button>
+                <button onclick="selectWorkoutMood(1, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">😄</button>
+                <button onclick="selectWorkoutMood(2, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">🔥</button>
             </div>
         </div>
-    </div>
 
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 10px; color: var(--dim); margin-bottom: 10px; letter-spacing: 1px;">ENERGY_LEVEL</div>
+            <div id="energy-selector" style="display: flex; gap: 10px;">
+                <button onclick="selectWorkoutEnergy('low', this)" style="flex:1; background:#111; border:1px solid #333; color:#666; padding:8px; border-radius:4px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer;">LOW</button>
+                <button onclick="selectWorkoutEnergy('mid', this)" style="flex:1; background:#111; border:1px solid #333; color:#666; padding:8px; border-radius:4px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer; border-color:#ff9500; color:#ff9500;">MID</button>
+                <button onclick="selectWorkoutEnergy('high', this)" style="flex:1; background:#111; border:1px solid #333; color:#666; padding:8px; border-radius:4px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer;">HIGH</button>
+            </div>
+        </div>
+
+        <textarea id="workout-feeling-input" 
+                  placeholder="Scrivi qui gli esercizi o come ti senti... Gemini penserà al resto."
+                  style="width: 100%; height: 120px; background: #111; border: 1px solid #222; color: #fff; padding: 15px; font-family: 'JetBrains Mono'; font-size: 0.9rem; outline: none; border-radius: 4px; resize: vertical; box-sizing: border-box;"></textarea>
+
+        <button onclick="submitWorkoutFeeling()" 
+                style="width: 100%; margin-top: 15px; padding: 15px; background: #00ff41; color: #000; border: none; font-family: 'Rajdhani'; font-weight: bold; font-size: 1rem; cursor: pointer; border-radius: 4px;">
+            SINC_LOG_CON_COACH
+        </button>
+
+        <div id="coach-response-zone" style="margin-top: 20px; padding: 15px; background: #050505; border-left: 3px solid #00ff41; display: none; font-size: 0.85rem; color: #eee; line-height: 1.4;">
+        </div>
+    </div>
+</div>
     <!-- WEIGHT LOG MODAL -->
 <div id="weight-log-modal" style="display: none;">
     <div style="background: #0a0a0a; border: 2px solid #00d4ff; border-radius: 8px; padding: 25px; max-width: 350px; width: 90%; position: relative;">
