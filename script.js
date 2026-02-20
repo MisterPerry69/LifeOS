@@ -4348,7 +4348,7 @@ function renderBodyCharts() {
         });
     }
 
-    // 2. GRAFICO MOOD FREQUENCY (Con fix visivo per gli 0)
+// 2. GRAFICO MOOD & ENERGY FREQUENCY
     const workoutCtx = document.getElementById('workout-chart');
     if (workoutCtx && bodyData.workouts && bodyData.workouts.length > 0) {
         if (window.workoutChartInstance) window.workoutChartInstance.destroy();
@@ -4356,46 +4356,63 @@ function renderBodyCharts() {
         const lastWorkouts = [...bodyData.workouts].slice(0, 12).reverse();
         const labels = lastWorkouts.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit'}));
         
-        // Estraiamo i valori reali per i colori, ma usiamo un piccolo offset per la visualizzazione
-        const rawMoods = lastWorkouts.map(w => (w.mood !== undefined && w.mood !== null) ? Number(w.mood) : 0);
-        const displayData = rawMoods.map(m => m === 0 ? 0.15 : m); 
+        // MOOD: Normalizziamo da 0 a 4 per il grafico (trasformiamo -2/+2 in 0/4)
+        const moodValues = lastWorkouts.map(w => {
+            const m = (w.mood !== undefined) ? Number(w.mood) : 0;
+            return m + 2; // -2 diventa 0, 0 diventa 2, +2 diventa 4
+        });
+
+        // ENERGY: Definiamo l'opacità dello sfondo in base all'energia
+        const energyBackgrounds = lastWorkouts.map(w => {
+            const e = String(w.energy).toLowerCase();
+            if (e === 'high') return 'rgba(0, 255, 65, 0.15)'; // Verde tech
+            if (e === 'low') return 'rgba(255, 77, 77, 0.15)';  // Rosso alert
+            return 'rgba(255, 255, 255, 0.05)';                // Neutro
+        });
+
+        // Creiamo il dataset "sfondo" per riempire sempre la barra fino al top (valore 4)
+        const backgroundFill = moodValues.map(v => 4 - v);
 
         window.workoutChartInstance = new Chart(workoutCtx, {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{
-                    data: displayData,
-                    backgroundColor: rawMoods.map(m => {
-                        if (m > 0) return '#00ff41'; // Verde (Mood positivo)
-                        if (m < 0) return '#ff4d4d'; // Rosso (Mood negativo)
-                        return '#333';               // Grigio (Mood neutro/0)
-                    }),
-                    borderRadius: 4
-                }]
+                datasets: [
+                    {
+                        label: 'Mood Level',
+                        data: moodValues,
+                        backgroundColor: moodValues.map(v => {
+                            if (v > 2) return '#00ff41'; // Positive
+                            if (v < 2) return '#ff4d4d'; // Negative
+                            return '#555';               // Neutral
+                        }),
+                        borderRadius: 4,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Energy Container',
+                        data: backgroundFill,
+                        backgroundColor: energyBackgrounds, // Colore basato sull'energia
+                        borderRadius: 4,
+                        borderSkipped: false,
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { legend: { display: false }, tooltip: { enabled: true } },
                 scales: {
-                    y: { 
-                        min: -2, 
-                        max: 2, 
-                        grid: { color: '#111' }, 
-                        ticks: { 
-                            stepSize: 1, 
-                            color: '#444', 
-                            font: { size: 10 },
-                            callback: function(value) {
-                                if (value === 2) return '🔥';
-                                if (value === 0) return '•';
-                                if (value === -2) return '😫';
-                                return '';
-                            }
-                        } 
+                    x: { 
+                        stacked: true, 
+                        grid: { display: false }, 
+                        ticks: { color: '#444', font: { size: 9 } } 
                     },
-                    x: { grid: { display: false }, ticks: { color: '#444', font: { size: 9 } } }
+                    y: { 
+                        stacked: true, 
+                        display: false, // Nascondiamo l'asse Y per pulizia estetica come in foto
+                        max: 4 
+                    }
                 }
             }
         });
