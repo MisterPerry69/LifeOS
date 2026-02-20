@@ -4002,18 +4002,19 @@ function closeWeightLog() {
 
 // In submitWorkoutFeeling(), SOSTITUISCI la parte del coach con questo:
 
-async function submitWorkoutFeeling(event) { // Aggiunto 'event' come parametro
+async function submitWorkoutFeeling() {
     const input = document.getElementById('workout-feeling-input').value.trim();
     if (!input) {
         showCustomAlert("SCRIVI_QUALCOSA_SUL_WORKOUT");
         return;
     }
     
-    // Recupero il bottone correttamente
-    const btn = event.currentTarget || event.target;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="blink">PROCESSING...</span>';
-    btn.disabled = true;
+    const btn = document.querySelector('#workout-feeling-modal button'); // ← Trova bottone senza event
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<span class="blink">PROCESSING...</span>';
+        btn.disabled = true;
+    }
     
     try {
         // Step 1: Parse workout
@@ -4030,9 +4031,10 @@ async function submitWorkoutFeeling(event) { // Aggiunto 'event' come parametro
         if (parseResult.status === "SUCCESS") {
             const parsedData = parseResult.parsed;
             
-            // Step 2: Salva workout (RIMOSSO no-cors per evitare problemi di flusso)
+            // Step 2: Salva workout
             await fetch(SCRIPT_URL, {
                 method: 'POST',
+                mode: 'no-cors',
                 body: JSON.stringify({
                     service: 'save_workout',
                     raw_input: input,
@@ -4040,7 +4042,7 @@ async function submitWorkoutFeeling(event) { // Aggiunto 'event' come parametro
                 })
             });
             
-            // Step 3: Chiedi al coach un commento
+            // Step 3: Chiedi al coach
             const coachResponse = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -4049,39 +4051,33 @@ async function submitWorkoutFeeling(event) { // Aggiunto 'event' come parametro
                 })
             });
             
-            // Se il server risponde con JSON, usa .json(), se risponde testo usa .text()
             const coachText = await coachResponse.text();
             
-            // Mostra risposta coach
+            // Mostra risposta coach CON BOTTONE
             const coachZone = document.getElementById('coach-response-zone');
-            if (coachZone) {
-                coachZone.style.display = 'block';
-                coachZone.innerHTML = `
-                    <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; font-family: 'Rajdhani';">COACH:</div>
-                    <div style="color: #fff; line-height: 1.6; font-style: italic;">"${coachText}"</div>
-                    <button onclick="closeWorkoutFeeling(); loadStats();" 
-                            style="margin-top: 15px; padding: 10px 20px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold; letter-spacing: 1px;">
-                        OK, CHIUDI
-                    </button>
-                `;
-            }
-            
-            // Nascondi l'area di input originale per pulizia
-            document.getElementById('workout-feeling-input').value = "";
+            coachZone.style.display = 'block';
+            coachZone.innerHTML = `
+                <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px;">COACH:</div>
+                <div style="color: #fff; line-height: 1.6; margin-bottom: 15px;">"${coachText}"</div>
+                <button onclick="closeWorkoutFeeling(); loadStats(); renderBodyDashboard();" 
+                        style="padding: 12px; background: var(--accent); color: #000; border: none; cursor: pointer; width: 100%; font-family: 'Rajdhani'; font-weight: bold; border-radius: 4px;">
+                    OK, CHIUDI
+                </button>
+            `;
             
         } else {
-            throw new Error("Errore nel parsing dei dati");
+            throw new Error("Parse failed");
         }
-
-    } catch (error) {
-        console.error("Errore:", error);
-        showCustomAlert("ERRORE_DURANTE_L_INVIO");
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        
+    } catch (e) {
+        console.error("Errore workout:", e);
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+        showCustomAlert("ERRORE_CONNESSIONE");
     }
 }
-
 // ============================================
 // SUBMIT WEIGHT
 // ============================================
