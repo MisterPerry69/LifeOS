@@ -4216,7 +4216,7 @@ function switchBodyView(view) {
     } else if (view === 'stats') {
         stats.style.display = 'block';
         renderBodyCharts(); // Inizializza grafici
-    }
+    
     } else if (view === 'history') {
         document.getElementById('body-history-view').style.display = 'block';
         document.getElementById('body-nav-history').style.color = '#00ff41';
