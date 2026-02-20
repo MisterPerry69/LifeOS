@@ -3767,8 +3767,7 @@ async function loadBodyData() {
     
     bodyData.currentWeight = lastStatsData.body.weight || 94.5;
     bodyData.workouts = lastStatsData.body.workouts || [];
-    
-    // TODO: Caricare weightHistory dal foglio Health_Log
+    bodyData.weightHistory = lastStatsData.body.weightHistory || []; // ← AGGIUNGI QUESTA RIGA
     
     renderBodyDashboard();
 }
@@ -3780,17 +3779,21 @@ function renderBodyDashboard() {
         weightEl.innerText = bodyData.currentWeight.toFixed(1);
     }
     
-    // Delta peso (calcolato da storico reale)
+    // Delta peso
     const deltaEl = document.getElementById('body-weight-delta');
-    if (deltaEl && bodyData.weightHistory && bodyData.weightHistory.length > 1) {
-        const current = bodyData.currentWeight;
-        const previous = bodyData.weightHistory[1]; // Peso di ieri
-        const delta = current - previous;
-        const arrow = delta < 0 ? '↓' : delta > 0 ? '↑' : '→';
-        const color = delta < 0 ? '#00ff41' : delta > 0 ? '#ff4d4d' : '#666';
-        deltaEl.innerHTML = `<span style="color:${color};">${arrow} ${Math.abs(delta).toFixed(1)} kg da ieri</span>`;
-    } else {
-        deltaEl.innerHTML = '<span style="color:#666;">Nessun dato storico</span>';
+    if (deltaEl) {
+        console.log("weightHistory:", bodyData.weightHistory); // ← DEBUG
+        
+        if (bodyData.weightHistory && bodyData.weightHistory.length > 1) {
+            const current = bodyData.currentWeight;
+            const previous = bodyData.weightHistory[bodyData.weightHistory.length - 2].weight;
+            const delta = current - previous;
+            const arrow = delta < 0 ? '↓' : delta > 0 ? '↑' : '→';
+            const color = delta < 0 ? '#00ff41' : delta > 0 ? '#ff4d4d' : '#666';
+            deltaEl.innerHTML = `<span style="color:${color};">${arrow} ${Math.abs(delta).toFixed(1)} kg</span>`;
+        } else {
+            deltaEl.innerHTML = '<span style="color:#666;">Aggiungi più dati peso</span>';
+        }
     }
     
     // Streak (calcolato da workout history)
@@ -4110,6 +4113,11 @@ async function submitWeight() {
         document.getElementById('body-current-weight').innerText = weight.toFixed(1);
         
         showCustomAlert(`PESO_REGISTRATO: ${weight}kg`, true);
+
+        const widgetWeight = document.getElementById('widget-weight');
+        if (widgetWeight) {
+            widgetWeight.innerText = weight.toFixed(1);
+        }
         
         setTimeout(() => {
             closeWeightLog();
@@ -4286,8 +4294,7 @@ async function submitNewEvent() {
     }
     
     // ← FEEDBACK CARICAMENTO
-    const btn = event.target;
-    const originalText = btn.innerHTML;
+    const btn = document.querySelector('#workout-feeling-modal button'); // ← Trova il bottone    const originalText = btn.innerHTML;
     btn.innerHTML = '<span class="blink">ADDING...</span>';
     btn.disabled = true;
     
