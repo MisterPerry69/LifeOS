@@ -3861,22 +3861,31 @@ function renderTodayLog() {
     const container = document.getElementById('body-today-log');
     if (!container) return;
     
-    const today = new Date().toISOString().split('T')[0]; // yyyy-MM-dd
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
     
-    // Controlla workout di oggi
-    const todayWorkout = bodyData.workouts.find(w => w.date === today);
+    // Controlla workout di oggi confrontando la data in formato YYYY-MM-DD
+    const todayWorkout = bodyData.workouts.find(w => {
+        const wDate = new Date(w.date).toISOString().split('T')[0];
+        return wDate === todayStr;
+    });
     
     // Controlla peso di oggi
     const todayWeight = bodyData.weightHistory && bodyData.weightHistory.length > 0 
-        && new Date(bodyData.weightHistory[0].date).toISOString().split('T')[0] === today;
+        && new Date(bodyData.weightHistory[bodyData.weightHistory.length - 1].date).toISOString().split('T')[0] === todayStr;
     
     const todayLogs = [];
     
     if (todayWorkout) {
+        // Se exercises è una stringa, non ha .length array, quindi contiamo i separatori o diamo info generica
+        const exCount = Array.isArray(todayWorkout.exercises) && typeof todayWorkout.exercises[0] === 'object' 
+            ? todayWorkout.exercises.length 
+            : 'Completato';
+
         todayLogs.push({ 
             type: 'workout', 
             time: new Date(todayWorkout.date).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}), 
-            text: `Allenamento (${todayWorkout.exercises.length} esercizi)`, 
+            text: typeof exCount === 'number' ? `Allenamento (${exCount} esercizi)` : `Allenamento: ${exCount}`, 
             status: 'done' 
         });
     }
@@ -3884,13 +3893,11 @@ function renderTodayLog() {
     if (todayWeight) {
         todayLogs.push({ 
             type: 'weight', 
-            time: new Date(bodyData.weightHistory[0].date).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}), 
+            time: new Date(bodyData.weightHistory[bodyData.weightHistory.length - 1].date).toLocaleTimeString('it-IT', {hour: '2-digit', minute: '2-digit'}), 
             text: `Peso: ${bodyData.currentWeight}kg`, 
             status: 'done' 
         });
     }
-    
-    // TODO: Aggiungi meal quando integri FatSecret
     
     if (todayLogs.length === 0) {
         container.innerHTML = '<div style="text-align:center; color:#333; padding:20px; font-size:10px;">NESSUN_LOG_OGGI</div>';
@@ -3898,7 +3905,7 @@ function renderTodayLog() {
     }
     
     container.innerHTML = todayLogs.map(log => {
-        const icon = log.type === 'workout' ? '💪' : log.type === 'meal' ? '🍽️' : '⚖️';
+        const icon = log.type === 'workout' ? '💪' : '⚖️';
         const statusIcon = log.status === 'done' ? '✓' : '⏳';
         
         return `
@@ -3930,20 +3937,39 @@ function renderRecentWorkouts() {
         const date = new Date(w.date);
         const dateStr = date.toLocaleDateString('it-IT', {day: '2-digit', month: 'short'}).toUpperCase();
         
+        // Gestione contenuto esercizi (Stringa con freccette o Vecchio Array)
+        let exercisesHTML = "";
+        if (Array.isArray(w.exercises) && w.exercises.length > 0 && typeof w.exercises[0] === 'object') {
+            // Vecchio formato: Array di oggetti
+            exercisesHTML = w.exercises.map(ex => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+                    <div style="flex: 1;">
+                        <span style="color: #fff; font-size: 0.85rem;">${ex.name}</span>
+                        ${ex.weight ? `<span style="color: var(--dim); font-size: 0.75rem; margin-left: 8px;">${ex.weight}kg${ex.reps ? ` × ${ex.reps}` : ''}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            // Nuovo formato: Stringa singola analizzata da Gemini
+            const textContent = Array.isArray(w.exercises) ? w.exercises.join(', ') : w.exercises;
+            const formattedText = (textContent || w.notes || w.raw || 'Nessun dettaglio')
+                .replace(/;/g, '<br>')
+                .replace(/\(↑\)/g, '<b style="color: #00ff41;">↑</b>')
+                .replace(/\(↓\)/g, '<b style="color: #ff4d4d;">↓</b>')
+                .replace(/\(=\)/g, '<b style="color: #666;">=</b>')
+                .replace(/\(new\)/g, '<span style="color: var(--accent); font-size: 0.7rem;">NEW</span>');
+
+            exercisesHTML = `<div style="color: #eee; font-size: 0.85rem; line-height: 1.5; padding: 8px 0;">${formattedText}</div>`;
+        }
+        
         return `
             <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #111;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <div style="font-size: 0.9rem; color: var(--dim); font-family: 'Rajdhani';">${dateStr}</div>
                     <div style="font-size: 1.2rem;">${moodEmoji}</div>
                 </div>
-                ${w.exercises && w.exercises.length > 0 ? w.exercises.map(ex => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
-                        <div style="flex: 1;">
-                            <span style="color: #fff; font-size: 0.85rem;">${ex.name}</span>
-                            ${ex.weight ? `<span style="color: var(--dim); font-size: 0.75rem; margin-left: 8px;">${ex.weight}kg${ex.reps ? ` × ${ex.reps}` : ''}</span>` : ''}
-                        </div>
-                    </div>
-                `).join('') : `<div style="color: #666; font-size: 0.8rem;">${w.notes || w.raw || 'Nessun dettaglio'}</div>`}
+                ${exercisesHTML}
+                ${w.notes && exercisesHTML.includes('notes') === false ? `<div style="color: var(--dim); font-size: 0.75rem; margin-top: 5px; font-style: italic;">${w.notes}</div>` : ''}
             </div>
         `;
     }).join('');
