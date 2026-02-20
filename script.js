@@ -4278,59 +4278,28 @@ let weightChartInstance = null;
 let workoutChartInstance = null;
 
 function renderBodyCharts() {
-    // 1. GRAFICO PESO (Trend ultimi log)
-    const weightCtx = document.getElementById('weight-chart');
-    if (weightCtx && bodyData.weightHistory && bodyData.weightHistory.length > 0) {
-        if (weightChartInstance) weightChartInstance.destroy();
-        
-        const labels = bodyData.weightHistory.map(h => new Date(h.date).toLocaleDateString('it-IT', {day:'2-digit', month:'short'}));
-        const values = bodyData.weightHistory.map(h => h.weight);
+    // 1. GRAFICO PESO (Invariato, già funzionante)
+    renderWeightChart();
 
-        weightChartInstance = new Chart(weightCtx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'KG',
-                    data: values,
-                    borderColor: '#00d4ff',
-                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#00d4ff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { grid: { color: '#222' }, ticks: { color: '#666', font: { size: 10 } } },
-                    x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } }
-                }
-            }
-        });
-    }
-
-    // 2. GRAFICO MOOD FREQUENCY
+    // 2. GRAFICO MOOD FREQUENCY (Con fix dati)
     const workoutCtx = document.getElementById('workout-chart');
     if (workoutCtx && bodyData.workouts && bodyData.workouts.length > 0) {
-        if (workoutChartInstance) workoutChartInstance.destroy();
+        if (window.workoutChartInstance) window.workoutChartInstance.destroy();
 
-        // Prendiamo gli ultimi 10 workout
-        const last10 = [...bodyData.workouts].reverse().slice(-10);
-        const labels = last10.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit'}));
-        const moods = last10.map(w => w.mood);
+        // Prendiamo gli ultimi 12 workout per una visuale migliore
+        const lastWorkouts = [...bodyData.workouts].slice(0, 12).reverse();
+        const labels = lastWorkouts.map(w => new Date(w.date).toLocaleDateString('it-IT', {day:'2-digit'}));
+        
+        // Fix: se il mood è undefined o null, mettiamo 0
+        const moods = lastWorkouts.map(w => (w.mood !== undefined && w.mood !== null) ? Number(w.mood) : 0);
 
-        workoutChartInstance = new Chart(workoutCtx, {
+        window.workoutChartInstance = new Chart(workoutCtx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
                     data: moods,
-                    backgroundColor: moods.map(m => m > 0 ? '#00ff41' : m < 0 ? '#ff4d4d' : '#666'),
+                    backgroundColor: moods.map(m => m > 0 ? '#00ff41' : m < 0 ? '#ff4d4d' : '#333'),
                     borderRadius: 4
                 }]
             },
@@ -4340,23 +4309,21 @@ function renderBodyCharts() {
                 plugins: { legend: { display: false } },
                 scales: {
                     y: { 
-                        min: -2, 
-                        max: 2, 
-                        grid: { color: '#222' }, 
-                        ticks: { stepSize: 1, color: '#444', font: { size: 10 } } 
+                        min: -2, max: 2, 
+                        grid: { color: '#111' }, 
+                        ticks: { stepSize: 1, color: '#444' } 
                     },
-                    x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } }
+                    x: { grid: { display: false }, ticks: { color: '#444' } }
                 }
             }
         });
     }
 
-    // 3. GENERAZIONE TOP 3 IMPROVEMENT
+    // 3. RENDER TOP IMPROVEMENTS CON KG
     renderTopImprovements();
 }
 
 function renderTopImprovements() {
-    // Cerchiamo l'elemento o lo creiamo se non esiste sotto i grafici
     let topContainer = document.getElementById('body-top-exercises');
     if (!topContainer) {
         topContainer = document.createElement('div');
@@ -4365,39 +4332,62 @@ function renderTopImprovements() {
         document.getElementById('body-stats-view').appendChild(topContainer);
     }
 
-    // Analizziamo le stringhe degli esercizi in cerca di (↑)
-    const improvementMap = {};
-    bodyData.workouts.forEach(w => {
+    const stats = {};
+
+    // Analizziamo i workout dal più vecchio al più nuovo per vedere l'evoluzione
+    [...bodyData.workouts].reverse().forEach(w => {
         const text = Array.isArray(w.exercises) ? w.exercises.join('; ') : w.exercises;
         if (!text) return;
 
-        const parts = text.split(';');
-        parts.forEach(p => {
-            if (p.includes('↑')) {
-                // Puliamo il nome dell'esercizio (togliamo pesi e freccette)
-                const name = p.split(':')[0].trim();
-                improvementMap[name] = (improvementMap[name] || 0) + 1;
+        const items = text.split(';');
+        items.forEach(item => {
+            // Regex per estrarre Nome e Peso (es: "Panca: 1x10x70kg")
+            const match = item.match(/([^:]+):.*?((\d+(\.\d+)?))\s*kg/);
+            if (match) {
+                const name = match[1].trim();
+                const weight = parseFloat(match[2]);
+
+                if (!stats[name]) {
+                    stats[name] = { first: weight, last: weight, count: 0 };
+                }
+                stats[name].last = weight;
+                if (item.includes('↑')) stats[name].count++;
             }
         });
     });
 
-    // Ordiniamo e prendiamo i primi 3
-    const top3 = Object.entries(improvementMap)
-        .sort((a, b) => b[1] - a[1])
+    // Filtriamo solo quelli che hanno avuto un incremento reale o molte freccette
+    const top3 = Object.entries(stats)
+        .map(([name, data]) => ({
+            name,
+            diff: data.last - data.first,
+            last: data.last,
+            score: data.count
+        }))
+        .filter(ex => ex.diff > 0 || ex.score > 0)
+        .sort((a, b) => b.diff - a.diff || b.score - a.score)
         .slice(0, 3);
 
     if (top3.length === 0) {
-        topContainer.innerHTML = `<h3 style="font-family:'Rajdhani'; font-size:1rem; color:var(--dim); margin:0;">TOP_IMPROVEMENTS</h3>
-                                  <div style="color:#444; font-size:0.8rem; margin-top:10px;">Continua a spingere per vedere i dati...</div>`;
+        topContainer.innerHTML = `<h3 style="font-family:'Rajdhani'; font-size:1rem; color:var(--dim); margin:0;">TOP_PROGRESSION</h3>
+                                  <div style="color:#444; font-size:0.8rem; margin-top:10px;">Dati insufficienti per il calcolo progressione.</div>`;
         return;
     }
 
     topContainer.innerHTML = `
         <h3 style="font-family:'Rajdhani'; font-size:1rem; color:var(--dim); margin:0 0 15px 0;">TOP_PROGRESSION</h3>
-        ${top3.map(([name, count]) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="color:#fff; font-size:0.85rem;">${name}</span>
-                <span style="color:#00ff41; font-family:'JetBrains Mono'; font-size:0.75rem; background:rgba(0,255,65,0.1); padding:2px 8px; border-radius:10px;">${count}nd Power Up</span>
+        ${top3.map(ex => `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="flex:1;">
+                    <div style="color:#fff; font-size:0.85rem;">${ex.name}</div>
+                    <div style="color:var(--dim); font-size:0.7rem;">Massimo attuale: ${ex.last}kg</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="color:#00ff41; font-family:'Rajdhani'; font-weight:bold; font-size:1rem;">
+                        ${ex.diff > 0 ? `+${ex.diff}kg` : 'STABILE'} 
+                    </div>
+                    <div style="font-size:0.6rem; color:#00ff41; opacity:0.7;">GAINS_DETECTED</div>
+                </div>
             </div>
         `).join('')}
     `;
