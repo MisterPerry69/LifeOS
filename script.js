@@ -4156,10 +4156,12 @@ async function submitWeight() {
 // ============================================
 
 function toggleBodyCoach() {
-    const bubble = document.getElementById('body-coach-bubble'); // ← Cambia
-    const text = document.getElementById('body-coach-text'); // ← Cambia
+    const bubble = document.getElementById('body-coach-bubble');
+    const text = document.getElementById('body-coach-text');
     const navItem = document.getElementById('body-nav-ai');
     
+    if (!bubble || !text) return;
+
     if (bubble.classList.contains('active')) {
         bubble.classList.remove('active');
         navItem.style.color = 'var(--dim)';
@@ -4170,12 +4172,12 @@ function toggleBodyCoach() {
     navItem.style.color = '#00ff41';
     
     text.innerHTML = `
-        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px;">COACH_AI // READY</div>
-        <div style="color: #00ff41; font-size: 0.9rem; margin-bottom: 12px;">
+        <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px; font-family: 'Rajdhani';">COACH_AI // READY</div>
+        <div style="color: #00ff41; font-size: 0.9rem; margin-bottom: 12px; font-family: 'JetBrains Mono';">
             Che c'è? Hai bisogno di una spinta o vuoi solo lamentarti?
         </div>
         <input type="text" id="coach-input" placeholder="Scrivi qui..." 
-               style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; font-size: 0.85rem; outline: none; border-radius: 4px; box-sizing: border-box;"
+               style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 12px; font-family: 'JetBrains Mono'; font-size: 0.85rem; outline: none; border-radius: 4px; box-sizing: border-box;"
                onkeypress="handleCoachInput(event)">
     `;
     
@@ -4191,8 +4193,12 @@ async function handleCoachInput(event) {
     const query = input.value.trim();
     if (!query) return;
     
-    const text = document.getElementById('analyst-text');
-    text.innerHTML = `<div style="color: #00ff41;" class="blink">THINKING...</div>`;
+    const text = document.getElementById('body-coach-text'); // ID CORRETTO
+    
+    // Mostra caricamento
+    const originalContent = text.innerHTML;
+    text.innerHTML = `<div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px;">COACH_AI // ANALYZING</div>
+                      <div style="color: #00ff41;" class="blink">PENSANDO... (Sii pronto a piangere)</div>`;
     
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -4206,23 +4212,24 @@ async function handleCoachInput(event) {
         const coachResponse = await response.text();
         
         text.innerHTML = `
-            <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 6px;">COACH:</div>
-            <div style="color: #fff; line-height: 1.6;">
+            <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 6px; font-family: 'Rajdhani';">COACH_AI // RESPONSE:</div>
+            <div style="color: #fff; line-height: 1.6; font-family: 'JetBrains Mono'; font-size: 0.9rem; margin-bottom: 15px;">
                 "${coachResponse}"
             </div>
-            <input type="text" id="coach-input" placeholder="Altra domanda..." 
-                   style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; font-size: 0.85rem; outline: none; border-radius: 4px; box-sizing: border-box; margin-top: 12px;"
+            <input type="text" id="coach-input" placeholder="Rispondi al coach..." 
+                   style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 12px; font-family: 'JetBrains Mono'; font-size: 0.85rem; outline: none; border-radius: 4px; box-sizing: border-box;"
                    onkeypress="handleCoachInput(event)">
-            <div onclick="document.getElementById('analyst-bubble').classList.remove('active')" 
-                 style="margin-top: 12px; font-size: 0.7rem; color: var(--dim); cursor: pointer; text-align: right;">
-                [CHIUDI]
+            <div onclick="document.getElementById('body-coach-bubble').classList.remove('active'); document.getElementById('body-nav-ai').style.color = 'var(--dim)';" 
+                 style="margin-top: 15px; font-size: 0.7rem; color: var(--dim); cursor: pointer; text-align: right; font-family: 'JetBrains Mono';">
+                [CHIUDI_SESSIONE]
             </div>
         `;
         
         setTimeout(() => document.getElementById('coach-input')?.focus(), 100);
         
     } catch (e) {
-        text.innerHTML = `<div style="color: #ff4d4d;">ERRORE_COACH</div>`;
+        text.innerHTML = `<div style="color: #ff4d4d;">ERRORE_CONNESSIONE_COACH</div>
+                          <div onclick="toggleBodyCoach()" style="cursor:pointer; color:#fff; font-size:0.7rem; margin-top:10px;">[RIPROVA]</div>`;
     }
 }
 

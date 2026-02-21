@@ -2101,3 +2101,15 @@ CSS
     padding: 0;
     overflow: hidden;
 }
+
+/* Classe per gestire la visibilità */
+    #body-coach-bubble.active {
+        display: block !important;
+        animation: slideUp 0.3s ease-out;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .blink { animation: blinker 1s linear infinite; }
+    @keyframes blinker { 50% { opacity: 0; } }
