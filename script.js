@@ -5149,7 +5149,7 @@ function renderBodyHistory() {
     if (avgTimeSpan) avgTimeSpan.innerText = avgTime + 'm';
 
     // --- GENERAZIONE CARD ---
-    workouts.forEach(w => {
+workouts.forEach(w => {
         const dateObj = new Date(w.date);
         const day = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
         
@@ -5157,7 +5157,6 @@ function renderBodyHistory() {
         const energyEmojis = { "low": "🪫", "medium": "⚡", "mid": "⚡", "high": "🚀" };
         
         const card = document.createElement('div');
-        card.className = "history-card"; // Per eventuale CSS
         card.style = `
             background: #0a0a0a; 
             border: 1px solid #222; 
@@ -5167,8 +5166,9 @@ function renderBodyHistory() {
             margin-bottom: 12px;
         `;
 
-        // NOTA: Usiamo w.exercises_json perché è così che arriva dal Sheet nel tuo oggetto bodyData
-        const detailText = w.exercises_json || w.exercises_text || "Nessun dettaglio";
+        // PUNTA ALLA COLONNA GIUSTA (Exercises_JSON nello sheet è la terza colonna)
+        // Se nel tuo oggetto JS i dati arrivano mappati come exercises_json, usa quello
+        const detailText = w.exercises_json || "Dettaglio non trovato";
 
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
@@ -5185,12 +5185,11 @@ function renderBodyHistory() {
             </div>
 
             ${w.notes ? `
-                <div style="border-top: 1px solid #1a1a1a; pt-8px; margin-top: 5px; font-size: 0.7rem; color: #555; font-style: italic;">
+                <div style="border-top: 1px solid #1a1a1a; padding-top: 8px; margin-top: 5px; font-size: 0.7rem; color: #555; font-style: italic;">
                     ${w.notes}
                 </div>
             ` : ''}
         `;
         
         container.appendChild(card);
-    });
-}
+    });}
