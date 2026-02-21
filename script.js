@@ -3930,49 +3930,51 @@ function renderRecentWorkouts() {
         return;
     }
     
-    const recentWorkouts = bodyData.workouts.slice(0, 5); // Ultimi 5
+    // Prendiamo solo l'ultimo (il primo dell'array se è già reversed)
+    const lastW = bodyData.workouts[0]; 
     
-    container.innerHTML = recentWorkouts.map(w => {
-        const moodEmoji = w.mood === -2 ? '😫' : w.mood === -1 ? '😐' : w.mood === 0 ? '😊' : w.mood === 1 ? '😄' : '🔥';
-        const date = new Date(w.date);
-        const dateStr = date.toLocaleDateString('it-IT', {day: '2-digit', month: 'short'}).toUpperCase();
-        
-        // Gestione contenuto esercizi (Stringa con freccette o Vecchio Array)
-        let exercisesHTML = "";
-        if (Array.isArray(w.exercises) && w.exercises.length > 0 && typeof w.exercises[0] === 'object') {
-            // Vecchio formato: Array di oggetti
-            exercisesHTML = w.exercises.map(ex => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
-                    <div style="flex: 1;">
-                        <span style="color: #fff; font-size: 0.85rem;">${ex.name}</span>
-                        ${ex.weight ? `<span style="color: var(--dim); font-size: 0.75rem; margin-left: 8px;">${ex.weight}kg${ex.reps ? ` × ${ex.reps}` : ''}</span>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        } else {
-            // Nuovo formato: Stringa singola analizzata da Gemini
-            const textContent = Array.isArray(w.exercises) ? w.exercises.join(', ') : w.exercises;
-            const formattedText = (textContent || w.notes || w.raw || 'Nessun dettaglio')
-                .replace(/;/g, '<br>')
-                .replace(/\(↑\)/g, '<b style="color: #00ff41;">↑</b>')
-                .replace(/\(↓\)/g, '<b style="color: #ff4d4d;">↓</b>')
-                .replace(/\(=\)/g, '<b style="color: #666;">=</b>')
-                .replace(/\(new\)/g, '<span style="color: var(--accent); font-size: 0.7rem;">NEW</span>');
+    const moodEmoji = { "-2": "😫", "-1": "😐", "0": "😊", "1": "😄", "2": "🔥" };
+    const date = new Date(lastW.date);
+    const dateStr = date.toLocaleDateString('it-IT', {day: '2-digit', month: 'long', year: 'numeric'}).toUpperCase();
+    
+    // Pulizia testo esercizi (usando exercises_json che abbiamo sistemato nel .gs)
+    const textContent = lastW.exercises_json || lastW.raw || 'Dettagli non disponibili';
+    const formattedText = textContent
+        .replace(/;/g, '<br>')
+        .replace(/\(↑\)/g, '<b style="color: #00ff41;">↑</b>')
+        .replace(/\(↓\)/g, '<b style="color: #ff4d4d;">↓</b>')
+        .replace(/\(=\)/g, '<b style="color: #666;">=</b>');
 
-            exercisesHTML = `<div style="color: #eee; font-size: 0.85rem; line-height: 1.5; padding: 8px 0;">${formattedText}</div>`;
-        }
-        
-        return `
-            <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #111;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <div style="font-size: 0.9rem; color: var(--dim); font-family: 'Rajdhani';">${dateStr}</div>
-                    <div style="font-size: 1.2rem;">${moodEmoji}</div>
+    container.innerHTML = `
+        <div style="background: #111; padding: 15px; border-radius: 6px; border-left: 3px solid #00d4ff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div>
+                    <div style="font-size: 0.7rem; color: #555; font-family: 'JetBrains Mono'; margin-bottom: 2px;">DATA_SESSIONE</div>
+                    <div style="font-size: 0.85rem; color: #fff; font-family: 'JetBrains Mono';">${dateStr}</div>
                 </div>
-                ${exercisesHTML}
-                ${w.notes && exercisesHTML.includes('notes') === false ? `<div style="color: var(--dim); font-size: 0.75rem; margin-top: 5px; font-style: italic;">${w.notes}</div>` : ''}
+                <div style="text-align: right;">
+                    <div style="font-size: 1.5rem;">${moodEmoji[String(lastW.mood)] || '😊'}</div>
+                </div>
             </div>
-        `;
-    }).join('');
+
+            <div style="color: #aaa; font-size: 0.85rem; line-height: 1.6; font-family: 'JetBrains Mono'; margin-bottom: 10px;">
+                ${formattedText.split('<br>').slice(0, 3).join('<br>')}
+                ${formattedText.split('<br>').length > 3 ? '<div style="color:#444; font-size:0.7rem; margin-top:4px;">...e altri esercizi nella History</div>' : ''}
+            </div>
+
+            <div style="display: flex; gap: 15px; border-top: 1px solid #222; pt-10px; margin-top: 10px; padding-top: 10px;">
+                <div style="font-size: 0.7rem; color: var(--dim);">
+                    <span style="color: #00d4ff;">ENERGY:</span> ${String(lastW.energy).toUpperCase()}
+                </div>
+                <div style="font-size: 0.7rem; color: var(--dim);">
+                    <span style="color: #00d4ff;">TIME:</span> ${lastW.duration || '--'} MIN
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Re-inizializza le icone Lucide se necessario
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // ============================================
@@ -5156,6 +5158,11 @@ workouts.forEach(w => {
         const moodEmojis = { "-2": "💀", "-1": "🫠", "0": "😐", "1": "🙂", "2": "🔥" };
         const energyEmojis = { "low": "🪫", "medium": "⚡", "mid": "⚡", "high": "🚀" };
         
+        // FIX: Cerchiamo il dettaglio in tutte le proprietà possibili
+        // A seconda di come Google Script esporta i dati, potrebbe chiamarsi in modo diverso
+        const detailText = w.exercises_json || w.exercises_text || w.exercises || "Dettaglio non trovato";
+        const durationVal = w.duration || w.Duration || "--";
+
         const card = document.createElement('div');
         card.style = `
             background: #0a0a0a; 
@@ -5166,22 +5173,20 @@ workouts.forEach(w => {
             margin-bottom: 12px;
         `;
 
-        // PUNTA ALLA COLONNA GIUSTA (Exercises_JSON nello sheet è la terza colonna)
-        // Se nel tuo oggetto JS i dati arrivano mappati come exercises_json, usa quello
-        const detailText = w.exercises_json || "Dettaglio non trovato";
-
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #fff; background: #1a1a1a; padding: 2px 6px; border-radius: 4px;">${day.toUpperCase()}</span>
-                    <span style="font-size: 0.9rem;">${moodEmojis[String(w.mood)] || '•'}</span>
-                    <span style="font-size: 0.8rem; opacity: 0.7;">${energyEmojis[String(w.energy).toLowerCase()] || '•'}</span>
+                    <span style="font-size: 0.9rem;">${moodEmojis[String(w.mood)] || '😐'}</span>
+                    <span style="font-size: 0.8rem; opacity: 0.7;">${energyEmojis[String(w.energy).toLowerCase()] || '⚡'}</span>
                 </div>
-                <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #00d4ff;">${w.duration || '--'} MIN</span>
+                <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #00d4ff;">${durationVal} MIN</span>
             </div>
             
             <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #ccc; line-height: 1.5; margin-bottom: 10px; padding-left: 5px;">
-                ${detailText.split(';').map(ex => `• ${ex.trim()}`).join('<br>')}
+                ${detailText !== "Dettaglio non trovato" 
+                    ? detailText.split(';').map(ex => `• ${ex.trim()}`).join('<br>') 
+                    : `<span style="color: #444;">${detailText}</span>`}
             </div>
 
             ${w.notes ? `
@@ -5192,4 +5197,4 @@ workouts.forEach(w => {
         `;
         
         container.appendChild(card);
-    });}
+    });

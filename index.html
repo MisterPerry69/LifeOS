@@ -409,13 +409,15 @@
             </div>
 
             <!-- Ultimi Workout -->
-            <div style="margin-top: 20px; background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
-                <div style="font-size: 10px; color: var(--dim); margin-bottom: 12px; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 8px;">
-                    RECENT_WORKOUTS
+            <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="font-family: 'Rajdhani'; font-size: 0.9rem; color: var(--dim); margin: 0; letter-spacing: 1px;">LAST_SESSION</h3>
+                    <div onclick="showSection('body-history')" style="cursor: pointer; color: #555; transition: 0.3s;" onmouseover="this.style.color='#00d4ff'" onmouseout="this.style.color='#555'">
+                        <i data-lucide="calendar-days" style="width: 20px; height: 20px;"></i>
+                    </div>
                 </div>
                 <div id="body-recent-workouts">
-                    <!-- Popolato da JS -->
-                </div>
+                    </div>
             </div>
 
         </div>
