@@ -5198,3 +5198,4 @@ workouts.forEach(w => {
         
         container.appendChild(card);
     });
+}
