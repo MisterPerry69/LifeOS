@@ -5125,56 +5125,68 @@ async function toggleArchive() {
 function renderBodyHistory() {
     const container = document.getElementById('history-list-container');
     const totalSpan = document.getElementById('stat-total-workouts');
-    const moodSpan = document.getElementById('stat-avg-mood');
+    const avgMoodSpan = document.getElementById('stat-avg-mood');
+    const avgTimeSpan = document.getElementById('stat-avg-time'); // Aggiungilo nell'HTML o crealo qui
     
     if (!container || !bodyData.workouts) return;
 
-    // 1. Pulizia e ordinamento (dal più recente)
     container.innerHTML = '';
     const workouts = [...bodyData.workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    // 2. Calcolo stats rapide
+    // --- CALCOLO STATS ---
     totalSpan.innerText = workouts.length;
+
+    // Media Mood
     const avgMood = workouts.length > 0 
         ? (workouts.reduce((acc, curr) => acc + Number(curr.mood || 0), 0) / workouts.length).toFixed(1)
         : 0;
-    moodSpan.innerText = (avgMood > 0 ? '+' : '') + avgMood;
+    avgMoodSpan.innerText = (avgMood > 0 ? '+' : '') + avgMood;
 
-    // 3. Generazione Card
+    // Media Minuti (Nuova stat)
+    const avgTime = workouts.length > 0
+        ? Math.round(workouts.reduce((acc, curr) => acc + Number(curr.duration || 0), 0) / workouts.length)
+        : 0;
+    if (avgTimeSpan) avgTimeSpan.innerText = avgTime + 'm';
+
+    // --- GENERAZIONE CARD ---
     workouts.forEach(w => {
         const dateObj = new Date(w.date);
         const day = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
         
-        // Mappatura icone
         const moodEmojis = { "-2": "💀", "-1": "🫠", "0": "😐", "1": "🙂", "2": "🔥" };
         const energyEmojis = { "low": "🪫", "medium": "⚡", "mid": "⚡", "high": "🚀" };
         
         const card = document.createElement('div');
+        card.className = "history-card"; // Per eventuale CSS
         card.style = `
             background: #0a0a0a; 
             border: 1px solid #222; 
-            border-left: 4px solid ${Number(w.mood) >= 0 ? '#00ff41' : '#ff4d4d'};
+            border-left: 4px solid ${Number(w.mood) >= 1 ? '#00ff41' : Number(w.mood) <= -1 ? '#ff4d4d' : '#555'};
             padding: 15px; 
             border-radius: 8px;
-            position: relative;
+            margin-bottom: 12px;
         `;
+
+        // NOTA: Usiamo w.exercises_json perché è così che arriva dal Sheet nel tuo oggetto bodyData
+        const detailText = w.exercises_json || w.exercises_text || "Nessun dettaglio";
 
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                <div>
-                    <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #fff;">${day.toUpperCase()}</span>
-                    <span style="margin-left: 10px; font-size: 0.8rem;">${moodEmojis[w.mood] || '•'} ${energyEmojis[w.energy.toLowerCase()] || '•'}</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #fff; background: #1a1a1a; padding: 2px 6px; border-radius: 4px;">${day.toUpperCase()}</span>
+                    <span style="font-size: 0.9rem;">${moodEmojis[String(w.mood)] || '•'}</span>
+                    <span style="font-size: 0.8rem; opacity: 0.7;">${energyEmojis[String(w.energy).toLowerCase()] || '•'}</span>
                 </div>
-                <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--dim);">${w.duration || '?'} MIN</span>
+                <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #00d4ff;">${w.duration || '--'} MIN</span>
             </div>
             
-            <div style="font-family: 'JetBrains Mono'; font-size: 0.85rem; color: #aaa; line-height: 1.4; margin-bottom: 8px;">
-                ${w.exercises_json ? w.exercises_json.replace(/;/g, '<br>') : 'Nessun dettaglio'}
+            <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #ccc; line-height: 1.5; margin-bottom: 10px; padding-left: 5px;">
+                ${detailText.split(';').map(ex => `• ${ex.trim()}`).join('<br>')}
             </div>
 
             ${w.notes ? `
-                <div style="background: #111; padding: 8px; border-radius: 4px; font-size: 0.75rem; color: #666; font-style: italic;">
-                    "${w.notes}"
+                <div style="border-top: 1px solid #1a1a1a; pt-8px; margin-top: 5px; font-size: 0.7rem; color: #555; font-style: italic;">
+                    ${w.notes}
                 </div>
             ` : ''}
         `;
