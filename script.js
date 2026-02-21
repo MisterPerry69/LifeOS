@@ -5121,3 +5121,64 @@ async function toggleArchive() {
     
     setTimeout(() => loadStats(), 1000);
 }
+
+function renderBodyHistory() {
+    const container = document.getElementById('history-list-container');
+    const totalSpan = document.getElementById('stat-total-workouts');
+    const moodSpan = document.getElementById('stat-avg-mood');
+    
+    if (!container || !bodyData.workouts) return;
+
+    // 1. Pulizia e ordinamento (dal più recente)
+    container.innerHTML = '';
+    const workouts = [...bodyData.workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // 2. Calcolo stats rapide
+    totalSpan.innerText = workouts.length;
+    const avgMood = workouts.length > 0 
+        ? (workouts.reduce((acc, curr) => acc + Number(curr.mood || 0), 0) / workouts.length).toFixed(1)
+        : 0;
+    moodSpan.innerText = (avgMood > 0 ? '+' : '') + avgMood;
+
+    // 3. Generazione Card
+    workouts.forEach(w => {
+        const dateObj = new Date(w.date);
+        const day = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+        
+        // Mappatura icone
+        const moodEmojis = { "-2": "💀", "-1": "🫠", "0": "😐", "1": "🙂", "2": "🔥" };
+        const energyEmojis = { "low": "🪫", "medium": "⚡", "mid": "⚡", "high": "🚀" };
+        
+        const card = document.createElement('div');
+        card.style = `
+            background: #0a0a0a; 
+            border: 1px solid #222; 
+            border-left: 4px solid ${Number(w.mood) >= 0 ? '#00ff41' : '#ff4d4d'};
+            padding: 15px; 
+            border-radius: 8px;
+            position: relative;
+        `;
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div>
+                    <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #fff;">${day.toUpperCase()}</span>
+                    <span style="margin-left: 10px; font-size: 0.8rem;">${moodEmojis[w.mood] || '•'} ${energyEmojis[w.energy.toLowerCase()] || '•'}</span>
+                </div>
+                <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--dim);">${w.duration || '?'} MIN</span>
+            </div>
+            
+            <div style="font-family: 'JetBrains Mono'; font-size: 0.85rem; color: #aaa; line-height: 1.4; margin-bottom: 8px;">
+                ${w.exercises_json ? w.exercises_json.replace(/;/g, '<br>') : 'Nessun dettaglio'}
+            </div>
+
+            ${w.notes ? `
+                <div style="background: #111; padding: 8px; border-radius: 4px; font-size: 0.75rem; color: #666; font-style: italic;">
+                    "${w.notes}"
+                </div>
+            ` : ''}
+        `;
+        
+        container.appendChild(card);
+    });
+}

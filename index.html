@@ -451,9 +451,19 @@
 
         <!-- HISTORY VIEW (hidden by default) -->
         <div id="body-history-view" style="display: none; margin-top: 20px;">
-            <div id="body-history-container">
-                <!-- Popolato da JS -->
+            <div id="history-stats-summary" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <div style="background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 8px; text-align: center;">
+                    <span style="display: block; font-size: 0.7rem; color: var(--dim); font-family: 'Rajdhani';">TOTAL_WORKOUTS</span>
+                    <span id="stat-total-workouts" style="font-size: 1.5rem; font-family: 'JetBrains Mono'; color: #00ff41;">0</span>
+                </div>
+                <div style="background: #0a0a0a; border: 1px solid #222; padding: 15px; border-radius: 8px; text-align: center;">
+                    <span style="display: block; font-size: 0.7rem; color: var(--dim); font-family: 'Rajdhani';">AVG_MOOD</span>
+                    <span id="stat-avg-mood" style="font-size: 1.5rem; font-family: 'JetBrains Mono'; color: #00d4ff;">0</span>
+                </div>
             </div>
+
+            <div id="history-list-container" style="display: flex; flex-direction: column; gap: 15px;">
+                </div>
         </div>
 
     </main>
@@ -481,16 +491,16 @@
         </div>
     </div>
 
+        <div class="nav-item" id="body-nav-history" onclick="switchBodyView('history')" >
+            <i data-lucide="calendar-days" style="width: 22px;"></i>
+            <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
+        </div>
 
         <div class="nav-item" id="body-nav-log" onclick="openQuickLog('workout')" >
             <i data-lucide="plus-circle" style="width: 22px;"></i>
             <div style="font-size: 8px; margin-top: 4px;">LOG</div>
         </div>
 
-        <div class="nav-item" id="body-nav-history" onclick="switchBodyView('history')" >
-            <i data-lucide="calendar-days" style="width: 22px;"></i>
-            <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
-        </div>
     </div>
 
     <!-- WORKOUT FEELING MODAL -->
