@@ -2096,3 +2096,8 @@ CSS
     background: transparent;
 }
 
+#body.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+}
