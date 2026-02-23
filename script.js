@@ -3947,7 +3947,7 @@ function renderRecentWorkouts() {
         .replace(/\(↑\)/g, '<b style="color: #00ff41;">↑</b>')
         .replace(/\(↓\)/g, '<b style="color: #ff4d4d;">↓</b>')
         .replace(/\(=\)/g, '<b style="color: #666;">=</b>');
-
+        .replace(/\(new\)/g, '<b style="color: #666;">NEW</b>');
     container.innerHTML = `
         <div style="background: #111; padding: 15px; border-radius: 6px; border-left: 3px solid #00d4ff;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -5186,8 +5186,13 @@ workouts.forEach(w => {
         const moodEmojis = { "-2": "💀", "-1": "🫠", "0": "😐", "1": "🙂", "2": "🔥" };
         const energyEmojis = { "low": "🪫", "medium": "⚡", "mid": "⚡", "high": "🚀" };
         
-        // FIX: Cerchiamo il dettaglio in tutte le proprietà possibili
-        // A seconda di come Google Script esporta i dati, potrebbe chiamarsi in modo diverso
+            const formattedEx = rawText
+            .replace(/\(NEW\)/g, '<span style="color: #00d4ff; font-weight: bold;">(NEW)</span>')
+            .replace(/\(↑\)/g, '<span style="color: #00ff41;">↑</span>')
+            .replace(/\(↓\)/g, '<span style="color: #ff4d4d;">↓</span>')
+            .replace(/\(=\)/g, '<span style="color: #666;">=</span>')
+            .replace(/;/g, '<br>');
+
         const detailText = w.exercises_json || w.exercises_text || w.exercises || "Dettaglio non trovato";
         const durationVal = w.duration || w.Duration || "--";
 
