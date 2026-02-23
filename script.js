@@ -4295,13 +4295,6 @@ function renderBodyStats() {
     console.log("Rendering body stats...");
 }
 
-function renderBodyHistory() {
-    // TODO: Implementare calendario storico
-    const container = document.getElementById('body-history-container');
-    if (container) {
-        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--dim);">HISTORY_IN_SVILUPPO</div>';
-    }
-}
 
 function renderFullHistory() {
     const container = document.getElementById('body-history-container');
@@ -4321,11 +4314,12 @@ function renderFullHistory() {
         // PUNTAMENTO CORRETTO: exercises_json invece di exercises
         const rawText = w.exercises_json || w.exercises || "";   
 
-        const formattedEx = rawText
-            .replace(/;/g, '<br>')
-            .replace(/\(↑\)/g, '<b style="color:#00ff41">↑</b>')
-            .replace(/\(↓\)/g, '<b style="color:#ff4d4d">↓</b>')
-            .replace(/\(=\)/g, '<b style="color:#666">=</b>');
+                const formattedEx = rawText
+            .replace(/\(NEW\)/g, '<span style="color: #00d4ff; font-weight: bold;">(NEW)</span>')
+            .replace(/\(↑\)/g, '<span style="color: #00ff41;">↑</span>')
+            .replace(/\(↓\)/g, '<span style="color: #ff4d4d;">↓</span>')
+            .replace(/\(=\)/g, '<span style="color: #666;">=</span>')
+            .replace(/;/g, '<br>');
 
         return `
             <div style="background:#0a0a0a; border:1px solid #222; margin-bottom:15px; border-radius:8px; overflow:hidden; border-left: 3px solid ${w.mood >= 1 ? '#00ff41' : '#333'};">
