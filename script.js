@@ -5191,14 +5191,18 @@ workouts.forEach(w => {
 const rawText = w.exercises_json || w.exercises_text || w.exercises || "Dettaglio non trovato";
 const durationVal = w.duration || w.Duration || "--";
 
-// ← FORMATTA CON ICONE LUCIDE invece di simboli
-const detailText = rawText
-    .replace(/\(NEW\)/g, '<i data-lucide="sparkles" style="width: 14px; height: 14px; color: #00d4ff; display: inline;"></i>')
-    .replace(/\(↑\)/g, '<i data-lucide="trending-up" style="width: 14px; height: 14px; color: #00ff41; display: inline;"></i>')
-    .replace(/\(↓\)/g, '<i data-lucide="trending-down" style="width: 14px; height: 14px; color: #ff4d4d; display: inline;"></i>')
-    .replace(/\(=\)/g, '<i data-lucide="minus" style="width: 14px; height: 14px; color: #666; display: inline;"></i>');
+// ← PRIMA splitta per ';' (esercizi), POI formatta ogni pezzo
+const exercises = rawText.split(';').map(ex => {
+    return ex.trim()
+        .replace(/\(NEW\)/g, '<i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"></i>')
+        .replace(/\(↑\)/g, '<i data-lucide="trending-up" style="width:14px;height:14px;color:#00ff41;display:inline-block;margin:0 3px;"></i>')
+        .replace(/\(↓\)/g, '<i data-lucide="trending-down" style="width:14px;height:14px;color:#ff4d4d;display:inline-block;margin:0 3px;"></i>')
+        .replace(/\(=\)/g, '<i data-lucide="minus" style="width:14px;height:14px;color:#666;display:inline-block;margin:0 3px;"></i>');
+}).filter(Boolean);
 
-        const card = document.createElement('div');
+const detailText = exercises.map(ex => `• ${ex}`).join('<br>');
+
+const card = document.createElement('div');
         card.style = `
             background: #0a0a0a; 
             border: 1px solid #222; 
@@ -5220,8 +5224,8 @@ const detailText = rawText
             
             <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #ccc; line-height: 1.5; margin-bottom: 10px; padding-left: 5px;">
                 ${detailText !== "Dettaglio non trovato" 
-                    ? detailText.split(';').map(ex => `• ${ex.trim()}`).join('<br>') 
-                    : `<span style="color: #444;">${detailText}</span>`}
+                    ? detailText
+                    : `<span style="color: #444;">Dettaglio non trovato</span>`}
             </div>
 
             ${w.notes ? `
