@@ -3946,7 +3946,7 @@ function renderRecentWorkouts() {
         .replace(/;/g, '<br>')
         .replace(/\(↑\)/g, '<b style="color: #00ff41;">↑</b>')
         .replace(/\(↓\)/g, '<b style="color: #ff4d4d;">↓</b>')
-        .replace(/\(=\)/g, '<b style="color: #666;">=</b>');
+        .replace(/\(=\)/g, '<b style="color: #666;">=</b>')
         .replace(/\(new\)/g, '<b style="color: #666;">NEW</b>');
     container.innerHTML = `
         <div style="background: #111; padding: 15px; border-radius: 6px; border-left: 3px solid #00d4ff;">
