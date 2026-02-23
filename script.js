@@ -5188,15 +5188,15 @@ workouts.forEach(w => {
         
 
 
-        const rawText = w.exercises_json || w.exercises_text || w.exercises || "Dettaglio non trovato";
-        const durationVal = w.duration || w.Duration || "--";
+const rawText = w.exercises_json || w.exercises_text || w.exercises || "Dettaglio non trovato";
+const durationVal = w.duration || w.Duration || "--";
 
-        // ← FORMATTA LE FRECCE IN HTML COLORATO
-        const detailText = rawText
-            .replace(/\(NEW\)/g, '<span style="color: #00d4ff; font-weight: bold;">(NEW)</span>')
-            .replace(/\(↑\)/g, '<span style="color: #00ff41;">↑</span>')
-            .replace(/\(↓\)/g, '<span style="color: #ff4d4d;">↓</span>')
-            .replace(/\(=\)/g, '<span style="color: #666;">=</span>');
+// ← FORMATTA CON ICONE LUCIDE invece di simboli
+const detailText = rawText
+    .replace(/\(NEW\)/g, '<i data-lucide="sparkles" style="width: 14px; height: 14px; color: #00d4ff; display: inline;"></i>')
+    .replace(/\(↑\)/g, '<i data-lucide="trending-up" style="width: 14px; height: 14px; color: #00ff41; display: inline;"></i>')
+    .replace(/\(↓\)/g, '<i data-lucide="trending-down" style="width: 14px; height: 14px; color: #ff4d4d; display: inline;"></i>')
+    .replace(/\(=\)/g, '<i data-lucide="minus" style="width: 14px; height: 14px; color: #666; display: inline;"></i>');
 
         const card = document.createElement('div');
         card.style = `
@@ -5233,4 +5233,6 @@ workouts.forEach(w => {
         
         container.appendChild(card);
     });
+    // Re-inizializza icone Lucide
+if (window.lucide) lucide.createIcons();
 }
