@@ -5194,7 +5194,7 @@ const durationVal = w.duration || w.Duration || "--";
 // ← PRIMA splitta per ';' (esercizi), POI formatta ogni pezzo
 const exercises = rawText.split(';').map(ex => {
     return ex.trim()
-        .replace(/\(NEW\)/g, '<i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"><span style="color: #00d4ff; font-weight: bold;">NEW</span></i><i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"></i>')
+        .replace(/\(new\)/g, '<i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"><span style="color: #00d4ff; font-weight: bold;">NEW</span></i><i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"></i>')
         .replace(/\(↑\)/g, '<i data-lucide="trending-up" style="width:14px;height:14px;color:#00ff41;display:inline-block;margin:0 3px;"></i>')
         .replace(/\(↓\)/g, '<i data-lucide="trending-down" style="width:14px;height:14px;color:#ff4d4d;display:inline-block;margin:0 3px;"></i>')
         .replace(/\(=\)/g, '<i data-lucide="equal" style="width:14px;height:14px;color:#666;display:inline-block;margin:0 3px;"></i>');
