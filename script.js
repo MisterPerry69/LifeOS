@@ -4118,36 +4118,56 @@ async function submitWeight() {
         return;
     }
     
+    // Feedback visivo immediato sull'input
     input.disabled = true;
+    const originalValue = input.value;
     input.value = "SAVING...";
     
     try {
-        // Usiamo action invece di service per coerenza col .gs
+        // 1. Chiamata al database (usando 'action' come nel tuo .gs)
         await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({
-                action: 'log_weight', // Cambiato da service a action
+                action: 'log_weight', 
                 weight: weight
             })
         });
         
-        // Update visivo immediato
-        document.getElementById('body-current-weight').innerText = weight.toFixed(1);
+        // --- AGGIUNTA QUI: AGGIORNAMENTO DATI LOCALI ---
+        bodyData.currentWeight = weight; // Aggiorna il valore in memoria
+        
+        // Se hai un array della cronologia, aggiungiamo il punto di oggi per i grafici
+        if (bodyData.weightHistory) {
+            bodyData.weightHistory.push({ date: new Date().toISOString(), weight: weight });
+        }
+        // ----------------------------------------------
+
+        // 2. Feedback visivo sui widget
+        // Widget nella Home del Body
+        const bodyCurrentWeightEl = document.getElementById('body-current-weight');
+        if (bodyCurrentWeightEl) bodyCurrentWeightEl.innerText = weight.toFixed(1);
+        
+        // Widget esterno (quello piccolo sempre visibile)
         const widgetWeight = document.getElementById('widget-weight');
         if (widgetWeight) widgetWeight.innerText = weight.toFixed(1);
         
         showCustomAlert(`PESO_REGISTRATO: ${weight}kg`, true);
 
+        // 3. Chiudi e rinfresca la dashboard
         setTimeout(() => {
             closeWeightLog();
-            // Invece di reload, forziamo un refresh dei dati globale
-            if (typeof loadInitialData === 'function') loadInitialData();
+            // --- AGGIUNTA QUI: RE-RENDER DASHBOARD ---
+            if (typeof renderBodyDashboard === 'function') {
+                renderBodyDashboard(); 
+            }
+            // -----------------------------------------
         }, 1500);
         
     } catch (e) {
         console.error("Errore peso:", e);
         showCustomAlert("ERRORE_CONNESSIONE");
         input.disabled = false;
+        input.value = originalValue;
     }
 }
 
