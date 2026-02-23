@@ -3815,34 +3815,37 @@ function calculateStreak(workouts) {
     
     const today = new Date();
     const TARGET_WORKOUTS_PER_WEEK = 3;
-    
-    // Raggruppa workout per settimana
     const weeklyWorkouts = {};
     
     workouts.forEach(w => {
         const date = new Date(w.date);
-        // Calcola numero settimana dall'inizio dell'anno
         const weekNum = getWeekNumber(date);
         const weekKey = `${date.getFullYear()}-W${weekNum}`;
-        
         weeklyWorkouts[weekKey] = (weeklyWorkouts[weekKey] || 0) + 1;
     });
     
-    // Conta settimane consecutive con almeno 3 workout
     let streak = 0;
     let currentDate = new Date(today);
-    
+    const currentWeekKey = `${currentDate.getFullYear()}-W${getWeekNumber(currentDate)}`;
+
+    // Se questa settimana ho già raggiunto il target, conto questa e vado indietro
+    // Se NON ho ancora raggiunto il target, salto questa (non rompo lo streak) e parto dalla scorsa
+    if ((weeklyWorkouts[currentWeekKey] || 0) < TARGET_WORKOUTS_PER_WEEK) {
+        currentDate.setDate(currentDate.getDate() - 7);
+    }
+
     while (true) {
         const weekNum = getWeekNumber(currentDate);
         const weekKey = `${currentDate.getFullYear()}-W${weekNum}`;
         
         if ((weeklyWorkouts[weekKey] || 0) >= TARGET_WORKOUTS_PER_WEEK) {
             streak++;
-            // Vai alla settimana precedente
             currentDate.setDate(currentDate.getDate() - 7);
         } else {
-            break;
+            break; 
         }
+        
+        if (streak > 52) break; // Safety break
     }
     
     return streak;
@@ -4296,9 +4299,9 @@ function renderFullHistory() {
         const moodEmoji = w.mood == -2 ? '😫' : w.mood == -1 ? '😐' : w.mood == 0 ? '😊' : w.mood == 1 ? '😄' : '🔥';
         
         // PUNTAMENTO CORRETTO: exercises_json invece di exercises
-        const rawExercises = w.exercises_json || w.exercises || 'Log rapido';
-        
-        const formattedEx = rawExercises
+        const rawText = w.exercises_json || w.exercises || "";   
+
+        const formattedEx = rawText
             .replace(/;/g, '<br>')
             .replace(/\(↑\)/g, '<b style="color:#00ff41">↑</b>')
             .replace(/\(↓\)/g, '<b style="color:#ff4d4d">↓</b>')
