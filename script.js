@@ -31,6 +31,7 @@ let cachedFinanceStats = null;
 
 
 
+
 // ============================================
 // 2. CORE & NAVIGATION
 // ============================================
@@ -3986,38 +3987,52 @@ function renderRecentWorkouts() {
 
 // Nel tuo script.js, SOSTITUISCI la funzione openQuickLog:
 
-let selectedMood = 0; // Default: 😊
-let selectedEnergy = 'mid'; // Default: MID
+let selectedMood = null; // Default: 😊
+let selectedEnergy = null; // Default: MID
 
 function selectWorkoutMood(value, btn) {
     selectedMood = value;
-    // Reset bordi
-    document.querySelectorAll('#mood-selector button').forEach(b => b.style.borderColor = '#333');
-    // Attiva selezionato
+    
+    // Reset tutti i bottoni mood
+    document.querySelectorAll('#mood-selector button').forEach(b => {
+        b.style.borderColor = '#333';
+    });
+    
+    // Evidenzia selezionato
     btn.style.borderColor = '#00ff41';
 }
 
 function selectWorkoutEnergy(value, btn) {
     selectedEnergy = value;
-    // Reset colori e bordi
+    
+    // Reset tutti i bottoni energy
     document.querySelectorAll('#energy-selector button').forEach(b => {
         b.style.borderColor = '#333';
         b.style.color = '#666';
     });
-    // Attiva selezionato (colore basato sul livello)
-    const colors = { 'low': '#555', 'mid': '#ff9500', 'high': '#00d4ff' };
-    btn.style.borderColor = colors[value];
-    btn.style.color = colors[value];
+    
+    // Evidenzia selezionato
+    btn.style.borderColor = '#ff9500';
+    btn.style.color = '#ff9500';
 }
 
 function openQuickLog(type) {
     if (type === 'workout') {
-        selectedMood = 0;
-        selectedEnergy = 'mid';
-        document.getElementById('workout-feeling-modal').style.display = 'block';
-        // (Opzionale: resetta graficamente i bordi dei bottoni ai default qui)
-        setTimeout(() => document.getElementById('workout-feeling-input').focus(), 300);
-    } else if (type === 'weight') {
+    document.getElementById('workout-feeling-modal').style.display = 'block';
+    
+    // ← RESET selezioni
+    selectedMood = null;
+    selectedEnergy = null;
+    
+    // Reset UI
+    document.querySelectorAll('#mood-selector button').forEach(b => b.style.borderColor = '#333');
+    document.querySelectorAll('#energy-selector button').forEach(b => {
+        b.style.borderColor = '#333';
+        b.style.color = '#666';
+    });
+    
+    setTimeout(() => document.getElementById('workout-feeling-input').focus(), 300);
+} else if (type === 'weight') {
         // FIX: Non usare modal-backdrop, crea backdrop inline nel modal stesso
         const modal = document.getElementById('weight-log-modal');
         modal.style.display = 'flex';
@@ -5239,4 +5254,30 @@ const card = document.createElement('div');
     });
     // Re-inizializza icone Lucide
 if (window.lucide) lucide.createIcons();
+}
+
+function selectWorkoutMood(value, btn) {
+    selectedMood = value;
+    
+    // Reset tutti i bottoni mood
+    document.querySelectorAll('#mood-selector button').forEach(b => {
+        b.style.borderColor = '#333';
+    });
+    
+    // Evidenzia selezionato
+    btn.style.borderColor = '#00ff41';
+}
+
+function selectWorkoutEnergy(value, btn) {
+    selectedEnergy = value;
+    
+    // Reset tutti i bottoni energy
+    document.querySelectorAll('#energy-selector button').forEach(b => {
+        b.style.borderColor = '#333';
+        b.style.color = '#666';
+    });
+    
+    // Evidenzia selezionato
+    btn.style.borderColor = '#ff9500';
+    btn.style.color = '#ff9500';
 }
