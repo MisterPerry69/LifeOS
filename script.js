@@ -5256,28 +5256,3 @@ const card = document.createElement('div');
 if (window.lucide) lucide.createIcons();
 }
 
-function selectWorkoutMood(value, btn) {
-    selectedMood = value;
-    
-    // Reset tutti i bottoni mood
-    document.querySelectorAll('#mood-selector button').forEach(b => {
-        b.style.borderColor = '#333';
-    });
-    
-    // Evidenzia selezionato
-    btn.style.borderColor = '#00ff41';
-}
-
-function selectWorkoutEnergy(value, btn) {
-    selectedEnergy = value;
-    
-    // Reset tutti i bottoni energy
-    document.querySelectorAll('#energy-selector button').forEach(b => {
-        b.style.borderColor = '#333';
-        b.style.color = '#666';
-    });
-    
-    // Evidenzia selezionato
-    btn.style.borderColor = '#ff9500';
-    btn.style.color = '#ff9500';
-}
