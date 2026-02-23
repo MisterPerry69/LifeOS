@@ -4078,10 +4078,10 @@ async function submitWorkoutFeeling() {
         });
 
         // Feedback del coach
-        const coachRes = await fetch(SCRIPT_URL, {
+const coachRes = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ 
-                service: 'ask_body_coach', 
+                action: 'ask_body_coach', // Cambiato da service a action
                 query: input,
                 mood: selectedMood,
                 energy: selectedEnergy
@@ -4115,33 +4115,30 @@ async function submitWeight() {
         return;
     }
     
-    // ← AGGIUNGI FEEDBACK IMMEDIATO
     input.disabled = true;
     input.value = "SAVING...";
     
     try {
+        // Usiamo action invece di service per coerenza col .gs
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             body: JSON.stringify({
-                service: 'log_weight',
+                action: 'log_weight', // Cambiato da service a action
                 weight: weight
             })
         });
         
-        // ← MOSTRA SUBITO IL NUOVO PESO (optimistic UI)
+        // Update visivo immediato
         document.getElementById('body-current-weight').innerText = weight.toFixed(1);
+        const widgetWeight = document.getElementById('widget-weight');
+        if (widgetWeight) widgetWeight.innerText = weight.toFixed(1);
         
         showCustomAlert(`PESO_REGISTRATO: ${weight}kg`, true);
 
-        const widgetWeight = document.getElementById('widget-weight');
-        if (widgetWeight) {
-            widgetWeight.innerText = weight.toFixed(1);
-        }
-        
         setTimeout(() => {
             closeWeightLog();
-            loadStats();
+            // Invece di reload, forziamo un refresh dei dati globale
+            if (typeof loadInitialData === 'function') loadInitialData();
         }, 1500);
         
     } catch (e) {
@@ -4294,23 +4291,30 @@ function renderFullHistory() {
 
     container.innerHTML = bodyData.workouts.map(w => {
         const date = new Date(w.date).toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: 'long' }).toUpperCase();
-        const moodEmoji = w.mood === -2 ? '😫' : w.mood === -1 ? '😐' : w.mood === 0 ? '😊' : w.mood === 1 ? '😄' : '🔥';
         
-        // Formattazione testo esercizi (gestisce stringhe con freccette)
-        const exercises = Array.isArray(w.exercises) ? w.exercises.join(', ') : w.exercises;
-        const formattedEx = (exercises || 'Log rapido')
+        // MOOD EMOJI corretta per il tuo sistema
+        const moodEmoji = w.mood == -2 ? '😫' : w.mood == -1 ? '😐' : w.mood == 0 ? '😊' : w.mood == 1 ? '😄' : '🔥';
+        
+        // PUNTAMENTO CORRETTO: exercises_json invece di exercises
+        const rawExercises = w.exercises_json || w.exercises || 'Log rapido';
+        
+        const formattedEx = rawExercises
             .replace(/;/g, '<br>')
             .replace(/\(↑\)/g, '<b style="color:#00ff41">↑</b>')
-            .replace(/\(↓\)/g, '<b style="color:#ff4d4d">↓</b>');
+            .replace(/\(↓\)/g, '<b style="color:#ff4d4d">↓</b>')
+            .replace(/\(=\)/g, '<b style="color:#666">=</b>');
 
         return `
-            <div style="background:#0a0a0a; border:1px solid #222; margin-bottom:15px; border-radius:8px; overflow:hidden;">
+            <div style="background:#0a0a0a; border:1px solid #222; margin-bottom:15px; border-radius:8px; overflow:hidden; border-left: 3px solid ${w.mood >= 1 ? '#00ff41' : '#333'};">
                 <div style="background:#111; padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-family:'Rajdhani'; font-weight:bold; font-size:0.8rem; color:var(--accent);">${date}</span>
-                    <span>${moodEmoji}</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#00d4ff;">${w.duration ? w.duration + 'm' : '--'}</span>
+                        <span>${moodEmoji}</span>
+                    </div>
                 </div>
                 <div style="padding:15px;">
-                    <div style="font-size:0.85rem; color:#eee; line-height:1.4;">${formattedEx}</div>
+                    <div style="font-size:0.85rem; color:#eee; line-height:1.4; font-family:'JetBrains Mono';">${formattedEx}</div>
                     ${w.notes ? `<div style="margin-top:10px; font-size:0.75rem; color:var(--dim); border-top:1px solid #222; padding-top:8px; font-style:italic;">Note: ${w.notes}</div>` : ''}
                 </div>
             </div>
