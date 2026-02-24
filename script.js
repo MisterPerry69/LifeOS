@@ -30,6 +30,36 @@ let balanceHidden = true; // Default nascosto
 let cachedFinanceStats = null;
 
 
+// Salva dati in cache
+function cacheData(data) {
+    try {
+        localStorage.setItem('lifeosData', JSON.stringify(data));
+        localStorage.setItem('lifeosDataTimestamp', Date.now());
+    } catch(e) {
+        console.warn("Cache fallita:", e);
+    }
+}
+
+// Carica dati da cache
+function loadCachedData() {
+    try {
+        const cached = localStorage.getItem('lifeosData');
+        const timestamp = localStorage.getItem('lifeosDataTimestamp');
+        
+        if (cached) {
+            const age = Date.now() - parseInt(timestamp || 0);
+            // Se cache ha meno di 30 minuti, usala
+            if (age < 30 * 60 * 1000) {
+                return JSON.parse(cached);
+            }
+        }
+    } catch(e) {
+        console.warn("Lettura cache fallita:", e);
+    }
+    return null;
+}
+
+
 
 
 // ============================================
@@ -4630,34 +4660,6 @@ async function submitNewEvent() {
     }
 }
 
-// Salva dati in cache
-function cacheData(data) {
-    try {
-        localStorage.setItem('lifeosData', JSON.stringify(data));
-        localStorage.setItem('lifeosDataTimestamp', Date.now());
-    } catch(e) {
-        console.warn("Cache fallita:", e);
-    }
-}
-
-// Carica dati da cache
-function loadCachedData() {
-    try {
-        const cached = localStorage.getItem('lifeosData');
-        const timestamp = localStorage.getItem('lifeosDataTimestamp');
-        
-        if (cached) {
-            const age = Date.now() - parseInt(timestamp || 0);
-            // Se cache ha meno di 30 minuti, usala
-            if (age < 30 * 60 * 1000) {
-                return JSON.parse(cached);
-            }
-        }
-    } catch(e) {
-        console.warn("Lettura cache fallita:", e);
-    }
-    return null;
-}
 
 // Popola l'app con i dati (cache o freschi)
 function renderWithData(data) {
