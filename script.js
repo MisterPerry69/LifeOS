@@ -506,40 +506,30 @@ async function sendCmd(event) {
     input.value = "";
     input.placeholder = "> SYNC_STARTING...";
     
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ service: "note", text: val })
-        });
+   // SOSTITUISCI il try block dentro sendCmd() con questo:
+try {
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',   // ← AGGIUNTO
+        body: JSON.stringify({ service: "note", text: val })
+    });
 
-        input.placeholder = "> COMMAND_SENT.";
-        
-        // Aspetta un attimo prima di ricaricare
-        setTimeout(async () => {
-            await loadStats();
-            
-            // Rimuovi card temporanea se esiste
-            document.querySelectorAll('.temp-note').forEach(el => el.remove());
-            
-            const noteDetail = document.getElementById('note-detail');
-            if (noteDetail && noteDetail.style.display === 'flex') {
-                if (isExtraCmd) {
-                    openExtraDetail();
-                }
-            }
-        }, 2000);
-
-    } catch (e) {
-        console.error("Errore sendCmd:", e);
-        input.placeholder = "!! SYNC_ERROR !!";
-        // Rimuovi card temporanea in caso di errore
-        document.querySelectorAll('.temp-note').forEach(el => el.remove());
-    }
+    input.placeholder = "> COMMAND_SENT.";
     
-    setTimeout(() => {
-        input.placeholder = "> DIGITA...";
-        input.focus();
-    }, 2500);
+    setTimeout(async () => {
+        await loadStats();
+        document.querySelectorAll('.temp-note').forEach(el => el.remove());
+        
+        const noteDetail = document.getElementById('note-detail');
+        if (noteDetail && noteDetail.style.display === 'flex') {
+            if (isExtraCmd) openExtraDetail();
+        }
+    }, 2000);
+
+} catch (e) {
+    console.error("Errore sendCmd:", e);
+    input.placeholder = "!! SYNC_ERROR !!";
+    document.querySelectorAll('.temp-note').forEach(el => el.remove());
 }
 
 // FIX: Rinominata per evitare conflitti
@@ -852,6 +842,7 @@ async function saveAndClose() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',   // ← AGGIUNTO
             body: JSON.stringify({ service: "note", text: text })
         });
         
