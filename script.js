@@ -5239,3 +5239,4 @@ const card = document.createElement('div');
 if (window.lucide) lucide.createIcons();
 }
 
+}
