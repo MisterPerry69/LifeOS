@@ -1780,6 +1780,7 @@ function nav(page) {
 
 function renderFinanceStats(financeData) {
     // Calcola stats una volta sola
+    if (currentSection !== 'finance') return;
     const stats = {
         categories: financeData.categories || {},
         income: financeData.income || 0,
@@ -1896,6 +1897,7 @@ async function filterByMonth(val) {
 let myChart = null;
 
 async function loadFinanceStats() {
+    if (currentSection !== 'finance') return;
     // 1. Fetch dei dati (Assicurati che l'action get_finance_stats sia attiva in Apps Script)
     const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
     const data = await res.json();
@@ -2978,6 +2980,7 @@ function toggleStats() {
 }
 
 function renderFinanceStatsView(stats) {
+    if (currentSection !== 'finance') return;
 
         console.log("=== DEBUG STATS ===");
     console.log("stats completo:", stats);
@@ -4800,6 +4803,7 @@ function renderWithData(data) {
 
 // Nuova funzione che SOLO calcola (non renderizza)
 function calculateFinanceStats(financeData) {
+    if (currentSection !== 'finance') return;
     console.log("=== DEBUG calculateFinanceStats ===");
     console.log("financeData ricevuto:", financeData);
     console.log("financeData.categories:", financeData.categories);
