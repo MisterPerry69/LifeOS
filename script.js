@@ -2220,7 +2220,8 @@ async function saveTodoList() {
     };
     
     loadedNotesData.unshift(fakeNote);
-    renderGrid({ notes: loadedNotesData });
+    lastStatsData.notes = loadedNotesData; // ← Aggiorna le note nell'oggetto completo
+    renderGrid(lastStatsData);
     
     closeTodoModal();
     
@@ -2238,7 +2239,8 @@ async function saveTodoList() {
     } catch(e) {
         console.error("Errore:", e);
         loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
-        renderGrid({ notes: loadedNotesData });
+    lastStatsData.notes = loadedNotesData; // ← Aggiorna le note nell'oggetto completo
+    renderGrid(lastStatsData);
         showCustomAlert("SAVE_ERROR");
     }
 }
