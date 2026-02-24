@@ -2206,22 +2206,52 @@ async function saveTodoList() {
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    // Aggiungi marker speciale all'inizio per identificare tipo
+    // ← FORMATO CORRETTO: [LISTA] + checkbox + testo
     const todoText = "[LISTA]\n" + todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
     
+    // ← OPTIMISTIC UI
     const fakeId = 'temp_' + Date.now();
     const fakeNote = {
         id: fakeId,
         date: new Date(),
-        type: 'LISTA', // ← Cambiato da NOTE
+        type: 'LISTA',
         content: todoText,
         color: 'default',
         title: 'TODO_LIST'
     };
     
     loadedNotesData.unshift(fakeNote);
-    lastStatsData.notes = loadedNotesData; // ← Aggiorna le note nell'oggetto completo
-    renderGrid(lastStatsData);
+    lastStatsData.notes = loadedNotesData;
+    
+    // ← AGGIUNGI CARD HTML MANUALMENTE
+    const grid = document.getElementById('keep-grid');
+    if (grid) {
+        const totalItems = todoItems.length;
+        const checkedItems = todoItems.filter(i => i.checked).length;
+        
+        const cardHTML = `
+            <div class="keep-card bg-default" id="card-${fakeId}" style="cursor: pointer; border-left: 3px solid #00ff41;">
+                <div class="title-row" style="color: #00ff41;">📋 TODO_LIST</div>
+                <div class="content-preview">${todoText.substring(0, 100)}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                    <div class="label" style="font-size:9px; opacity:0.4;">
+                        ${new Date().toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
+                    </div>
+                    <div style="font-size: 10px; color: #00ff41;">
+                        ${checkedItems}/${totalItems} ✓
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Inserisci dopo l'ultima card pinnata o all'inizio
+        const lastPinned = grid.querySelector('.pinnato:last-of-type');
+        if (lastPinned) {
+            lastPinned.insertAdjacentHTML('afterend', cardHTML);
+        } else {
+            grid.insertAdjacentHTML('afterbegin', cardHTML);
+        }
+    }
     
     closeTodoModal();
     
@@ -2239,8 +2269,12 @@ async function saveTodoList() {
     } catch(e) {
         console.error("Errore:", e);
         loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
-    lastStatsData.notes = loadedNotesData; // ← Aggiorna le note nell'oggetto completo
-    renderGrid(lastStatsData);
+        lastStatsData.notes = loadedNotesData;
+        
+        // Rimuovi card fake dal DOM
+        const fakeCard = document.getElementById(`card-${fakeId}`);
+        if (fakeCard) fakeCard.remove();
+        
         showCustomAlert("SAVE_ERROR");
     }
 }
@@ -4914,7 +4948,8 @@ async function saveLinkNote() {
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n${currentLinkData.image || ''}\n${currentLinkData.description}`;
+    // ← FORMATO CORRETTO: [LINK] + titolo + url + immagine + descrizione
+    const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n${currentLinkData.image || ''}\n\n${currentLinkData.description}`;
     
     // ← OPTIMISTIC UI
     const fakeId = 'temp_' + Date.now();
@@ -4928,27 +4963,17 @@ async function saveLinkNote() {
     };
     
     loadedNotesData.unshift(fakeNote);
+    lastStatsData.notes = loadedNotesData; // ← FIX: Aggiorna lastStatsData
     
-    // ← Aggiungi card manualmente (come TODO)
+    // ← AGGIUNGI CARD HTML MANUALMENTE
     const grid = document.getElementById('keep-grid');
     if (grid) {
-        const lines = linkText.split('\n');
-        const title = lines[0]?.replace('🔗 ', '');
-        const url = lines[1];
-        const imageUrl = lines[2];
-        const description = lines.slice(4).join(' ').substring(0, 80);
-        
-        let domain = '';
-        try {
-            domain = new URL(url).hostname.replace('www.', '');
-        } catch(e) {}
-        
         const cardHTML = `
-            <div class="keep-card bg-default" style="cursor: pointer;">
+            <div class="keep-card bg-default" id="card-${fakeId}" style="cursor: pointer; border-left: 3px solid #0088ff;">
                 <div style="
                     width: 100%;
                     height: 80px;
-                    background: ${imageUrl ? `url('${imageUrl}')` : 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'};
+                    background: ${currentLinkData.image ? `url('${currentLinkData.image}')` : 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'};
                     background-size: cover;
                     background-position: center;
                     border-radius: 4px;
@@ -4958,14 +4983,20 @@ async function saveLinkNote() {
                     justify-content: center;
                     font-size: 1.5rem;
                     border: 1px solid #0088ff;
-                ">${imageUrl ? '' : '🔗'}</div>
-                <div class="title-row" style="color: #0088ff;">${title.toUpperCase()}</div>
-                <div class="content-preview" style="font-size: 10px;">${description}</div>
-                <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${domain}</div>
+                ">${currentLinkData.image ? '' : '🔗'}</div>
+                <div class="title-row" style="color: #0088ff;">${currentLinkData.title.toUpperCase()}</div>
+                <div class="content-preview" style="font-size: 10px;">${currentLinkData.description.substring(0, 80)}</div>
+                <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${currentLinkData.domain}</div>
             </div>
         `;
         
-        grid.insertAdjacentHTML('afterbegin', cardHTML);
+        // Inserisci dopo l'ultima card pinnata o all'inizio
+        const lastPinned = grid.querySelector('.pinnato:last-of-type');
+        if (lastPinned) {
+            lastPinned.insertAdjacentHTML('afterend', cardHTML);
+        } else {
+            grid.insertAdjacentHTML('afterbegin', cardHTML);
+        }
     }
     
     closeLinkModal();
@@ -4973,7 +5004,10 @@ async function saveLinkNote() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ service: "note", text: linkText })
+            body: JSON.stringify({ 
+                service: "note", 
+                text: linkText 
+            })
         });
         
         setTimeout(() => loadStats(), 2000);
@@ -4981,6 +5015,12 @@ async function saveLinkNote() {
     } catch(e) {
         console.error("Errore:", e);
         loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
+        lastStatsData.notes = loadedNotesData;
+        
+        // Rimuovi card fake dal DOM
+        const fakeCard = document.getElementById(`card-${fakeId}`);
+        if (fakeCard) fakeCard.remove();
+        
         showCustomAlert("SAVE_ERROR");
     }
 }
