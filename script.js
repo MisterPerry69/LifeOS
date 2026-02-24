@@ -2254,7 +2254,13 @@ async function saveTodoList() {
             body: JSON.stringify({ service: "note", text: todoText })
         });
         
-        setTimeout(() => loadStats(), 2000);
+        setTimeout(async () => {
+            // Invece di caricare TUTTO (Finance, Body, etc), carichiamo solo i dati del Brain
+            const response = await fetch(SCRIPT_URL + "?action=get_notes"); // O come si chiama la tua funzione di fetch note
+            const data = await response.json();
+            lastStatsData.notes = data;
+            renderGrid(lastStatsData); 
+        }, 2000);
         
     } catch(e) {
         console.error("Errore:", e);
@@ -4977,7 +4983,13 @@ async function saveLinkNote() {
             body: JSON.stringify({ service: "note", text: linkText })
         });
         
-        setTimeout(() => loadStats(), 2000);
+        setTimeout(async () => {
+            // Invece di caricare TUTTO (Finance, Body, etc), carichiamo solo i dati del Brain
+            const response = await fetch(SCRIPT_URL + "?action=get_notes"); // O come si chiama la tua funzione di fetch note
+            const data = await response.json();
+            lastStatsData.notes = data;
+            renderGrid(lastStatsData); 
+        }, 2000);
         
     } catch(e) {
         console.error("Errore:", e);
