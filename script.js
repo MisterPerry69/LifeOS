@@ -2202,14 +2202,11 @@ async function saveTodoList() {
     }
     
     const saveBtn = document.querySelector('button[onclick="saveTodoList()"]');
-    const originalText = saveBtn.innerHTML;
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    // ← FORMATO CORRETTO: [LISTA] + checkbox + testo
     const todoText = "[LISTA]\n" + todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
     
-    // ← OPTIMISTIC UI
     const fakeId = 'temp_' + Date.now();
     const fakeNote = {
         id: fakeId,
@@ -2220,10 +2217,11 @@ async function saveTodoList() {
         title: 'TODO_LIST'
     };
     
+    // ← SOLO memoria, NON renderGrid
     loadedNotesData.unshift(fakeNote);
     lastStatsData.notes = loadedNotesData;
     
-    // ← AGGIUNGI CARD HTML MANUALMENTE
+    // ← CARD HTML
     const grid = document.getElementById('keep-grid');
     if (grid) {
         const totalItems = todoItems.length;
@@ -2234,17 +2232,12 @@ async function saveTodoList() {
                 <div class="title-row" style="color: #00ff41;">📋 TODO_LIST</div>
                 <div class="content-preview">${todoText.substring(0, 100)}</div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                    <div class="label" style="font-size:9px; opacity:0.4;">
-                        ${new Date().toLocaleDateString('it-IT', {day:'2-digit', month:'short'})}
-                    </div>
-                    <div style="font-size: 10px; color: #00ff41;">
-                        ${checkedItems}/${totalItems} ✓
-                    </div>
+                    <div class="label" style="font-size:9px; opacity:0.4;">JUST_NOW</div>
+                    <div style="font-size: 10px; color: #00ff41;">${checkedItems}/${totalItems} ✓</div>
                 </div>
             </div>
         `;
         
-        // Inserisci dopo l'ultima card pinnata o all'inizio
         const lastPinned = grid.querySelector('.pinnato:last-of-type');
         if (lastPinned) {
             lastPinned.insertAdjacentHTML('afterend', cardHTML);
@@ -2258,23 +2251,15 @@ async function saveTodoList() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ 
-                service: "note", 
-                text: todoText 
-            })
+            body: JSON.stringify({ service: "note", text: todoText })
         });
         
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
         console.error("Errore:", e);
-        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
-        lastStatsData.notes = loadedNotesData;
-        
-        // Rimuovi card fake dal DOM
         const fakeCard = document.getElementById(`card-${fakeId}`);
         if (fakeCard) fakeCard.remove();
-        
         showCustomAlert("SAVE_ERROR");
     }
 }
@@ -4948,10 +4933,8 @@ async function saveLinkNote() {
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    // ← FORMATO CORRETTO: [LINK] + titolo + url + immagine + descrizione
     const linkText = `[LINK]\n🔗 ${currentLinkData.title}\n${currentLinkData.url}\n${currentLinkData.image || ''}\n\n${currentLinkData.description}`;
     
-    // ← OPTIMISTIC UI
     const fakeId = 'temp_' + Date.now();
     const fakeNote = {
         id: fakeId,
@@ -4962,35 +4945,22 @@ async function saveLinkNote() {
         title: currentLinkData.title
     };
     
+    // ← SOLO memoria, NON renderGrid
     loadedNotesData.unshift(fakeNote);
-    lastStatsData.notes = loadedNotesData; // ← FIX: Aggiorna lastStatsData
+    lastStatsData.notes = loadedNotesData;
     
-    // ← AGGIUNGI CARD HTML MANUALMENTE
+    // ← CARD HTML
     const grid = document.getElementById('keep-grid');
     if (grid) {
         const cardHTML = `
             <div class="keep-card bg-default" id="card-${fakeId}" style="cursor: pointer; border-left: 3px solid #0088ff;">
-                <div style="
-                    width: 100%;
-                    height: 80px;
-                    background: ${currentLinkData.image ? `url('${currentLinkData.image}')` : 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'};
-                    background-size: cover;
-                    background-position: center;
-                    border-radius: 4px;
-                    margin-bottom: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.5rem;
-                    border: 1px solid #0088ff;
-                ">${currentLinkData.image ? '' : '🔗'}</div>
+                <div style="width: 100%; height: 80px; background: ${currentLinkData.image ? `url('${currentLinkData.image}')` : 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'}; background-size: cover; background-position: center; border-radius: 4px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 1px solid #0088ff;">${currentLinkData.image ? '' : '🔗'}</div>
                 <div class="title-row" style="color: #0088ff;">${currentLinkData.title.toUpperCase()}</div>
                 <div class="content-preview" style="font-size: 10px;">${currentLinkData.description.substring(0, 80)}</div>
                 <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${currentLinkData.domain}</div>
             </div>
         `;
         
-        // Inserisci dopo l'ultima card pinnata o all'inizio
         const lastPinned = grid.querySelector('.pinnato:last-of-type');
         if (lastPinned) {
             lastPinned.insertAdjacentHTML('afterend', cardHTML);
@@ -5004,23 +4974,15 @@ async function saveLinkNote() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ 
-                service: "note", 
-                text: linkText 
-            })
+            body: JSON.stringify({ service: "note", text: linkText })
         });
         
         setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
         console.error("Errore:", e);
-        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
-        lastStatsData.notes = loadedNotesData;
-        
-        // Rimuovi card fake dal DOM
         const fakeCard = document.getElementById(`card-${fakeId}`);
         if (fakeCard) fakeCard.remove();
-        
         showCustomAlert("SAVE_ERROR");
     }
 }
