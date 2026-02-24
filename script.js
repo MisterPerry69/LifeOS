@@ -561,6 +561,7 @@ try {
     input.placeholder = "!! SYNC_ERROR !!";
     document.querySelectorAll('.temp-note').forEach(el => el.remove());
 }
+}
 
 // FIX: Rinominata per evitare conflitti
 function handleFinanceCommand(rawText) {
