@@ -41,7 +41,6 @@ window.onload = async () => {
     setInterval(updateClock, 1000);
     
     // TENTATIVO 1: Carica da cache
-    const cached = loadCachedData();
     
     if (cached) {
         // CACHE HIT - App usabile SUBITO
