@@ -2251,19 +2251,23 @@ async function saveTodoList() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ service: "note", text: todoText })
+            mode: 'no-cors', // Questo evita l'errore CORS al salvataggio
+            body: JSON.stringify({ 
+                service: "note", 
+                text: todoText 
+            })
         });
         
-        setTimeout(async () => {
-            // Invece di caricare TUTTO (Finance, Body, etc), carichiamo solo i dati del Brain
-            const response = await fetch(SCRIPT_URL + "?action=get_notes"); // O come si chiama la tua funzione di fetch note
-            const data = await response.json();
-            lastStatsData.notes = data;
-            renderGrid(lastStatsData); 
+        showCustomAlert("NOTA_INVIATA", true);
+        
+        // Aspettiamo 2 secondi che Google scriva sul foglio e poi ricarichiamo tutto
+        setTimeout(() => {
+            loadStats(); 
         }, 2000);
         
     } catch(e) {
-        console.error("Errore:", e);
+        console.error("Errore salvataggio:", e);
+        // Rimuovi la card fake se fallisce
         const fakeCard = document.getElementById(`card-${fakeId}`);
         if (fakeCard) fakeCard.remove();
         showCustomAlert("SAVE_ERROR");
@@ -4980,19 +4984,23 @@ async function saveLinkNote() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ service: "note", text: linkText })
+            mode: 'no-cors', // Questo evita l'errore CORS al salvataggio
+            body: JSON.stringify({ 
+                service: "note", 
+                text: todoText 
+            })
         });
         
-        setTimeout(async () => {
-            // Invece di caricare TUTTO (Finance, Body, etc), carichiamo solo i dati del Brain
-            const response = await fetch(SCRIPT_URL + "?action=get_notes"); // O come si chiama la tua funzione di fetch note
-            const data = await response.json();
-            lastStatsData.notes = data;
-            renderGrid(lastStatsData); 
+        showCustomAlert("NOTA_INVIATA", true);
+        
+        // Aspettiamo 2 secondi che Google scriva sul foglio e poi ricarichiamo tutto
+        setTimeout(() => {
+            loadStats(); 
         }, 2000);
         
     } catch(e) {
-        console.error("Errore:", e);
+        console.error("Errore salvataggio:", e);
+        // Rimuovi la card fake se fallisce
         const fakeCard = document.getElementById(`card-${fakeId}`);
         if (fakeCard) fakeCard.remove();
         showCustomAlert("SAVE_ERROR");
