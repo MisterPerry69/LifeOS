@@ -2247,6 +2247,8 @@ async function saveTodoList() {
 
 function closeTodoModal() {
     document.getElementById('todo-modal').style.display = 'none';
+    const backdrop = document.getElementById('modal-backdrop');
+    if (backdrop) backdrop.style.display = 'none'; 
     todoItems = []; // ← Reset items
     document.getElementById('todo-items-container').innerHTML = ''; // ← Pulisci HTML
 }
@@ -4985,6 +4987,8 @@ async function saveLinkNote() {
 
 function closeLinkModal() {
     document.getElementById('link-modal').style.display = 'none';
+    const backdrop = document.getElementById('modal-backdrop');
+    if (backdrop) backdrop.style.display = 'none'; 
     currentLinkData = null;
 }
 
