@@ -5241,5 +5241,3 @@ const card = document.createElement('div');
     // Re-inizializza icone Lucide
 if (window.lucide) lucide.createIcons();
 }
-
-}
