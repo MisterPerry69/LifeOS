@@ -2102,27 +2102,29 @@ CSS
     overflow: hidden;
 }
 
-/* Classe per gestire la visibilità */
-    .body-bubble {
-    position: absolute;
-    top: 30px;
-    right: 0;
-    background: #111;
-    border: 1px solid var(--accent);
-    padding: 10px;
-    font-size: 11px;
-    width: 200px;
+#body-coach-bubble {
     display: none;
-    z-index: 100;
-    border-radius: 4px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 500px;
+    background: #111;
+    border: 1px solid #00ff41;
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 9999;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    font-family: 'JetBrains Mono';
+    font-size: 12px;
 }
 
+#body-coach-bubble.active {
+    display: block;
+    animation: slideUp 0.3s ease-out;
+}
 
-#body.body-bubble.active {
-        display: block !important;
-        animation: slideUp 0.3s ease-out;
-    }
     @keyframes slideUp {
         from { transform: translateY(20px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
