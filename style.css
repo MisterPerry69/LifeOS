@@ -2103,7 +2103,23 @@ CSS
 }
 
 /* Classe per gestire la visibilità */
-    #body-coach-bubble.active {
+    .body-bubble {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    background: #111;
+    border: 1px solid var(--accent);
+    padding: 10px;
+    font-size: 11px;
+    width: 200px;
+    display: none;
+    z-index: 100;
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+
+#body.body-bubble.active {
         display: block !important;
         animation: slideUp 0.3s ease-out;
     }
