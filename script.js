@@ -5237,3 +5237,51 @@ const card = document.createElement('div');
     // Re-inizializza icone Lucide
 if (window.lucide) lucide.createIcons();
 }
+
+
+let html5QrCode;
+
+async function startQRScanner() {
+    // 1. Mostriamo il modal
+    document.getElementById('qr-modal').style.display = 'flex';
+
+    // 2. Carichiamo la libreria dinamicamente se non c'è
+    if (typeof Html5Qrcode === 'undefined') {
+        const script = document.createElement('script');
+        script.src = "https://unpkg.com/html5-qrcode";
+        script.onload = () => initScanner();
+        document.head.appendChild(script);
+    } else {
+        initScanner();
+    }
+}
+
+function initScanner() {
+    html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+    // Avvia la camera posteriore (facingMode: environment)
+    html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+        // COSA FARE QUANDO TROVA UN QR:
+        console.log("QR TROVATO:", decodedText);
+        showCustomAlert("SCAN_SUCCESS: " + decodedText, true);
+        
+        // Se è un link, potremmo aprirlo o salvarlo
+        // window.location.href = decodedText; 
+        
+        stopQRScanner();
+    }).catch(err => {
+        console.error("Errore Camera:", err);
+        showCustomAlert("ERRORE_CAMERA: " + err);
+    });
+}
+
+function stopQRScanner() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('qr-modal').style.display = 'none';
+        });
+    } else {
+        document.getElementById('qr-modal').style.display = 'none';
+    }
+}
