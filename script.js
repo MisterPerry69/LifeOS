@@ -4163,6 +4163,7 @@ async function submitWeight() {
         });
         
         // --- AGGIUNTA QUI: AGGIORNAMENTO DATI LOCALI ---
+        lastStatsData.body.weight = weight;
         bodyData.currentWeight = weight; // Aggiorna il valore in memoria
         
         // Se hai un array della cronologia, aggiungiamo il punto di oggi per i grafici
@@ -4515,13 +4516,13 @@ function renderTopImprovements() {
 
     // Analizziamo i workout dal più vecchio al più nuovo per vedere l'evoluzione
     [...bodyData.workouts].reverse().forEach(w => {
-        const text = Array.isArray(w.exercises) ? w.exercises.join('; ') : w.exercises;
-        if (!text) return;
+        const text = w.exercises_json || w.exercises_text || w.exercises || "";
+        if (!text) return;        
 
         const items = text.split(';');
         items.forEach(item => {
             // Regex per estrarre Nome e Peso (es: "Panca: 1x10x70kg")
-            const match = item.match(/([^:]+):.*?((\d+(\.\d+)?))\s*kg/);
+            const match = item.match(/^([^:(]+).*?(\d+(?:\.\d+)?)\s*kg/);
             if (match) {
                 const name = match[1].trim();
                 const weight = parseFloat(match[2]);
