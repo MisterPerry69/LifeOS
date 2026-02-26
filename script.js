@@ -4797,9 +4797,7 @@ function renderWithData(data) {
 
 // Nuova funzione che SOLO calcola (non renderizza)
 function calculateFinanceStats(financeData) {
-if (!window.currentSection || window.currentSection !== 'finance') {
-        return null; 
-    }    console.log("=== DEBUG calculateFinanceStats ===");
+    console.log("=== DEBUG calculateFinanceStats ===");
     console.log("financeData ricevuto:", financeData);
     console.log("financeData.categories:", financeData.categories);
     
