@@ -277,53 +277,85 @@
   <!-- ============================================ -->
   <div id="habit" class="page">
     <div class="header">
-      <div class="header-left">
-        <div class="status-indicator">
-          <span class="blink-dot"></span>
-          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">NEURAL_HABITS // LOGGING</span>
+        <div class="header-left">
+            <div class="status-indicator">
+                <span class="blink-dot"></span>
+                <span style="font-size:10px; letter-spacing:2px; color:var(--accent); font-weight:700;">PIXEL_TRACKER // LIVE</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <i data-lucide="activity" class="brain-icon"></i>
+                <h1 style="margin:0; font-family:'Rajdhani'; font-size:1.875rem; color:#fff;" id="habit-title">LOG_PIXELS</h1>
+            </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="activity" class="brain-icon"></i>
-          <h1 id="habitTitle" style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1; color: #fff;">LOG_PIXELS</h1>
+        <div class="header-right">
+            <div class="esc-btn" onclick="nav('home')">[esc X]</div>
         </div>
-      </div>
-      <div class="header-right">
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-      </div>
     </div>
-    <main style="padding: 0 20px; flex: 1;">
-      <div id="viewLabel" class="view-label" style="text-align: center; margin-top: 10px; color: var(--dim); font-size: 10px; letter-spacing: 2px;">MESE</div>
-      <div id="pixels" class="pixel-container grid-30"></div>
+
+    <!-- HABIT SELECTOR -->
+    <div id="habit-selector" style="display:flex; gap:10px; padding:0 20px; margin-bottom:15px; overflow-x:auto;">
+        <!-- Popolato da JS -->
+    </div>
+
+    <!-- PIXEL GRID -->
+    <main style="padding:0 20px; flex:1; display:flex; flex-direction:column;">
+        <div id="habit-view-label" style="text-align:center; margin-bottom:10px; color:var(--dim); font-size:10px; letter-spacing:2px;">MESE</div>
+        <div id="habit-pixels" style="flex:1;"></div>
     </main>
-<div class="bottom-nav">
-    <div class="nav-item" id="nav-analyst" onclick="createNew('GHOST')">
-        <i data-lucide="cpu" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">GHOST</div>
-    </div>
-    
-    <div class="nav-item" id="nav-search" onclick="toggleBrainSearch()">
-        <i data-lucide="search" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">SEARCH</div>
+
+    <!-- STREAK BAR -->
+    <div style="padding:0 20px 10px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:10px; color:var(--dim);">STREAK</div>
+        <div id="habit-streak" style="font-family:'Rajdhani'; font-size:1.5rem; color:var(--accent);">0</div>
+        <div style="font-size:10px; color:var(--dim);">QUESTO_MESE</div>
+        <div id="habit-month-count" style="font-family:'Rajdhani'; font-size:1.5rem; color:var(--accent);">0</div>
     </div>
 
-    <div class="nav-item nav-home" onclick="nav('home')">
-        <div class="home-btn-circle">
-            <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="cycleHabitView()">
+            <i data-lucide="grid" style="width:22px;"></i>
+            <div style="font-size:8px; margin-top:4px;">VIEW</div>
+        </div>
+
+        <div class="nav-item" id="habit-nav-stats" onclick="switchHabitView('stats')">
+            <i data-lucide="bar-chart-2" style="width:22px;"></i>
+            <div style="font-size:8px; margin-top:4px;">STATS</div>
+        </div>
+
+        <div class="nav-item nav-home" onclick="nav('home')">
+            <div class="home-btn-circle">
+                <i data-lucide="home" style="width:22px; color:var(--accent);"></i>
+            </div>
+        </div>
+
+        <div class="nav-item" onclick="openHabitLog()">
+            <i data-lucide="plus-circle" style="width:22px;"></i>
+            <div style="font-size:8px; margin-top:4px;">LOG</div>
+        </div>
+
+        <div class="nav-item" onclick="cycleHabitView()">
+            <i data-lucide="calendar" style="width:22px;"></i>
+            <div style="font-size:8px; margin-top:4px;">7/30/365</div>
         </div>
     </div>
 
-    <div class="nav-item" id="nav-stats" onclick="filterArchive()">
-        <i data-lucide="archive" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">ARCHIVE</div>
-    </div>
-
-    <div class="nav-item" id="nav-entry" onclick="toggleQuickMenu()">
-        <i data-lucide="plus-square" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
+    <!-- MODAL LOG -->
+    <div id="habit-log-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; align-items:flex-end; justify-content:center;">
+        <div style="background:#111; border:1px solid var(--accent); border-radius:12px 12px 0 0; padding:30px 20px; width:100%; max-width:500px;">
+            <div style="font-family:'Rajdhani'; font-size:1.2rem; color:var(--accent); margin-bottom:20px; letter-spacing:2px;">LOG_TODAY</div>
+            <div id="habit-log-buttons" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+                <!-- Popolato da JS -->
+            </div>
+            <input id="habit-nota-input" type="text" placeholder="Nota opzionale..." 
+                   style="width:100%; background:#0a0a0a; border:1px solid #333; color:#fff; padding:12px; font-family:'JetBrains Mono'; font-size:0.85rem; outline:none; border-radius:4px; box-sizing:border-box; margin-bottom:15px;">
+            <button onclick="closeHabitLog()" 
+                    style="width:100%; padding:12px; background:transparent; border:1px solid #333; color:var(--dim); font-family:'Rajdhani'; cursor:pointer; border-radius:4px;">
+                CHIUDI
+            </button>
+        </div>
     </div>
 </div>
-
-  </div>
 
 <!-- ============================================ -->
 <!-- PAGE: BODY -->

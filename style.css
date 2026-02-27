@@ -451,30 +451,6 @@ input:focus {
     color: var(--accent); 
 }
 
-/* --- 9. PIXEL TRACKER --- */
-.pixel-container { 
-    display: grid; 
-    gap: 5px; 
-    width: 100%; 
-    margin-top: 20px; 
-}
-
-.grid-7, 
-.grid-30 { 
-    grid-template-columns: repeat(7, 1fr); 
-}
-
-.pixel { 
-    aspect-ratio: 1/1; 
-    background: #111; 
-    border: 1px solid #222; 
-}
-
-.pixel.active { 
-    background: var(--accent); 
-    box-shadow: 0 0 10px var(--accent); 
-    border: none; 
-}
 
 /* --- 10. MODALS & OVERLAYS --- */
 #modal-backdrop {
@@ -2131,3 +2107,58 @@ CSS
     }
     .blink { animation: blinker 1s linear infinite; }
     @keyframes blinker { 50% { opacity: 0; } }
+
+
+    /* HABIT PIXELS */
+#habit-pixels {
+    display: grid;
+    gap: 4px;
+    align-content: start;
+}
+
+.habit-pixel {
+    border-radius: 3px;
+    background: #111;
+    border: 1px solid #1a1a1a;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    aspect-ratio: 1;
+}
+
+.habit-pixel.active {
+    border-color: transparent;
+}
+
+.habit-pixel.today {
+    border-color: #fff !important;
+    border-width: 2px;
+}
+
+.habit-pixel:active {
+    transform: scale(0.9);
+}
+
+#habit-selector::-webkit-scrollbar { display: none; }
+
+.habit-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #222;
+    background: #0a0a0a;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'Rajdhani';
+    font-size: 11px;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    color: var(--dim);
+}
+
+.habit-chip.active {
+    color: #000;
+    border-color: transparent;
+}

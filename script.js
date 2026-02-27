@@ -161,7 +161,6 @@ function nav(pageId) {
     const target = document.getElementById(pageId);
     if(target) target.classList.add('active');
     
-    if(pageId === 'habit') drawPixels(historyData);
     if(pageId === 'agenda') loadAgenda();
 }
 
@@ -1139,31 +1138,255 @@ function toggleSearch(show) {
 // 7. HABIT TRACKER (PIXELS)
 // ============================================
 
-function drawPixels(history = []) {
-    const container = document.getElementById('pixels');
-    if(!container) return;
+let currentHabitView = 30; // 7 | 30 | 365
+let selectedHabitId = null;
+let habitConfig = [];
+let habitLogs = [];
+
+function initHabits(data) {
+    if (!data || !data.habits) return;
+    
+    habitConfig = data.habits.config || [];
+    habitLogs = data.habits.logs || [];
+    
+    // Seleziona primo habit di default
+    if (habitConfig.length > 0 && !selectedHabitId) {
+        selectedHabitId = habitConfig[0].id;
+    }
+    
+    renderHabitSelector();
+    renderHabitPixels();
+    renderHabitStats();
+}
+
+function renderHabitSelector() {
+    const container = document.getElementById('habit-selector');
+    if (!container) return;
+    
+    container.innerHTML = habitConfig.map(h => `
+        <div class="habit-chip ${selectedHabitId === h.id ? 'active' : ''}" 
+             id="chip-${h.id}"
+             style="${selectedHabitId === h.id ? `background:${h.colore}; color:#000;` : ''}"
+             onclick="selectHabit('${h.id}')">
+            <span>${h.icona}</span>
+            <span>${h.nome.toUpperCase()}</span>
+        </div>
+    `).join('');
+}
+
+function selectHabit(id) {
+    selectedHabitId = id;
+    renderHabitSelector();
+    renderHabitPixels();
+    renderHabitStats();
+}
+
+function renderHabitPixels() {
+    const container = document.getElementById('habit-pixels');
+    const label = document.getElementById('habit-view-label');
+    if (!container) return;
+    
+    const habit = habitConfig.find(h => h.id === selectedHabitId);
+    if (!habit) return;
+    
+    const labels = { 7: "SETTIMANA", 30: "MESE", 365: "ANNO" };
+    if (label) label.innerText = labels[currentHabitView];
+    
+    // Calcola cols e size per riempire lo schermo
+    let cols;
+    if (currentHabitView === 7) cols = 7;
+    else if (currentHabitView === 30) cols = 7;
+    else cols = 26; // 365 / 14 righe circa
+    
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Log per questo habit
+    const logsForHabit = habitLogs
+        .filter(l => l.habitId === selectedHabitId)
+        .map(l => l.data);
     
     container.innerHTML = '';
-    container.className = 'grid-' + currentView;
+    
+    for (let i = currentHabitView - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const isActive = logsForHabit.includes(dateStr);
+        const isToday = dateStr === todayStr;
+        
+        const pixel = document.createElement('div');
+        pixel.className = `habit-pixel${isActive ? ' active' : ''}${isToday ? ' today' : ''}`;
+        pixel.dataset.date = dateStr;
+        
+        if (isActive) {
+            pixel.style.background = habit.colore;
+            pixel.style.boxShadow = `0 0 6px ${habit.colore}44`;
+        }
+        
+        // Tooltip data
+        pixel.title = dateStr;
+        
+        // Click sul pixel di oggi per toggle
+        if (isToday) {
+            pixel.onclick = () => toggleTodayHabit(isActive);
+        } else if (isActive) {
+            // Click su passato mostra nota se c'è
+            const log = habitLogs.find(l => l.habitId === selectedHabitId && l.data === dateStr);
+            if (log && log.nota) {
+                pixel.onclick = () => showCustomAlert(log.nota);
+            }
+        }
+        
+        container.appendChild(pixel);
+    }
+}
 
-    const labels = { 7: "SETTIMANA", 30: "MESE", 365: "ANNO" };
-    const viewLabel = document.getElementById('viewLabel');
-    if (viewLabel) viewLabel.innerText = labels[currentView];
+function renderHabitStats() {
+    if (!selectedHabitId) return;
+    
+    const logsForHabit = habitLogs.filter(l => l.habitId === selectedHabitId);
+    
+    // Streak corrente
+    let streak = 0;
+    const today = new Date();
+    for (let i = 0; i < 365; i++) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        if (logsForHabit.some(l => l.data === dateStr)) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    
+    // Count questo mese
+    const thisMonth = today.getMonth();
+    const thisYear = today.getFullYear();
+    const monthCount = logsForHabit.filter(l => {
+        const d = new Date(l.data);
+        return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+    
+    const streakEl = document.getElementById('habit-streak');
+    const monthEl = document.getElementById('habit-month-count');
+    if (streakEl) streakEl.innerText = streak;
+    if (monthEl) monthEl.innerText = monthCount;
+}
 
-    for(let i = 0; i < currentView; i++) {
-        const p = document.createElement('div');
-        p.className = 'pixel';
-        let d = new Date();
-        d.setDate(d.getDate() - (currentView - 1 - i));
-        let dateStr = d.toISOString().split('T')[0];
-        if (history.includes(dateStr)) p.classList.add('active');
-        container.appendChild(p);
+async function toggleTodayHabit(isCurrentlyActive) {
+    if (!selectedHabitId) return;
+    
+    const todayStr = new Date().toISOString().split('T')[0];
+    const habit = habitConfig.find(h => h.id === selectedHabitId);
+    
+    if (isCurrentlyActive) {
+        // Rimuovi log
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'delete_habit_log',
+                habitId: selectedHabitId
+            })
+        });
+        habitLogs = habitLogs.filter(l => !(l.habitId === selectedHabitId && l.data === todayStr));
+    } else {
+        // Aggiungi log
+        const nota = document.getElementById('habit-nota-input')?.value || '';
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'log_habit',
+                habitId: selectedHabitId,
+                nota: nota
+            })
+        });
+        habitLogs.push({ habitId: selectedHabitId, data: todayStr, nota: nota });
+    }
+    
+    renderHabitPixels();
+    renderHabitStats();
+}
+
+function openHabitLog() {
+    const modal = document.getElementById('habit-log-modal');
+    const buttonsContainer = document.getElementById('habit-log-buttons');
+    
+    if (!modal || !buttonsContainer) return;
+    
+    buttonsContainer.innerHTML = habitConfig.map(h => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const isDone = habitLogs.some(l => l.habitId === h.id && l.data === todayStr);
+        
+        return `
+            <button onclick="quickLogHabit('${h.id}')"
+                    style="padding:16px; background:${isDone ? h.colore : '#0a0a0a'}; 
+                           color:${isDone ? '#000' : '#fff'}; 
+                           border:1px solid ${isDone ? h.colore : '#222'}; 
+                           border-radius:8px; cursor:pointer; font-family:'Rajdhani'; 
+                           font-size:1rem; letter-spacing:1px; transition:all 0.2s;">
+                ${h.icona} ${h.nome.toUpperCase()}
+                ${isDone ? '<br><span style="font-size:9px;">✓ DONE</span>' : ''}
+            </button>
+        `;
+    }).join('');
+    
+    modal.style.display = 'flex';
+}
+
+async function quickLogHabit(habitId) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const alreadyDone = habitLogs.some(l => l.habitId === habitId && l.data === todayStr);
+    const nota = document.getElementById('habit-nota-input')?.value || '';
+    
+    if (alreadyDone) {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'delete_habit_log', habitId: habitId })
+        });
+        habitLogs = habitLogs.filter(l => !(l.habitId === habitId && l.data === todayStr));
+        showCustomAlert(`${habitId.toUpperCase()}_RIMOSSO`);
+    } else {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'log_habit', habitId: habitId, nota: nota })
+        });
+        habitLogs.push({ habitId: habitId, data: todayStr, nota: nota });
+        showCustomAlert(`${habitId.toUpperCase()}_LOGGATO ✓`, true);
+    }
+    
+    // Aggiorna UI
+    if (selectedHabitId === habitId) {
+        renderHabitPixels();
+        renderHabitStats();
+    }
+    
+    // Aggiorna bottoni modal
+    openHabitLog();
+}
+
+function closeHabitLog() {
+    document.getElementById('habit-log-modal').style.display = 'none';
+    document.getElementById('habit-nota-input').value = '';
+}
+
+function cycleHabitView() {
+    currentHabitView = currentHabitView === 7 ? 30 : currentHabitView === 30 ? 365 : 7;
+    renderHabitPixels();
+}
+
+// Legacy - mantieni compatibilità
+function drawPixels(history = []) {
+    if (lastStatsData?.habits) {
+        initHabits(lastStatsData);
     }
 }
 
 function cycleView() {
-    currentView = (currentView === 30) ? 365 : (currentView === 365) ? 7 : 30;
-    drawPixels(historyData);
+    cycleHabitView();
 }
 
 // ============================================
@@ -1770,6 +1993,10 @@ function nav(page) {
     // Nascondi tutte le pagine principali (.page)
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
 
+    if (page === 'habit') {
+    initHabits(lastStatsData);
+}
+    
     if (page === 'finance' && lastStatsData?.finance) {
         // Pre-renderizza stats in background
         setTimeout(() => {
@@ -4791,6 +5018,10 @@ function renderWithData(data) {
         cachedFinanceStats = calculateFinanceStats(data.finance);
     }
     }
+    if (data.habits) {
+    habitConfig = data.habits.config || [];
+    habitLogs = data.habits.logs || [];
+}
 }
 
 // Nuova funzione che SOLO calcola (non renderizza)
