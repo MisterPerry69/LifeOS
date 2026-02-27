@@ -1,6 +1,6 @@
 /**
- * SYSTEM_OS - CORE JAVASCRIPT (FIXED)
- * Fix problemi loadStats e window.onload
+ * SYSTEM_OS - CORE JAVASCRIPT (CLEANED)
+ * Rimossi: Habit Tracker, Agenda
  */
 
 // ============================================
@@ -24,11 +24,9 @@ let draggedItem = null;
 let charts = {};
 let deleteTarget = null;
 let currentReviews = [];
-let chronoDisplayLimit = 7; // Mostra 7 giorni alla volta
 let ghostGeneratedText = '';
-let balanceHidden = true; // Default nascosto
+let balanceHidden = true;
 let cachedFinanceStats = null;
-
 
 // Salva dati in cache
 function cacheData(data) {
@@ -48,7 +46,6 @@ function loadCachedData() {
         
         if (cached) {
             const age = Date.now() - parseInt(timestamp || 0);
-            // Se cache ha meno di 30 minuti, usala
             if (age < 30 * 60 * 1000) {
                 return JSON.parse(cached);
             }
@@ -59,9 +56,6 @@ function loadCachedData() {
     return null;
 }
 
-
-
-
 // ============================================
 // 2. CORE & NAVIGATION
 // ============================================
@@ -70,22 +64,17 @@ window.onload = async () => {
     updateClock();
     setInterval(updateClock, 1000);
     
-    // TENTATIVO 1: Carica da cache
     const cached = loadCachedData();
     
     if (cached) {
-        // CACHE HIT - App usabile SUBITO
         renderWithData(cached);
         document.getElementById('boot-screen').style.display = 'none';
         
-        // Aggiorna in background
         loadStats().then(freshData => {
             cacheData(freshData);
-            // Aggiorna silenziosamente
             renderWithData(freshData);
         });
     } else {
-        // CACHE MISS - Prima apertura o cache scaduta
         await runBootSequence();
         
         try {
@@ -100,7 +89,6 @@ window.onload = async () => {
         }, 500);
     }
     
-    // Event listeners (resto del codice)
     setTimeout(() => {
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
@@ -119,16 +107,15 @@ window.onload = async () => {
     }, 100);
 
     document.addEventListener('click', function(e) {
-    const quickMenu = document.getElementById('quick-menu');
-    const entryBtn = document.querySelector('.nav-item[onclick*="toggleQuickMenu"]');
-    
-    // Se il menu è aperto E il click NON è sul menu o sul bottone
-    if (!quickMenu.classList.contains('quick-menu-hidden') && 
-        !quickMenu.contains(e.target) && 
-        !entryBtn?.contains(e.target)) {
-        toggleQuickMenu();
-    }
-});
+        const quickMenu = document.getElementById('quick-menu');
+        const entryBtn = document.querySelector('.nav-item[onclick*="toggleQuickMenu"]');
+        
+        if (!quickMenu.classList.contains('quick-menu-hidden') && 
+            !quickMenu.contains(e.target) && 
+            !entryBtn?.contains(e.target)) {
+            toggleQuickMenu();
+        }
+    });
 };
 
 async function bootLog(text, delay = 150) {
@@ -161,7 +148,13 @@ function nav(pageId) {
     const target = document.getElementById(pageId);
     if(target) target.classList.add('active');
     
-    if(pageId === 'agenda') loadAgenda();
+    if (pageId === 'body') {
+        initBodyModule();
+    }
+    
+    if (pageId === 'reviews') {
+        loadReviews();
+    }
 }
 
 function toggleMenu() {
@@ -171,7 +164,7 @@ function toggleMenu() {
 }
 
 // ============================================
-// 3. DATA ENGINE (GET) - FIX COMPLETO
+// 3. DATA ENGINE (GET)
 // ============================================
 
 async function loadStats() {
@@ -189,10 +182,7 @@ async function loadStats() {
             return;
         }
 
-        // SALVA IN CACHE
         cacheData(data);
-        
-        // POPOLA APP (usa la funzione renderWithData)
         renderWithData(data);
         
     } catch (err) {
@@ -208,11 +198,10 @@ function renderGrid(data) {
     
     lastStatsData = data;
     loadedNotesData = data.notes || [];
-    const loadedReviewsData = data.reviews || []; // Recuperiamo le reviews
+    const loadedReviewsData = data.reviews || [];
 
-    // FIX: Controlli null prima di aggiornare
     const widgetNotes = document.getElementById('widget-notes');
-    const widgetReviews = document.getElementById('widget-reviews'); // <-- Nuovo widget
+    const widgetReviews = document.getElementById('widget-reviews');
     const widgetWeight = document.getElementById('widget-weight');
 
     
@@ -246,8 +235,6 @@ function renderGrid(data) {
         extraCard.onclick = () => openExtraDetail();
         fragment.appendChild(extraCard);
     }
-
-    
 
     // Filtraggio e ordinamento note
     const filteredNotes = loadedNotesData
@@ -294,14 +281,12 @@ filteredNotes.forEach((item) => {
     const isDraggable = (currentFilter === 'ALL' && !isSearching);
     card.draggable = isDraggable;
 
-    // ← RENDERING DIVERSO PER LINK
     if (note.type === 'LINK') {
-        // Parse dati link dal content
         const lines = note.content.split('\n');
         const title = lines[0]?.replace('🔗 ', '') || 'Link';
         const url = lines[1] || '';   
-        const imageUrl = lines[2] || ''; // ← Leggi immagine
-        const description = lines.slice(4).join(' ').substring(0, 80) || ''; // ← Slice da 4
+        const imageUrl = lines[2] || '';
+        const description = lines.slice(4).join(' ').substring(0, 80) || '';
    
         
         let domain = '';
@@ -332,12 +317,10 @@ filteredNotes.forEach((item) => {
         <div style="font-size: 9px; color: #0088ff; margin-top: 8px; opacity: 0.6;">↗ ${domain}</div>
     `;
         
-        // ← CLICK APRE URL invece di modal
         card.onclick = (e) => {
             if (!card.classList.contains('dragging')) {
                 e.stopPropagation();
                 
-                // Chiedi conferma prima di aprire
                 if (confirm(`Aprire ${domain}?`)) {
                     window.open(url, '_blank');
                 }
@@ -345,7 +328,6 @@ filteredNotes.forEach((item) => {
         };
         
     } else if (note.type === 'LISTA') {
-        // ← RENDERING CUSTOM ANCHE PER LISTE (opzionale)
         const lines = note.content.split('\n');
         const totalItems = lines.filter(l => l.startsWith('☐') || l.startsWith('☑')).length;
         const checkedItems = lines.filter(l => l.startsWith('☑')).length;
@@ -369,7 +351,6 @@ filteredNotes.forEach((item) => {
         };
         
     } else {
-        // NOTE NORMALI (codice originale)
         card.innerHTML = `
             ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
             <div class="title-row">${(note.title || "NOTA").toUpperCase()}</div>
@@ -384,8 +365,6 @@ filteredNotes.forEach((item) => {
         };
     }
 
-
-    // Eventi Drag & Drop (resto del codice rimane uguale)
     card.ondragstart = (e) => {
         if (!isDraggable) {
             e.preventDefault();
@@ -426,7 +405,7 @@ filteredNotes.forEach((item) => {
         };
 
         card.onclick = () => {
-    if (!card.classList.contains('dragging')) openNoteByIndex(index); // Torna ad usare index
+    if (!card.classList.contains('dragging')) openNoteByIndex(index);
 };
 
         fragment.appendChild(card);
@@ -436,15 +415,12 @@ filteredNotes.forEach((item) => {
     grid.appendChild(fragment);
 }
 
-// Funzione di supporto per la data
 function formattaData(d) {
     if (!d) return "";
     const date = new Date(d);
     return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
 }
 
-
-// Funzione Delete (Aggiornata per ID)
 function confirmDelete(id, type, event) {
     if(event) event.stopPropagation();
     
@@ -454,7 +430,6 @@ function confirmDelete(id, type, event) {
 }
 
 async function executeDeleteSecure(id, type) {
-    // Feedback visivo immediato: Nascondi la card
     const card = document.getElementById(`card-${id}`);
     if(card) card.style.display = 'none';
 
@@ -468,7 +443,6 @@ async function executeDeleteSecure(id, type) {
         })
     });
     
-    // Non serve ricaricare tutto se l'abbiamo nascosta, ma è meglio per sicurezza
     setTimeout(() => loadStats(), 1000); 
 }
 
@@ -497,22 +471,18 @@ async function sendCmd(event) {
     const val = input.value.trim();
     if (!val) return;
 
-    console.log("sendCmd ricevuto:", val); // DEBUG
+    console.log("sendCmd ricevuto:", val);
 
-    // Finance command
     if (val.startsWith('-') || val.startsWith('spesa ')) {
         handleFinanceCommand(val);
         input.value = "";
         return;
     }
 
-    // Determina se è un comando speciale
     const isExtraCmd = /\+\d/.test(val);
     const isWeightCmd = /^\d+(\.\d+)?\s?kg/i.test(val);
-    const isHabitCmd = /^h\d/i.test(val);
 
-    // Optimistic UI SOLO per note normali
-    if (!isExtraCmd && !isWeightCmd && !isHabitCmd) {
+    if (!isExtraCmd && !isWeightCmd) {
         const grid = document.getElementById('keep-grid');
         if (grid) {
             const tempCard = document.createElement('div');
@@ -535,11 +505,10 @@ async function sendCmd(event) {
     input.value = "";
     input.placeholder = "> SYNC_STARTING...";
     
-   // SOSTITUISCI il try block dentro sendCmd() con questo:
 try {
     await fetch(SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',   // ← AGGIUNTO
+        mode: 'no-cors',
         body: JSON.stringify({ service: "note", text: val })
     });
 
@@ -562,10 +531,8 @@ try {
 }
 }
 
-// FIX: Rinominata per evitare conflitti
 function handleFinanceCommand(rawText) {
     console.log("Finance command:", rawText);
-    // Implementazione base - da espandere
     fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -581,7 +548,6 @@ function openNoteByIndex(index) {
     const note = loadedNotesData[index];
     if (!note) return;
 
-    // 1. DICHIARAZIONE UNICA DI TUTTI GLI ELEMENTI
     const modal = document.getElementById('note-detail');
     const detailType = document.getElementById('detail-type');
     const detailText = document.getElementById('detail-text');
@@ -594,7 +560,6 @@ function openNoteByIndex(index) {
     const linkModal = document.getElementById('link-modal');
     const ghostModal = document.getElementById('ghost-modal');
 
-    // 2. PULIZIA IMMEDIATA (RESET VISIBILITÀ)
     if (detailExtraList) detailExtraList.style.display = 'none';
     if (linkContainer) linkContainer.style.display = 'none';
     if (todoContainer) todoContainer.style.display = 'none';
@@ -604,7 +569,6 @@ function openNoteByIndex(index) {
     if (linkModal) linkModal.style.display = 'none';
     if (ghostModal) ghostModal.style.display = 'none';
 
-    // 3. LOGICA DATI
     currentNoteData = { 
         id: note.id, 
         type: note.type, 
@@ -623,7 +587,6 @@ function openNoteByIndex(index) {
     
     detailType.innerText = note.title || "NOTA";
     
-    // 4. RENDERING SPECIFICO PER TIPO
     if (note.type === 'LINK') {
         const lines = note.content.split('\n');
         const url = lines[1] || '';
@@ -657,7 +620,6 @@ function openNoteByIndex(index) {
         detailText.style.display = "block";
     }
     
-    // 5. FINISH UI
     if(pinIcon) pinIcon.style.color = (note.type === "PINNED") ? "var(--accent)" : "var(--dim)";
     modal.className = `note-overlay bg-${note.color}`;
     modal.style.display = 'flex';
@@ -735,7 +697,6 @@ function openExtraDetail() {
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
 
-    // FIX: Aggiungi event listener solo se elementi esistono
     const prevMonth = document.getElementById('prevMonth');
     const nextMonth = document.getElementById('nextMonth');
     if (prevMonth) prevMonth.onclick = (e) => { e.stopPropagation(); changeDetailMonth(-1); };
@@ -759,21 +720,17 @@ function closeNoteDetail(forceSave = true) {
 
     if (forceSave && currentNoteData && currentNoteData.id && currentNoteData.type !== "EXTRA") {
         
-        // ← FIX: Se è una TODO, prendi contenuto dal container TODO
         const todoContainer = document.getElementById('interactive-todo-container');
         let newText;
 
-        // ← AGGIUNGI GESTIONE LINK
         const linkContainer = document.getElementById('link-view-container');
 
         if (linkContainer && linkContainer.style.display !== 'none') {
-            // È un LINK - NON modificare il contenuto, mantieni quello originale
             const oldNote = loadedNotesData[currentNoteData.index];
-            newText = oldNote.content; // ← Usa contenuto originale
+            newText = oldNote.content;
             console.log("LINK - Mantengo contenuto originale:", newText.substring(0, 50));
             
         } else if (todoContainer && todoContainer.style.display !== 'none') {
-            // È una TODO - ricostruisci il testo dai checkbox
             const items = Array.from(todoContainer.children).map(div => {
                 const checkbox = div.querySelector('[data-checked]');
                 const textSpan = div.querySelector('[data-text]');
@@ -789,7 +746,6 @@ function closeNoteDetail(forceSave = true) {
             newText = items.join('\n');
             console.log("TODO - Testo ricostruito:", newText);
         } else {
-            // Nota normale - prendi da textarea
             newText = textArea.value.trim();
             console.log("NOTA - Testo da textarea:", newText);
         }
@@ -843,14 +799,12 @@ async function saveAndClose() {
         return;
     }
     
-    // FEEDBACK IMMEDIATO
     const saveBtn = document.querySelector('.tool-icon[onclick="saveAndClose()"]');
     if (saveBtn) {
         saveBtn.innerHTML = '<span class="blink">...</span>';
         saveBtn.style.pointerEvents = 'none';
     }
     
-    // OPTIMISTIC UI - Crea card fake subito
     const fakeId = 'temp_' + Date.now();
     const fakeNote = {
         id: fakeId,
@@ -862,17 +816,14 @@ async function saveAndClose() {
     };
     
     loadedNotesData.unshift(fakeNote);
-    
-    // ← FIX: Render SOLO le note, non tutto lastStatsData
-    lastStatsData.notes = loadedNotesData; // ← Aggiorna le note in lastStatsData
+    lastStatsData.notes = loadedNotesData;
     renderGrid(lastStatsData);
     closeNoteDetail(false);
     
-    // Salva backend
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',   // ← AGGIUNTO
+            mode: 'no-cors',
             body: JSON.stringify({ service: "note", text: text })
         });
         
@@ -897,34 +848,28 @@ function toggleColorPicker() {
 function changeNoteColor(color) {
     if (!currentNoteData) return;
     
-    // Aggiorna currentNoteData
     currentNoteData.color = color;
     
-    // Aggiorna modal
     const modal = document.getElementById('note-detail');
     if (modal) modal.className = `note-overlay bg-${color}`;
     
-    // FIX: Aggiorna anche l'oggetto in loadedNotesData
     const note = loadedNotesData[currentNoteData.index];
     if (note) {
-        note.color = color; // Salva locale
+        note.color = color;
     }
     
-    // FIX: Aggiorna card immediatamente
     const card = document.getElementById(`card-${currentNoteData.id}`);
     if (card) {
         card.className = `keep-card bg-${color}${currentNoteData.type === 'PINNED' ? ' pinnato' : ''}`;
     }
 }
 
-// IL PIN CHE FUNZIONA
 async function togglePin() {
     if (!currentNoteData || currentNoteData.type === "EXTRA") return;
 
     const nuovoStato = (currentNoteData.type === "PINNED") ? "NOTE" : "PINNED";
     currentNoteData.type = nuovoStato;
     
-    // FIX: Aggiorna anche loadedNotesData
     const note = loadedNotesData[currentNoteData.index];
     if (note) {
         note.type = nuovoStato;
@@ -943,7 +888,7 @@ async function togglePin() {
         })
     });
     
-    renderGrid(lastStatsData); // Aggiorna griglia
+    renderGrid(lastStatsData);
 }
 
 async function togglePinFromCard(id) {
@@ -953,11 +898,9 @@ async function togglePinFromCard(id) {
     const note = loadedNotesData[noteIndex];
     const newType = note.type === "PINNED" ? "NOTE" : "PINNED";
 
-    // Ottimistica: cambia subito
     note.type = newType;
     renderGrid(lastStatsData);
 
-    // Salva su server
     await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -987,13 +930,11 @@ async function executeDelete() {
     const deleteModal = document.getElementById('delete-modal');
     if (deleteModal) deleteModal.style.display = 'none';
     
-    // 1. CHIUDI SUBITO IL MODAL DELLA NOTA
     const noteModal = document.getElementById('note-detail');
     const backdrop = document.getElementById('modal-backdrop');
     if (noteModal) noteModal.style.display = 'none';
     if (backdrop) backdrop.style.display = 'none';
     
-    // 2. NASCONDI LA CARD IMMEDIATAMENTE (UI Ottimistica)
     const card = document.getElementById(`card-${deleteTarget.id}`);
     if (card) {
         card.style.opacity = '0';
@@ -1005,13 +946,11 @@ async function executeDelete() {
         }, 300);
     }
     
-    // 3. RIMUOVI DALLA MEMORIA LOCALE (evita il reset colori)
     const indexToRemove = loadedNotesData.findIndex(n => String(n.id) === String(deleteTarget.id));
     if (indexToRemove !== -1) {
         loadedNotesData.splice(indexToRemove, 1);
     }
     
-    // 4. SALVA SU SERVER IN BACKGROUND (no await!)
     fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -1024,11 +963,9 @@ async function executeDelete() {
         console.log("Nota cancellata dal server");
     }).catch(err => {
         console.error("Errore cancellazione:", err);
-        // Se fallisce, ricarica per sicurezza
         loadStats();
     });
     
-    // 5. RESET
     currentNoteData = null;
     deleteTarget = null;
 }
@@ -1081,7 +1018,7 @@ function toggleBrainSearch() {
         setTimeout(() => {
             overlay.style.display = 'none';
             input.value = '';
-            filterNotes(''); // Reset filtro
+            filterNotes('');
         }, 300);
     }
 }
@@ -1091,17 +1028,14 @@ function filterNotes(query) {
     const allCards = document.querySelectorAll('.keep-card');
     
     if (!searchTerm) {
-        // Nessuna ricerca → mostra tutto
         allCards.forEach(card => card.style.display = 'flex');
         return;
     }
     
-    // Filtra le card
     allCards.forEach(card => {
         const title = card.querySelector('.title-row')?.textContent.toLowerCase() || '';
         const content = card.querySelector('.content-preview')?.textContent.toLowerCase() || '';
         
-        // Mostra se trovato nel titolo O nel contenuto
         if (title.includes(searchTerm) || content.includes(searchTerm)) {
             card.style.display = 'flex';
         } else {
@@ -1135,427 +1069,7 @@ function toggleSearch(show) {
 }
 
 // ============================================
-// 7. HABIT TRACKER (PIXELS)
-// ============================================
-
-let currentHabitView = 30; // 7 | 30 | 365
-let selectedHabitId = null;
-let habitConfig = [];
-let habitLogs = [];
-
-function initHabits(data) {
-    if (!data || !data.habits) return;
-    
-    habitConfig = data.habits.config || [];
-    habitLogs = data.habits.logs || [];
-    
-    // Seleziona primo habit di default
-    if (habitConfig.length > 0 && !selectedHabitId) {
-        selectedHabitId = habitConfig[0].id;
-    }
-    
-    renderHabitSelector();
-    renderHabitPixels();
-    renderHabitStats();
-}
-
-function renderHabitSelector() {
-    const container = document.getElementById('habit-selector');
-    if (!container) return;
-    
-    container.innerHTML = habitConfig.map(h => `
-        <div class="habit-chip ${selectedHabitId === h.id ? 'active' : ''}" 
-             id="chip-${h.id}"
-             style="${selectedHabitId === h.id ? `background:${h.colore}; color:#000;` : ''}"
-             onclick="selectHabit('${h.id}')">
-            <span>${h.icona}</span>
-            <span>${h.nome.toUpperCase()}</span>
-        </div>
-    `).join('');
-}
-
-function selectHabit(id) {
-    selectedHabitId = id;
-    renderHabitSelector();
-    renderHabitPixels();
-    renderHabitStats();
-}
-
-function renderHabitPixels() {
-    const container = document.getElementById('habit-pixels');
-    const label = document.getElementById('habit-view-label');
-    if (!container) return;
-    
-    const habit = habitConfig.find(h => h.id === selectedHabitId);
-    if (!habit) return;
-    
-    const labels = { 7: "SETTIMANA", 30: "MESE", 365: "ANNO" };
-    if (label) label.innerText = labels[currentHabitView];
-    
-    // Calcola cols e size per riempire lo schermo
-    let cols;
-    if (currentHabitView === 7) cols = 7;
-    else if (currentHabitView === 30) cols = 7;
-    else cols = 26; // 365 / 14 righe circa
-    
-    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    
-    // Log per questo habit
-    const logsForHabit = habitLogs
-        .filter(l => l.habitId === selectedHabitId)
-        .map(l => l.data);
-    
-    container.innerHTML = '';
-    
-    for (let i = currentHabitView - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
-        const isActive = logsForHabit.includes(dateStr);
-        const isToday = dateStr === todayStr;
-        
-        const pixel = document.createElement('div');
-        pixel.className = `habit-pixel${isActive ? ' active' : ''}${isToday ? ' today' : ''}`;
-        pixel.dataset.date = dateStr;
-        
-        if (isActive) {
-            pixel.style.background = habit.colore;
-            pixel.style.boxShadow = `0 0 6px ${habit.colore}44`;
-        }
-        
-        // Tooltip data
-        pixel.title = dateStr;
-        
-        // Click sul pixel di oggi per toggle
-        if (isToday) {
-            pixel.onclick = () => toggleTodayHabit(isActive);
-        } else if (isActive) {
-            // Click su passato mostra nota se c'è
-            const log = habitLogs.find(l => l.habitId === selectedHabitId && l.data === dateStr);
-            if (log && log.nota) {
-                pixel.onclick = () => showCustomAlert(log.nota);
-            }
-        }
-        
-        container.appendChild(pixel);
-    }
-}
-
-function renderHabitStats() {
-    if (!selectedHabitId) return;
-    
-    const logsForHabit = habitLogs.filter(l => l.habitId === selectedHabitId);
-    
-    // Streak corrente
-    let streak = 0;
-    const today = new Date();
-    for (let i = 0; i < 365; i++) {
-        const d = new Date();
-        d.setDate(today.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
-        if (logsForHabit.some(l => l.data === dateStr)) {
-            streak++;
-        } else {
-            break;
-        }
-    }
-    
-    // Count questo mese
-    const thisMonth = today.getMonth();
-    const thisYear = today.getFullYear();
-    const monthCount = logsForHabit.filter(l => {
-        const d = new Date(l.data);
-        return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).length;
-    
-    const streakEl = document.getElementById('habit-streak');
-    const monthEl = document.getElementById('habit-month-count');
-    if (streakEl) streakEl.innerText = streak;
-    if (monthEl) monthEl.innerText = monthCount;
-}
-
-async function toggleTodayHabit(isCurrentlyActive) {
-    if (!selectedHabitId) return;
-    
-    const todayStr = new Date().toISOString().split('T')[0];
-    const habit = habitConfig.find(h => h.id === selectedHabitId);
-    
-    if (isCurrentlyActive) {
-        // Rimuovi log
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'delete_habit_log',
-                habitId: selectedHabitId
-            })
-        });
-        habitLogs = habitLogs.filter(l => !(l.habitId === selectedHabitId && l.data === todayStr));
-    } else {
-        // Aggiungi log
-        const nota = document.getElementById('habit-nota-input')?.value || '';
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'log_habit',
-                habitId: selectedHabitId,
-                nota: nota
-            })
-        });
-        habitLogs.push({ habitId: selectedHabitId, data: todayStr, nota: nota });
-    }
-    
-    renderHabitPixels();
-    renderHabitStats();
-}
-
-function openHabitLog() {
-    const modal = document.getElementById('habit-log-modal');
-    const buttonsContainer = document.getElementById('habit-log-buttons');
-    
-    if (!modal || !buttonsContainer) return;
-    
-    buttonsContainer.innerHTML = habitConfig.map(h => {
-        const todayStr = new Date().toISOString().split('T')[0];
-        const isDone = habitLogs.some(l => l.habitId === h.id && l.data === todayStr);
-        
-        return `
-            <button onclick="quickLogHabit('${h.id}')"
-                    style="padding:16px; background:${isDone ? h.colore : '#0a0a0a'}; 
-                           color:${isDone ? '#000' : '#fff'}; 
-                           border:1px solid ${isDone ? h.colore : '#222'}; 
-                           border-radius:8px; cursor:pointer; font-family:'Rajdhani'; 
-                           font-size:1rem; letter-spacing:1px; transition:all 0.2s;">
-                ${h.icona} ${h.nome.toUpperCase()}
-                ${isDone ? '<br><span style="font-size:9px;">✓ DONE</span>' : ''}
-            </button>
-        `;
-    }).join('');
-    
-    modal.style.display = 'flex';
-}
-
-async function quickLogHabit(habitId) {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const alreadyDone = habitLogs.some(l => l.habitId === habitId && l.data === todayStr);
-    const nota = document.getElementById('habit-nota-input')?.value || '';
-    
-    if (alreadyDone) {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'delete_habit_log', habitId: habitId })
-        });
-        habitLogs = habitLogs.filter(l => !(l.habitId === habitId && l.data === todayStr));
-        showCustomAlert(`${habitId.toUpperCase()}_RIMOSSO`);
-    } else {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'log_habit', habitId: habitId, nota: nota })
-        });
-        habitLogs.push({ habitId: habitId, data: todayStr, nota: nota });
-        showCustomAlert(`${habitId.toUpperCase()}_LOGGATO ✓`, true);
-    }
-    
-    // Aggiorna UI
-    if (selectedHabitId === habitId) {
-        renderHabitPixels();
-        renderHabitStats();
-    }
-    
-    // Aggiorna bottoni modal
-    openHabitLog();
-}
-
-function closeHabitLog() {
-    document.getElementById('habit-log-modal').style.display = 'none';
-    document.getElementById('habit-nota-input').value = '';
-}
-
-function cycleHabitView() {
-    currentHabitView = currentHabitView === 7 ? 30 : currentHabitView === 30 ? 365 : 7;
-    renderHabitPixels();
-}
-
-// Legacy - mantieni compatibilità
-function drawPixels(history = []) {
-    if (lastStatsData?.habits) {
-        initHabits(lastStatsData);
-    }
-}
-
-function cycleView() {
-    cycleHabitView();
-}
-
-// ============================================
-// 8. AGENDA
-// ============================================
-
-function handleAgendaCommand(input, isInternal = false) {
-    if (!input.trim()) return;
-    
-    const commands = input.split('/').map(s => s.trim());
-    const inputField = isInternal ? document.getElementById('agenda-cmd') : document.getElementById('cmd');
-    
-    if (!inputField) return;
-    
-    inputField.placeholder = "> UPLOADING...";
-    if(isInternal) inputField.value = "";
-
-    const promises = commands.map(cmd => {
-        const cleanCmd = cmd.startsWith('t ') ? cmd.substring(2) : cmd;
-        return fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({ service: "agenda_add", text: cleanCmd })
-        });
-    });
-
-    Promise.all(promises).then(() => {
-        setTimeout(async () => {
-            await loadStats();
-            loadAgenda();
-            inputField.placeholder = isInternal ? "> AGGIUNGI EVENTO..." : "> DIGITA...";
-        }, 1500);
-    });
-}
-
-function loadAgenda() {
-    const container = document.getElementById('events-container');
-    if (!container) return;
-    
-    if (typeof window.agendaData === 'undefined') {
-        container.innerHTML = "<div style='color:var(--accent); padding:20px;' class='blink'>[ SYNCING_CHRONO... ]</div>";
-        
-        const checkData = setInterval(() => {
-            if (typeof window.agendaData !== 'undefined') {
-                clearInterval(checkData);
-                loadAgenda();
-            }
-        }, 500);
-        return;
-    }
-
-    if (window.agendaData.length === 0) {
-        container.innerHTML = "<div style='color:var(--dim); padding:20px;'>NESSUN EVENTO RILEVATO (7D_SCAN).</div>";
-    } else {
-        renderAgenda(window.agendaData);
-    }
-}
-
-function renderAgenda(days) {
-    const container = document.getElementById('events-container');
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-
-    container.innerHTML = days.map(day => `
-        <div class="day-group">
-            <div class="day-label">${day.dateLabel}</div>
-            ${day.events.map(ev => {
-                const [h, m] = ev.time.split(':').map(Number);
-                const evTime = h * 60 + m;
-                // Se l'evento è passato da meno di un'ora o è il prossimo
-                const isUpcoming = evTime >= currentTime; 
-                
-                return `
-                <div class="event-node" style="opacity: ${isUpcoming ? '1' : '0.3'}">
-                    <div class="event-time" style="color: ${isUpcoming ? '#fcee0a' : 'var(--dim)'}">${ev.time}</div>
-                    <div class="event-title">${ev.title}</div>
-                </div>`;
-            }).join('')}
-        </div>
-    `).join('');
-}
-
-async function synthesizeDaily() {
-    const prompt = document.getElementById('neural-prompt');
-    if (!prompt || !prompt.value) return;
-
-    const btn = document.querySelector('#neural-input-zone button');
-    if (btn) btn.innerText = "SYNTHESIZING_NEURAL_PATH...";
-
-    try {
-        const payload = {
-            service: "smartPlan",
-            text: prompt.value,
-            fixed: window.agendaData || []
-        };
-
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-
-        if (data.status === "SUCCESS") {
-            renderNeuralTimeline(data.plan);
-            const neuralZone = document.getElementById('neural-input-zone');
-            const flowZone = document.getElementById('active-flow-zone');
-            if (neuralZone) neuralZone.style.display = 'none';
-            if (flowZone) flowZone.style.display = 'block';
-        }
-    } catch (e) {
-        console.error("Critical Neural Error", e);
-        if (btn) btn.innerText = "LINK_FAILED - RETRY";
-    }
-}
-
-function renderNeuralTimeline(plan) {
-    const container = document.getElementById('daily-timeline-content');
-    if (!container || !plan || !Array.isArray(plan)) return;
-
-    container.innerHTML = plan.map((task, i) => {
-        const accentColor = task.isFixed ? '#00f3ff' : '#fcee0a';
-        const isDone = task.completed;
-        
-        return `
-            <div class="event-node" id="task-${i}" 
-                 style="border-left: 2px solid ${accentColor}; margin-bottom: 12px; padding: 10px 15px; 
-                        background: rgba(255,255,255,0.03); transition: all 0.4s ease;">
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; ${isDone ? 'opacity: 0.3; filter: grayscale(1);' : ''}">
-                    <div style="flex-grow: 1;">
-                        <span style="color: ${accentColor}; font-family: 'Rajdhani'; font-weight: bold; font-size: 11px;">
-                            ${task.suggestedTime} </span>
-                        <div class="task-text" style="color: #fff; font-size: 14px; margin-top: 2px; ${isDone ? 'text-decoration: line-through;' : ''}">
-                            ${task.text}
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <input type="checkbox" ${isDone ? 'checked' : ''} 
-                               onclick="toggleTaskVisual(${i})" 
-                               style="width: 18px; height: 18px; accent-color: ${accentColor}; cursor:pointer;">
-                        <i class="fas fa-grip-vertical" style="color: #222; cursor: move;"></i>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function toggleTaskVisual(index) {
-    const node = document.querySelector(`#task-${index} > div`);
-    if (!node) return;
-    
-    const text = node.querySelector('.task-text');
-    const checkbox = node.querySelector('input');
-
-    if (checkbox && checkbox.checked) {
-        node.style.opacity = "0.3";
-        node.style.filter = "grayscale(1)";
-        if (text) text.style.textDecoration = "line-through";
-    } else {
-        node.style.opacity = "1";
-        node.style.filter = "none";
-        if (text) text.style.textDecoration = "none";
-    }
-}
-
-// ============================================
-// 9. FINANCE
+// 7. FINANCE
 // ============================================
 
 async function handleFinanceSubmit(event) {
@@ -1564,7 +1078,6 @@ async function handleFinanceSubmit(event) {
     const rawText = input.value.trim();
     if (!rawText) return;
 
-    // 1. UI: Chiudi input e mostra l'analista che "lavora"
     input.blur();
     toggleFinanceInput(false);
     const bubble = document.getElementById('analyst-bubble');
@@ -1575,11 +1088,9 @@ async function handleFinanceSubmit(event) {
     input.value = '';
 
     try {
-        // Riconoscimento wallet semplice: se scrivi *c nel testo usa CASH, altrimenti BANK
         const textLower = rawText.toLowerCase();
-        let targetWallet = "BANK"; // Default
+        let targetWallet = "BANK";
 
-        // Riconoscimento intelligente
         if (textLower.includes('*c') || textLower.includes('cash') || textLower.includes('contanti')) {
             targetWallet = "CASH";
         } else if (textLower.includes('*b') || textLower.includes('bank') || textLower.includes('banca')) {
@@ -1595,20 +1106,17 @@ async function handleFinanceSubmit(event) {
             })
         });
 
-        // Leggiamo la risposta come testo prima per evitare il crash del "Unexpected Token E"
         const responseData = await response.text();
         
         try {
             const result = JSON.parse(responseData);
             if (result.status === "SUCCESS") {
-                text.innerText = result.advice.toUpperCase(); // Il commento cinico
-                // 2. Ricarica i dati per aggiornare saldo e HP bar
+                text.innerText = result.advice.toUpperCase();
                 if (typeof loadStats === "function") await loadStats();
             } else {
                 text.innerText = "DANGER: " + (result.message || "SYNC_ERROR");
             }
         } catch (e) {
-            // Se arriviamo qui, il server ha mandato un errore testuale (quello che inizia con "E")
             console.error("Server Error Raw:", responseData);
             text.innerText = "CRITICAL_ERROR: APPS_SCRIPT_CRASHED";
         }
@@ -1618,7 +1126,6 @@ async function handleFinanceSubmit(event) {
         console.error(err);
     }
     
-    // 3. Chiudi l'analista dopo 6 secondi
     setTimeout(() => bubble.classList.remove('active'), 6000);
 }
 
@@ -1626,10 +1133,7 @@ function toggleAnalyst() {
     const bubble = document.getElementById('analyst-bubble');
     const inputZone = document.getElementById('finance-input-zone');
     
-    // Chiudi l'input se è aperto
     inputZone.classList.remove('active');
-    
-    // Toggle Analista
     bubble.classList.toggle('active');
 }
 
@@ -1638,13 +1142,13 @@ function toggleFinanceInput(show) {
     const input = document.getElementById('finance-input');
     
     if (show) {
-        inputZone.style.display = 'block'; // Prima lo rendi disponibile
+        inputZone.style.display = 'block';
         setTimeout(() => {
             inputZone.classList.add('active');
             input.focus();
         }, 10);
     } else {
-        input.blur(); // CHIUDE LA TASTIERA
+        input.blur();
         inputZone.classList.remove('active');
         setTimeout(() => inputZone.style.display = 'none', 300);
     }
@@ -1672,7 +1176,7 @@ function renderFinanceLog(transactions) {
     log.innerHTML = transactions.map(t => {
         const iconName = financeIcons[t.cat] || "arrow-right-left";
         const hasNote = t.note && t.note !== "";
-        const color = t.amt < 0 ? "#ff0055" : "#00ff88"; // Testi rossi per uscite, verdi per entrate
+        const color = t.amt < 0 ? "#ff0055" : "#00ff88";
 
         return `
         <div class="trans-row" style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #525252;">
@@ -1697,18 +1201,16 @@ function renderFinanceLog(transactions) {
     if (window.lucide) lucide.createIcons();
 }
 
-async function showTransactionNote(noteText, description, advice) { // <--- Aggiunto description qui
+async function showTransactionNote(noteText, description, advice) {
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
     if (!bubble || !text) return;
 
-    // Forza la riattivazione se era già aperto
     bubble.classList.remove('active');
     void bubble.offsetWidth; 
     bubble.classList.add('active');
 
-    // 1. Mostra subito i dati locali
     text.innerHTML = `
         <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 4px;">USER_NOTE_CONTENT_about </div>
         <div style="color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 4px;">
@@ -1722,33 +1224,12 @@ async function showTransactionNote(noteText, description, advice) { // <--- Aggi
             <span style="color: var(--accent); font-weight: bold;">"${(advice || 'NESSUN COMMENTO ARCHIVIATO').toUpperCase()}"</span>
         </div>
     `;
-/* 
-    // 2. Chiamata all'AI
-    const prompt = `Fai un breve, cinico (ma non troppo) e divertente commento sulla descrizione di questa transazione: "${description, noteText}"`;
     
-    try {
-        const response = await fetch(`${SCRIPT_URL}?action=ai_interpret&text=${encodeURIComponent(prompt)}`);
-        const aiResponse = await response.text();
-        
-        const typingElem = document.getElementById('ai-typing');
-        if(typingElem) {
-            typingElem.innerHTML = `
-                <span style="font-size: 0.7rem; color: var(--dim);">ANALYSIS:</span><br>
-                <span style="color: var(--accent); font-weight: bold;">"${aiResponse.toUpperCase()}"</span>
-            `;
-        }
-    } catch (e) {
-        const typingElem = document.getElementById('ai-typing');
-        if(typingElem) typingElem.innerText = "ERROR: NEURAL_LINK_DOWN";
-    } */
-    
-    // Chiudi dopo un po'
     setTimeout(() => bubble.classList.remove('active'), 8000);
 }
 
-let allTransactions = []; // Da riempire durante il loadStats
+let allTransactions = [];
 
-// Apre l'overlay e resetta
 function toggleFilters(show) {
     const overlay = document.getElementById('filter-overlay');
     const input = document.getElementById('log-search');
@@ -1756,21 +1237,18 @@ function toggleFilters(show) {
     
     if(show) {
         overlay.style.display = 'block';
-        input.value = ''; // Pulisci input
+        input.value = '';
         input.focus();
-        // Messaggio di benvenuto o lista vuota
         container.innerHTML = `<div style="text-align:center; color:#444; margin-top:30px; font-size:12px;">DIGITA E PREMI INVIO PER CERCARE NEL DATABASE COMPLETO</div>`;
     } else {
         overlay.style.display = 'none';
-        // Togli focus per chiudere tastiera
         input.blur();
     }
 }
 
-// Filtra in tempo reale
 function applyFilters() {
     const query = document.getElementById('log-search').value.toLowerCase();
-    const allData = lastStatsData.finance.full_history || []; // Usa la lista LUNGA
+    const allData = lastStatsData.finance.full_history || [];
     
     const filtered = allData.filter(t => 
         t.desc.toLowerCase().includes(query) || 
@@ -1831,7 +1309,6 @@ async function handleLogSearch(event) {
     container.innerHTML = `<div class="loading-ani">QUERYING_${aiSearchActive ? 'NEURAL_' : ''}DATABASE...</div>`;
 
     try {
-        // Se l'AI è attiva, usiamo una action diversa, altrimenti quella normale
         const action = aiSearchActive ? "search_finance_ai" : "search_finance";
         const res = await fetch(`${SCRIPT_URL}?action=${action}&q=${encodeURIComponent(query)}`);
         const data = await res.json();
@@ -1846,14 +1323,11 @@ async function handleLogSearch(event) {
     }
 }
 
-// Funzione per i tasti rapidi
 function quickFilter(tag) {
     const input = document.getElementById('finance-search');
     const currentVal = input.value.trim();
 
-    // Se il tag è già presente, non aggiungerlo di nuovo
     if (!currentVal.includes(tag)) {
-        // Aggiunge il nuovo tag con uno spazio se c'è già qualcosa
         input.value = currentVal ? `${currentVal} ${tag}` : tag;
     }
 
@@ -1862,8 +1336,6 @@ function quickFilter(tag) {
     if(aiStatus) aiStatus.innerText = 'OFF';
     
     document.getElementById('search-clear').style.display = 'block';
-
-    // Lanciamo la ricerca con la stringa combinata (es: "/02/2026 CIBO")
     handleLogSearch({ key: 'Enter', target: input });
 }
 
@@ -1883,37 +1355,23 @@ function clearLogSearch() {
 
     input.value = '';
     clearBtn.style.display = 'none';
-    
-    // Svuota i risultati filtrati
     container.innerHTML = ''; 
-    
-    // Opzionale: se vuoi che torni la lista iniziale delle ultime 10:
-    // refreshFinanceLog(); 
 }
 
-
 function switchPage(pageId) {
-    // 1. Nascondi tutte le pagine
     document.querySelectorAll('.app-page').forEach(p => p.style.display = 'none');
     
-    // 2. Mostra quella selezionata
     const target = document.getElementById(pageId + '-page');
     if (target) {
         target.style.display = 'block';
     }
 
-    // 3. Logica specifica
     if (pageId === 'log') {
-        // Se entriamo nel log e non c'è ricerca, possiamo mostrare gli ultimi 20 di default
         if (lastStatsData) renderFilteredItems(lastStatsData.finance.transactions);
     }
     
-    // 4. Aggiorna icone (se necessario)
     if (window.lucide) lucide.createIcons();
 }
-// ============================================
-// 10. EVENT LISTENERS (DOM READY)
-// ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
     const backdrop = document.getElementById('modal-backdrop');
@@ -1928,7 +1386,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// FIX: Event listeners globali con controlli null
 document.addEventListener('click', (e) => {
     const analystBubble = document.getElementById('analyst-bubble');
     const analystBtn = document.getElementById('analyst-btn');
@@ -1944,17 +1401,13 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Aggiungi questo event listener globale nel tuo script.js:
-
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        // Chiudi weight modal se aperto
         const weightModal = document.getElementById('weight-log-modal');
         if (weightModal && weightModal.style.display !== 'none') {
             closeWeightLog();
         }
         
-        // Chiudi workout modal se aperto
         const workoutModal = document.getElementById('workout-feeling-modal');
         if (workoutModal && workoutModal.style.display === 'block') {
             closeWorkoutFeeling();
@@ -1967,7 +1420,6 @@ function switchFinanceTab(target) {
     const searchView = document.getElementById('finance-search-view');
     const statsView = document.getElementById('finance-stats-view');
 
-    // Nascondi tutto
     [dashboard, searchView, statsView].forEach(v => { if(v) v.style.display = 'none' });
 
     if (target === 'log') {
@@ -1975,7 +1427,6 @@ function switchFinanceTab(target) {
     } else if (target === 'stats') {
         statsView.style.display = 'block';
         
-        // ← USA STATS PRE-CALCOLATE invece di initStats()
         if (cachedFinanceStats) {
             renderFinanceStatsView(cachedFinanceStats);
         } else {
@@ -1988,91 +1439,99 @@ function switchFinanceTab(target) {
     if (window.lucide) lucide.createIcons();
 }
 
-function nav(page) {
-    console.log("NAV chiamato con:", page); // ← DEBUG
-    // Nascondi tutte le pagine principali (.page)
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-
-    if (page === 'habit') {
-    initHabits(lastStatsData);
-}
-    
-    if (page === 'finance' && lastStatsData?.finance) {
-        // Pre-renderizza stats in background
-        setTimeout(() => {
-            const statsView = document.getElementById('finance-stats-view');
-            if (statsView && statsView.innerHTML.trim() === '') {
-                // Se stats view è vuota, pre-popola i dati
-                renderFinanceStatsContent(lastStatsData.finance);
-            }
-        }, 500);
-    }
-    
-    // Mostra la pagina target (es. 'home' per le note o 'finance' per i soldi)
-    const targetPage = document.getElementById(page);
-    if (targetPage) targetPage.classList.add('active');
-
-    // Se stiamo andando alla HOME principale, resettiamo le tab di finance per la prossima volta
-    if (page === 'home') {
-        switchFinanceTab('dashboard');
-    }
-
-    if (page === 'body') {
-        initBodyModule(); // ← AGGIUNGI QUESTA RIGA
-    }
-
-    if (page === 'reviews') {
-    loadReviews();
-    }
-
-}
-
 function renderFinanceStats(financeData) {
-    // Calcola stats una volta sola
     const stats = {
         categories: financeData.categories || {},
         income: financeData.income || 0,
         spent: financeData.spent || 0
     };
     
-    // Salva in variabile globale
     window.preCalculatedStats = stats;
+}
+
+let myChart = null;
+
+function toggleStats() {
+    const listView = document.getElementById('finance-list-view');
+    const statsView = document.getElementById('finance-stats-view');
     
-    // Quando switchi su STATS view, usa dati pre-calcolati
-}
-
-async function initStats() {
-    try {
-        const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
-        const data = await res.json();
-        
-        // Aggiorna i testi
-        document.getElementById('stat-total-spent').innerText = `${data.spent.toFixed(2)}€`;
-        document.getElementById('stat-total-income').innerText = `${data.income.toFixed(2)}€`;
-        
-        // Survival Bar
-        const survivalPercent = data.income > 0 ? (data.spent / data.income) * 100 : 0;
-        document.getElementById('survival-bar-fill').style.width = Math.min(survivalPercent, 100) + "%";
-        document.getElementById('survival-percentage').innerText = Math.round(survivalPercent) + "%";
-
-        // Top Expenses
-        const topList = document.getElementById('top-expenses-list');
-        const sortedCats = Object.entries(data.categories).sort((a,b) => b[1] - a[1]).slice(0,3);
-        topList.innerHTML = sortedCats.map(([cat, val]) => `
-            <div style="display:flex; justify-content:space-between; font-size:0.8rem; border-bottom:1px solid #222; padding:5px 0;">
-                <span>${cat}</span><span style="color:#ff4d4d;">-${val.toFixed(2)}€</span>
-            </div>
-        `).join('');
-
-        // ORA chiamiamo il grafico
-        renderCategoryChart(data.categories);
-
-    } catch (e) {
-        console.error("Errore nel caricamento stats:", e);
+    if (statsView.style.display === 'block') {
+        statsView.style.display = 'none';
+        listView.style.display = 'block';
+        return;
     }
+    
+    if (!cachedFinanceStats) {
+        showCustomAlert("DATI_NON_DISPONIBILI");
+        return;
+    }
+    
+    renderFinanceStatsView(cachedFinanceStats);
+    
+    statsView.style.display = 'block';
+    listView.style.display = 'none';
 }
 
-let financeChart = null; // Variabile globale
+function renderFinanceStatsView(stats) {
+    console.log("=== DEBUG STATS ===");
+    console.log("stats completo:", stats);
+    console.log("categories:", stats.categories);
+    console.log("topCategories:", stats.topCategories);
+    console.log("===================");
+    const container = document.getElementById('finance-stats-view');
+    
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+            
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
+                <h3 style="color: #ff0055; font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💸 SPESO</h3>
+                <div style="font-size: 1.5rem; color: #ff0055; font-family: 'JetBrains Mono';">${stats.spent.toFixed(2)}€</div>
+            </div>
+            
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💰 ENTRATE</h3>
+                <div style="font-size: 1.5rem; color: var(--accent); font-family: 'JetBrains Mono';">${stats.income.toFixed(2)}€</div>
+            </div>
+            
+            <div style="grid-column: 1 / -1; background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 4px;">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">🛡️ AUTONOMIA</h3>
+                <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 8px;">
+                    Saldo: ${stats.total.toFixed(2)}€ | Spesa media: ${stats.spent.toFixed(2)}€
+                </div>
+                <div style="font-size: 2rem; color: ${stats.isNegative ? '#ff0055' : 'var(--accent)'}; font-family: 'Rajdhani'; font-weight: 700;">
+                    ${stats.isNegative ? '⚠️ ' : ''}${stats.survivalMonths} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
+                </div>
+                <div style="width: 100%; height: 8px; background: #111; border-radius: 4px; margin-top: 10px; overflow: hidden;">
+                    <div style="width: ${stats.isNegative ? '100%' : Math.min(100, parseFloat(stats.survivalMonths) * 10) + '%'}; height: 100%; background: ${stats.isNegative ? '#ff0055' : 'var(--accent)'};"></div>
+                </div>
+            </div>
+            
+            <div style="grid-column: 1 / -1; background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 4px;">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 15px;">📊 CATEGORIE</h3>
+                <canvas id="categoryChart" style="max-height: 180px;"></canvas>
+            </div>
+            
+            <div style="grid-column: 1 / -1; background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 4px;">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 15px;">🔥 TOP 3</h3>
+                ${stats.topCategories.map((cat, idx) => `
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.02); margin-bottom: 6px; border-radius: 4px; border-left: 3px solid ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">
+                        <span style="font-size: 0.9rem;">${idx + 1}. ${cat[0]}</span>
+                        <span style="color: ${['#ff0055', '#ff9500', '#ffcc00'][idx]}; font-family: 'JetBrains Mono';">${cat[1].toFixed(2)}€</span>
+                    </div>
+                `).join('')}
+            </div>
+            
+        </div>
+    `;
+    
+    setTimeout(() => {
+        if (stats.categories && Object.keys(stats.categories).length > 0) {
+            renderCategoryChart(stats.categories);
+        }
+    }, 100);
+}
+
+let financeChart = null;
 
 function renderCategoryChart(categories) {
     const canvas = document.getElementById('categoryChart');
@@ -2083,7 +1542,6 @@ function renderCategoryChart(categories) {
     
     const ctx = canvas.getContext('2d');
     
-    // Distruggi grafico precedente se esiste
     if (financeChart) {
         financeChart.destroy();
     }
@@ -2112,122 +1570,16 @@ function renderCategoryChart(categories) {
     });
 }
 
-    // --- RENDER GRAFICO CATEGORIE (Doughnut) ---
-
-async function openTimeFilter() {
-    const period = prompt("Inserisci Mese e Anno (es: Gennaio 2026):");
-    if (!period) return;
-    
-    // Attiviamo l'AI per questa ricerca perché deve capire il periodo
-    aiSearchActive = true; 
-    document.getElementById('fin-ai-status').innerText = 'ON';
-    
-    quickFilter(period);
-}
-
-async function filterByMonth(val) {
-    if (!val) return;
-    
-    // val arriva dal calendario come "2026-02"
-    const parts = val.split('-');
-    const year = parts[0];
-    const month = parts[1]; // "02"
-
-    // Stringa per il tuo database numerico (07/02/2026)
-    const formattedQuery = `/${month}/${year}`;
-    
-    console.log("Trigger ricerca numerica:", formattedQuery);
-
-    // Passiamo la palla a quickFilter che già funziona per i bottoni!
-    quickFilter(formattedQuery);
-}
-
-let myChart = null;
-
-async function loadFinanceStats() {
-    // 1. Fetch dei dati (Assicurati che l'action get_finance_stats sia attiva in Apps Script)
-    const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats`);
-    const data = await res.json();
-
-    // 2. Aggiorna Contatori Numerici
-    document.getElementById('stat-total-spent').innerText = `${data.spent.toFixed(2)}€`;
-    document.getElementById('stat-total-income').innerText = `${data.income.toFixed(2)}€`;
-
-    // 3. Survival Bar Logic
-    // Calcoliamo quanto abbiamo speso rispetto a quanto abbiamo incassato
-    let survivalPercent = 0;
-    if (data.income > 0) {
-        survivalPercent = (data.spent / data.income) * 100;
-    } else {
-        survivalPercent = data.spent > 0 ? 100 : 0; // Se non hai entrate ma spendi, sei al 100% di rischio
-    }
-    
-    const bar = document.getElementById('survival-bar-fill');
-    const percentText = document.getElementById('survival-percentage');
-    
-    bar.style.width = Math.min(survivalPercent, 100) + "%";
-    percentText.innerText = Math.round(survivalPercent) + "%";
-    
-    // Cambio colore barra in base al pericolo
-    if (survivalPercent > 85) bar.style.background = "#ff4d4d"; // Rosso alert
-    else if (survivalPercent > 60) bar.style.background = "#ff9a00"; // Arancio warning
-    else bar.style.background = "var(--accent)"; // Tutto ok
-
-    // 4. Top Expenses List (Mobile Friendly)
-    const topList = document.getElementById('top-expenses-list');
-    const sortedCats = Object.entries(data.categories)
-        .sort((a, b) => b[1] - a[1]) // Ordina dalla spesa più alta
-        .slice(0, 3); // Prendi le prime 3
-
-    topList.innerHTML = sortedCats.map(([cat, val]) => `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #222; padding-bottom: 5px;">
-            <span style="font-family: 'Rajdhani'; font-size: 0.8rem; color: #fff;">${cat}</span>
-            <span style="font-family: 'Rajdhani'; font-size: 0.9rem; color: #ff4d4d;">-${val.toFixed(2)}€</span>
-        </div>
-    `).join('');
-
-    // 5. Render del Grafico (come abbiamo visto prima)
-    renderDoughnutChart(data.categories);
-}
-
-async function requestAnalystUpdate() {
-    const evalBox = document.getElementById('stats-eval');
-    const spent = document.getElementById('stat-total-spent').innerText;
-    const income = document.getElementById('stat-total-income').innerText;
-    
-    evalBox.innerText = "ANALISI_IN_CORSO... ATTENDERE...";
-    evalBox.style.color = "var(--accent)";
-
-    try {
-        // Chiamata all'AI passando i dati attuali
-        const response = await fetch(`${SCRIPT_URL}?action=search_finance_ai&q=Analizza brevemente queste spese mensili: Entrate ${income}, Uscite ${spent}. Sii sintetico, tecnico e un po' cinico nello stile LifeOS.`);
-        const report = await response.json();
-        
-        // Se il tuo backend search_finance_ai restituisce un testo o un array
-        // Adatta questa riga in base a come risponde il tuo Apps Script
-        evalBox.innerText = report.aiAnalysis || report; 
-        evalBox.style.color = "#fff";
-        
-    } catch (e) {
-        evalBox.innerText = "ERRORE_DI_COLLEGAMENTO_CORE. RIPROVA.";
-        console.error(e);
-    }
-}
-
 function updateUI(data) {
-    // Aggiorna le Note
     loadedNotesData = data.notes; 
     renderGrid();
 
-    // AGGIORNA LE ORE (Se questa riga manca, la sezione sparisce!)
     if (data.extraTotal) {
         document.getElementById('extra-hours-val').innerText = data.extraTotal + "h";
     }
     
-    // Aggiorna Finanze
     if (data.finance) {
         document.getElementById('bank-val').innerText = "€ " + data.finance.bank;
-        // ... ecc
     }
 }
 
@@ -2236,7 +1588,6 @@ function toggleQuickMenu() {
     menu.classList.toggle('active');
 }
 
-// Click fuori chiude il menu
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('quick-menu');
     const entryBtn = document.querySelector('#nav-entry');
@@ -2248,9 +1599,8 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Funzione chiamata dalle opzioni del menu
 function createNew(kind) {
-    console.log("createNew chiamato con:", kind); // DEBUG
+    console.log("createNew chiamato con:", kind);
     createNewNote();
     
     if (kind === 'LINK') {
@@ -2265,9 +1615,7 @@ function createNew(kind) {
     toggleQuickMenu();
 }
 
-// Funzione di supporto per aprire il modal vuoto
 async function createNew(type) {
-    // 1. Riferimenti agli elementi comuni
     const noteDetail = document.getElementById('note-detail');
     const detailText = document.getElementById('detail-text');
     const detailExtraList = document.getElementById('detail-extra-list');
@@ -2275,16 +1623,13 @@ async function createNew(type) {
     const todoContainer = document.getElementById('interactive-todo-container');
     const backdrop = document.getElementById('modal-backdrop');
 
-    // Se il dettaglio nota è già aperto, chiudilo per resettare
     if (noteDetail && noteDetail.style.display === 'flex') {
         closeNoteDetail(false);
     }
 
-    // 2. LOGICA PER TIPO
     if (type === 'NOTE') {
         if (backdrop) backdrop.style.display = 'block';
         
-        // Reset UI specifica per nota
         if (detailExtraList) detailExtraList.style.display = 'none';
         if (linkViewContainer) linkViewContainer.style.display = 'none';
         if (todoContainer) todoContainer.style.display = 'none';
@@ -2370,7 +1715,6 @@ function addTodoItem() {
     const id = 'item_' + Date.now();
     todoItems.push({ id: id, text: text, checked: false });
     
-    // ← FEEDBACK VISIVO
     input.style.borderColor = 'var(--accent)';
     input.style.background = 'rgba(0,255,65,0.1)';
     
@@ -2466,11 +1810,9 @@ async function saveTodoList() {
         title: 'TODO_LIST'
     };
     
-    // ← SOLO memoria, NON renderGrid
     loadedNotesData.unshift(fakeNote);
     lastStatsData.notes = loadedNotesData;
     
-    // ← CARD HTML
     const grid = document.getElementById('keep-grid');
     if (grid) {
         const totalItems = todoItems.length;
@@ -2500,7 +1842,7 @@ async function saveTodoList() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Questo evita l'errore CORS al salvataggio
+            mode: 'no-cors',
             body: JSON.stringify({ 
                 service: "note", 
                 text: todoText 
@@ -2508,15 +1850,10 @@ async function saveTodoList() {
         });
         
         showCustomAlert("NOTA_INVIATA", true);
-        
-        // Aspettiamo 2 secondi che Google scriva sul foglio e poi ricarichiamo tutto
-        setTimeout(() => {
-            loadStats(); 
-        }, 2000);
+        setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
         console.error("Errore salvataggio:", e);
-        // Rimuovi la card fake se fallisce
         const fakeCard = document.getElementById(`card-${fakeId}`);
         if (fakeCard) fakeCard.remove();
         showCustomAlert("SAVE_ERROR");
@@ -2527,8 +1864,8 @@ function closeTodoModal() {
     document.getElementById('todo-modal').style.display = 'none';
     const backdrop = document.getElementById('modal-backdrop');
     if (backdrop) backdrop.style.display = 'none'; 
-    todoItems = []; // ← Reset items
-    document.getElementById('todo-items-container').innerHTML = ''; // ← Pulisci HTML
+    todoItems = [];
+    document.getElementById('todo-items-container').innerHTML = '';
 }
 
 function openNoteDetail(noteId) {
@@ -2550,12 +1887,10 @@ function openNoteDetail(noteId) {
     const modal = document.getElementById('note-detail');
     modal.style.display = 'flex';
     
-    // ← USA QUESTO invece di detail-title
     document.getElementById('detail-type').innerText = note.type || 'NOTA';
     
     const textArea = document.getElementById('detail-text');
     
-    // CHECK SE È UNA TODO LIST
     if (note.content.includes('☐') || note.content.includes('☑')) {
         console.log("→ Rendering TODO interattiva");
         renderInteractiveTodo(note);
@@ -2568,16 +1903,14 @@ function openNoteDetail(noteId) {
         if (todoContainer) todoContainer.style.display = 'none';
     }
     
-            changeNoteColor(note.color || 'default');
+    changeNoteColor(note.color || 'default');
 }
 
 function renderInteractiveTodo(note) {
     const textArea = document.getElementById('detail-text');
     
-    // Nascondi textarea, mostra lista interattiva
     textArea.style.display = 'none';
     
-    // Crea container TODO se non esiste
     let todoContainer = document.getElementById('interactive-todo-container');
     if (!todoContainer) {
         todoContainer = document.createElement('div');
@@ -2588,7 +1921,6 @@ function renderInteractiveTodo(note) {
     
     todoContainer.style.display = 'block';
     
-    // Parse TODO items
     const lines = note.content.split('\n');
     const items = lines.map((line, idx) => {
         const checked = line.startsWith('☑');
@@ -2596,7 +1928,6 @@ function renderInteractiveTodo(note) {
         return { id: 'saved_' + idx, text: text, checked: checked };
     }).filter(i => i.text.trim());
     
-    // Render items
     todoContainer.innerHTML = items.map(item => `
         <div style="
             display: flex; 
@@ -2657,8 +1988,6 @@ function toggleSavedTodo(checkbox, id) {
     }
     
     if(window.lucide) lucide.createIcons();
-    
-    // Auto-save stato
     saveTodoState();
 }
 
@@ -2673,7 +2002,6 @@ async function saveTodoState() {
     
     const newContent = items.join('\n');
     
-    // Salva su backend
     await fetch(SCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify({
@@ -2688,7 +2016,6 @@ function filterArchive() {
     const navArchive = document.getElementById('nav-stats');
     
     if (currentFilter === 'ARCHIVE') {
-        // Torna a tutto
         currentFilter = 'ALL';
         if (navArchive) navArchive.style.color = 'var(--dim)';
     } else {
@@ -2700,20 +2027,18 @@ function filterArchive() {
 }
 
 function toggleGhostAI() {
-    // Chiude quick menu se aperto
     const qMenu = document.getElementById('quick-menu');
     if (qMenu && !qMenu.classList.contains('quick-menu-hidden')) {
         qMenu.classList.add('quick-menu-hidden');
     }
 
-    // Usa la stessa bubble di finance (già esiste nel DOM)
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
     if (!bubble || !text) return;
 
     bubble.classList.remove('active');
-    void bubble.offsetWidth; // Force reflow
+    void bubble.offsetWidth;
     
     text.innerHTML = `
         <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px;">GHOST_AI // BRAIN_MODULE</div>
@@ -2746,7 +2071,6 @@ async function handleGhostInput(event) {
     const text = document.getElementById('analyst-text');
     text.innerHTML = `<div style="color:var(--accent);" class="blink">NEURAL_PROCESSING...</div>`;
     
-    // Placeholder - qui collegherai Gemini
     setTimeout(() => {
         text.innerHTML = `
             <div style="font-size:0.7rem; color:var(--dim);">GHOST_RESPONSE:</div>
@@ -2756,19 +2080,18 @@ async function handleGhostInput(event) {
     }, 1000);
 }
 
-//REVIEWS SECTION//
+// ============================================
+// 8. REVIEWS
+// ============================================
 
 function isWish(r) {
     if (!r || !r.categoria) return false;
-    // Se la categoria CONTIENE "WISH" ovunque (anche dopo la virgola)
     return r.categoria.toUpperCase().includes("WISH");
 }
 
 function getCleanCat(r) {
     if (!r || !r.categoria) return "VARIE";
-    // Prende la PRIMA parte PRIMA della virgola, rimuove spazi e "WISH"
     const parts = r.categoria.split(",").map(p => p.trim().toUpperCase());
-    // Restituisce la categoria principale (es: "FILM" da "FILM, WISH")
     return parts.find(p => p !== "WISH") || "VARIE";
 }
 
@@ -2785,14 +2108,15 @@ function renderStars(rating, color) {
 
 function formatItalianDate(dateStr) {
     if (!dateStr) return "--";
-    // Splittiamo YYYY-MM-DD per evitare inversioni del browser
     const parts = dateStr.split('-');
     if (parts.length < 3) return dateStr;
     const months = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
     return `${parts[2]} ${months[parseInt(parts[1]) - 1]}`;
 }
 
-let allReviews = []; 
+let allReviews = [];
+let isWishlistView = false;
+let isStatsView = false;
 
 function loadReviews() {
     isWishlistView = false;
@@ -2802,7 +2126,6 @@ function loadReviews() {
     if (lastStatsData && lastStatsData.reviews) {
         allReviews = lastStatsData.reviews;
         
-        // FIX: Usa il filtro ALL che applica già la logica corretta
         const allChip = document.querySelector('.filter-chip');
         if (allChip) filterByCategory('ALL', allChip);
     } else {
@@ -2819,22 +2142,10 @@ function loadReviews() {
     }
 }
 
-
-// Funzione per generare le stelle (★ e ½)
-function getStarRating(rating) {
-    const fullStars = Math.floor(rating);
-    const halfStar = (rating % 1 !== 0) ? '½' : '';
-    return '★'.repeat(fullStars) + halfStar;
-}
-
-let currentReviewId = null;
-
 function renderReviews(data, showOnlyWish = false) {
     const list = document.getElementById('reviews-list');
     if (!list) return;
 
-    // FIX: Se i dati sono già filtrati da filterByCategory, non rifiltrare
-    // Mantieni questa logica SOLO se chiamata direttamente da loadReviews
     const filteredData = showOnlyWish 
         ? data.filter(item => isWish(item))
         : data;
@@ -2853,10 +2164,9 @@ function renderReviews(data, showOnlyWish = false) {
     };
 
    list.innerHTML = filteredData.map(item => {
-    const color = catColors[getCleanCat(item)] || 'var(--accent)'; // ← Usa categoria pulita per il colore
+    const color = catColors[getCleanCat(item)] || 'var(--accent)';
     const dateStr = formatItalianDate(item.data);
     
-    // FIX: Usa la funzione isWish() invece del confronto esatto
     const itemIsWish = isWish(item);
     const starsHtml = itemIsWish 
         ? `<div style="display:flex; align-items:center; gap:5px; color:#666; font-size:10px;">
@@ -2895,7 +2205,6 @@ function renderReviews(data, showOnlyWish = false) {
     `;
 }).join('');
 
-    // Event delegation - rimane identico
     list.querySelectorAll('.review-card').forEach(card => {
         card.onclick = () => {
             const id = card.getAttribute('data-review-id');
@@ -2929,10 +2238,8 @@ async function processReviewWithAI() {
     const input = inputField.value.trim();
     if (!input) return showCustomAlert("SCRIVI_QUALCOSA");
 
-    // 1. Chiudi modal
     closeReviewEntry();
 
-    // 2. Crea card LOADING temporanea
     const list = document.getElementById('reviews-list');
     const tempId = "temp_" + Date.now();
     const loadingCard = document.createElement('div');
@@ -2951,11 +2258,10 @@ async function processReviewWithAI() {
     list.prepend(loadingCard);
 
     try {
-        // 3. Chiama il backend
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ 
-                service: 'processReviewAI',  // ← Corretto
+                service: 'processReviewAI',
                 text: input 
             })
         });
@@ -2965,7 +2271,6 @@ async function processReviewWithAI() {
         if (result.status === "SUCCESS") {
             const ai = result.data;
             
-            // 4. Aggiorna card con dati reali
             loadingCard.style.opacity = "1";
             loadingCard.innerHTML = `
                 <div class="poster-mini" style="background-image: url('${ai.image_url || ''}'); background-size: cover; background-position: center;">
@@ -2984,10 +2289,7 @@ async function processReviewWithAI() {
                 </div>
             `;
             
-            // 5. Re-init icone
             if (window.lucide) lucide.createIcons();
-            
-            // 6. Ricarica dati in background
             setTimeout(() => loadStats(), 2000);
             
         } else {
@@ -2998,37 +2300,6 @@ async function processReviewWithAI() {
         loadingCard.innerHTML = `<div style="padding:10px; color:#ff4d4d;">ERRORE_CONNESSIONE</div>`;
     }
 }
-
-async function editPosterLink() {
-    // Recuperiamo l'ID della review che è attualmente aperta nel modal
-    const currentId = document.getElementById('review-detail-modal').getAttribute('data-current-id');
-    const newUrl = prompt("Incolla l'URL della nuova immagine:");
-    
-    if (newUrl && newUrl.startsWith('http')) {
-        try {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'updateReviewPoster',
-                    id: currentId,
-                    url: newUrl
-                })
-            });
-            const res = await response.json();
-            if (res.status === "SUCCESS") {
-                alert("Poster aggiornato!");
-                loadStats(); // Ricarica tutto così vedi la nuova immagine
-                closeReviewDetail();
-            }
-        } catch (e) {
-            alert("Errore durante il salvataggio.");
-        }
-    }
-}
-
-// Stato locale del modulo Reviews
-
-let isWishlistView = false; // Stato globale del modulo
 
 function toggleWishlist() {
     if (isStatsView) toggleStats(); 
@@ -3048,8 +2319,6 @@ function toggleWishlist() {
         if (icon) icon.setAttribute('data-lucide', isWishlistView ? 'bookmark-check' : 'bookmark-plus');
     }
 
-    // Invece di renderReviews, usiamo il filtro che abbiamo creato
-    // Cerchiamo il chip 'ALL' per passarlo come riferimento grafico
     const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
     filterByCategory('ALL', allChip);
 
@@ -3062,10 +2331,7 @@ function openReviewDetail(id) {
     const item = allReviews.find(r => String(r.id) === String(id));
     if (!item) return;
 
-    // FIX: Usa la funzione isWish() già esistente invece del confronto esatto
-    const itemIsWish = isWish(item); // ← Usa questa invece del confronto manuale
-    
-    // Per il colore, usa la categoria pulita
+    const itemIsWish = isWish(item);
     const cleanCat = getCleanCat(item);
     const catColors = { 'FILM': '#00d4ff', 'SERIE': '#ff0055', 'GAME': '#00ff44', 'COMIC': '#ffcc00', 'WISH': '#888888' };
     const color = catColors[cleanCat] || 'var(--accent)';
@@ -3137,7 +2403,6 @@ function openReviewDetail(id) {
     if(window.lucide) lucide.createIcons();
 }
 
-// Questa serve per far funzionare il tasto sopra
 function promoteToReview(id) {
     const item = allReviews.find(r => String(r.id) === String(id));
     if (!item) return;
@@ -3146,16 +2411,7 @@ function promoteToReview(id) {
     document.getElementById('ai-review-input').value = `Ho completato ${item.titolo}. Ecco il mio voto e parere: `;
 }
 
-let isStatsView = false;
-
-function renderFinanceStatsContent(financeData) {
-    const statsContainer = document.getElementById('finance-stats-view');
-    if (!statsContainer) return;
-    
-    // Qui metti tutto il codice che calcola e renderizza le stats
-    // (quello che ora è dentro toggleStats())
-
-
+function toggleStats() {
     isStatsView = !isStatsView;
     
     const statsBtn = document.getElementById('nav-stats');
@@ -3163,7 +2419,6 @@ function renderFinanceStatsContent(financeData) {
     const list = document.getElementById('reviews-list');
     const statsCont = document.getElementById('reviews-stats-container');
     const headerTitle = document.querySelector('#reviews .header h1');
-    const filterContainer = document.getElementById('category-filters');
 
     if (isStatsView) {
         isWishlistView = false; 
@@ -3181,7 +2436,6 @@ function renderFinanceStatsContent(financeData) {
         list.style.display = 'none';
         statsCont.style.display = 'block';
         
-        // Reset filtri su ALL quando entri in Stats
         const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
         document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
         if (allChip) allChip.classList.add('active');
@@ -3196,7 +2450,6 @@ function renderFinanceStatsContent(financeData) {
         list.style.display = 'flex';
         statsCont.style.display = 'none';
         
-        // Quando esci dalle stats, forza il filtro ALL sulla vista Home
         const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
         filterByCategory('ALL', allChip);
     }
@@ -3204,113 +2457,25 @@ function renderFinanceStatsContent(financeData) {
     if(window.lucide) lucide.createIcons();
 }
 
-function toggleStats() {
-    const listView = document.getElementById('finance-list-view');
-    const statsView = document.getElementById('finance-stats-view');
-    
-    if (statsView.style.display === 'block') {
-        statsView.style.display = 'none';
-        listView.style.display = 'block';
-        return;
-    }
-    
-    // Usa stats già calcolate
-    if (!cachedFinanceStats) {
-        showCustomAlert("DATI_NON_DISPONIBILI");
-        return;
-    }
-    
-    renderFinanceStatsView(cachedFinanceStats);
-    
-    statsView.style.display = 'block';
-    listView.style.display = 'none';
-}
-
-function renderFinanceStatsView(stats) {
-
-        console.log("=== DEBUG STATS ===");
-    console.log("stats completo:", stats);
-    console.log("categories:", stats.categories);
-    console.log("topCategories:", stats.topCategories);
-    console.log("===================");
-    const container = document.getElementById('finance-stats-view');
-    
-    container.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
-            
-            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
-                <h3 style="color: #ff0055; font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💸 SPESO</h3>
-                <div style="font-size: 1.5rem; color: #ff0055; font-family: 'JetBrains Mono';">${stats.spent.toFixed(2)}€</div>
-            </div>
-            
-            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💰 ENTRATE</h3>
-                <div style="font-size: 1.5rem; color: var(--accent); font-family: 'JetBrains Mono';">${stats.income.toFixed(2)}€</div>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 4px;">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">🛡️ AUTONOMIA</h3>
-                <div style="font-size: 0.85rem; color: #aaa; margin-bottom: 8px;">
-                    Saldo: ${stats.total.toFixed(2)}€ | Spesa media: ${stats.spent.toFixed(2)}€
-                </div>
-                <div style="font-size: 2rem; color: ${stats.isNegative ? '#ff0055' : 'var(--accent)'}; font-family: 'Rajdhani'; font-weight: 700;">
-                    ${stats.isNegative ? '⚠️ ' : ''}${stats.survivalMonths} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
-                </div>
-                <div style="width: 100%; height: 8px; background: #111; border-radius: 4px; margin-top: 10px; overflow: hidden;">
-                    <div style="width: ${stats.isNegative ? '100%' : Math.min(100, parseFloat(stats.survivalMonths) * 10) + '%'}; height: 100%; background: ${stats.isNegative ? '#ff0055' : 'var(--accent)'};"></div>
-                </div>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 4px;">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 15px;">📊 CATEGORIE</h3>
-                <canvas id="categoryChart" style="max-height: 180px;"></canvas>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 4px;">
-                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 15px;">🔥 TOP 3</h3>
-                ${stats.topCategories.map((cat, idx) => `
-                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.02); margin-bottom: 6px; border-radius: 4px; border-left: 3px solid ${['#ff0055', '#ff9500', '#ffcc00'][idx]};">
-                        <span style="font-size: 0.9rem;">${idx + 1}. ${cat[0]}</span>
-                        <span style="color: ${['#ff0055', '#ff9500', '#ffcc00'][idx]}; font-family: 'JetBrains Mono';">${cat[1].toFixed(2)}€</span>
-                    </div>
-                `).join('')}
-            </div>
-            
-        </div>
-    `;
-    
-    // Render grafico
- setTimeout(() => {
-        if (stats.categories && Object.keys(stats.categories).length > 0) {
-            renderCategoryChart(stats.categories);
-        }
-    }, 100);
-}
-
 function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     const container = document.getElementById('reviews-stats-container');
     const isAll = filterCat === 'ALL';
     
-    // 1. FILTRI BASE: Separiamo recensioni vere da wishlist usando l'utility
-    // Per activeReviews prendiamo solo i NON-WISH della categoria scelta
     let activeReviews = allReviews.filter(r => {
         const itemIsWish = isWish(r);
         const cleanCat = getCleanCat(r);
         return !itemIsWish && (isAll || cleanCat === filterCat.toUpperCase());
     });
 
-    // Conteggio WISH specifico per la categoria selezionata
     const categoryWishCount = allReviews.filter(r => {
         const itemIsWish = isWish(r);
         const cleanCat = getCleanCat(r);
         return itemIsWish && (isAll || cleanCat === filterCat.toUpperCase());
     }).length;
 
-    // 2. CONTEGGI PER MEDIA DISTRIBUTION (Sempre su base globale per il grafico sotto)
     const counts = { FILM: 0, SERIE: 0, GAME: 0, COMIC: 0 };
     let totalRating = 0;
     
-    // Usiamo activeReviews (già filtrata) per popolare i counts e il rating medio
     activeReviews.forEach(r => {
         const cat = getCleanCat(r);
         if(counts[cat] !== undefined) counts[cat]++;
@@ -3320,7 +2485,6 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     const avgRating = activeReviews.length ? (totalRating / activeReviews.length).toFixed(1) : 0;
     const colors = { FILM: '#00d4ff', SERIE: '#ff0055', GAME: '#00ff44', COMIC: '#ffcc00' };
 
-    // --- LOGICA TREND (Ricalcolata su activeReviews filtrata) ---
     let trendData = {};
     let trendHTML = '';
     const now = new Date();
@@ -3422,65 +2586,6 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
     if(window.lucide) lucide.createIcons();
 }
 
-async function toggleCriticAI() {
-    const bubble = document.getElementById('ai-side-bubble');
-    const navItem = document.getElementById('nav-critic');
-
-    if (bubble.classList.contains('active')) {
-        bubble.classList.remove('active');
-        setTimeout(() => { bubble.style.display = 'none'; }, 300);
-        navItem.style.color = 'var(--dim)';
-        return;
-    }
-
-    bubble.style.display = 'block';
-    bubble.classList.add('active');
-    navItem.style.color = 'var(--accent)';
-    bubble.innerHTML = `<div style="font-size:10px; color:var(--accent); text-align:center;">[ CONNESSIONE_SATELLITARE... ]</div>`;
-
-    // Filtriamo e prendiamo i titoli recenti
-    const history = allReviews
-        .filter(r => r.categoria?.toUpperCase() !== 'WISH')
-        .slice(0, 10)
-        .map(r => `${r.titolo} (${r.rating}/5)`)
-        .join(', ');
-
-    const prompt = `Sei l'algoritmo di analisi "CRITIC_ANALYZER v2.0". 
-    Dati utente: [${history || 'Nessun dato trovato'}].
-    
-COMPITO:
-    Fai un'osservazione breve (max 30 parole) sui suoi gusti e suggerisci un genere/titolo che dovrebbe esplorare basato sui dati. 
-    Sii pungente, cyberpunk e usa un tono da terminale. Non usare introduzioni tipo "Ecco l'analisi".`;
-
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors", // Aggiungiamo no-cors se riscontri problemi di permessi, ma attenzione che non potrai leggere il body
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                action: 'askAnalyst', // Coerente con il doPost
-                prompt: prompt
-            })
-        });
-
-        // NOTA: Se usi no-cors, non puoi leggere la risposta direttamente. 
-        // Se il tuo script è pubblicato come "Anyone", usa il fetch standard:
-        const standardResponse = await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({
-                action: 'askAnalyst',
-                prompt: prompt
-            })
-        });
-
-        const text = await standardResponse.text();
-        bubble.innerHTML = `<div style="color:#fff;">${text}</div>`;
-        
-    } catch (e) {
-        bubble.innerHTML = `<div style="color:red; font-size:9px;">ERRORE_LINK_NEURALE: VERIFICA_PUBBLICAZIONE_WEBAPP</div>`;
-    }
-}
-
 function filterByCategory(cat, element) {
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
     element.classList.add('active');
@@ -3489,41 +2594,16 @@ function filterByCategory(cat, element) {
         generateStatsHTML('6M', cat);
     } else {
         const filtered = allReviews.filter(r => {
-            const itemIsWish = isWish(r);          // Es: true per "FILM, WISH"
-            const cleanCat = getCleanCat(r);        // Es: "FILM" per "FILM, WISH"
-            const title = (r.titolo || "").toLowerCase();
-            // FIX: Se sono in Wishlist, mostro SOLO i wish
-            //      Se sono in Reviews, mostro SOLO i non-wish
+            const itemIsWish = isWish(r);
+            const cleanCat = getCleanCat(r);
             const matchView = isWishlistView ? itemIsWish : !itemIsWish;
-            
-            // FIX: Il filtro categoria si applica sulla categoria PULITA
             const matchCat = (cat === 'ALL') ? true : (cleanCat === cat);
-
-            const matchSearch = title.includes(currentSearchQuery);
-            
             return matchView && matchCat;
         });
 
-        console.log(`Filtrati per ${cat}, wishlist=${isWishlistView}:`, filtered);
-        
-        // FIX: Chiama renderReviews con i dati già filtrati
-        renderReviews(filtered, false); // Non serve passare showOnlyWish, è già filtrato
+        renderReviews(filtered, false);
     }
     if(window.lucide) lucide.createIcons();
-}
-
-function updateReviewsDashboardWidget() {
-    const reviewsWidget = document.querySelector('.card[onclick*="openReviews"] .card-value'); // Assicurati che il selettore sia corretto per la tua dashboard
-    
-    if (reviewsWidget && lastStatsData && lastStatsData.reviews) {
-        // Contiamo solo i log finiti (non i wish)
-        const totalDone = lastStatsData.reviews.filter(r => {
-            const cat = r.categoria ? r.categoria.toUpperCase() : "";
-            return !cat.includes("WISH");
-        }).length;
-
-        reviewsWidget.innerText = totalDone;
-    }
 }
 
 let currentSearchQuery = "";
@@ -3531,461 +2611,14 @@ let currentSearchQuery = "";
 function handleSearch(query) {
     currentSearchQuery = query.toLowerCase().trim();
     
-    // Recuperiamo quale categoria è attiva al momento
     const activeChip = document.querySelector('.filter-chip.active');
     const currentCat = activeChip ? activeChip.innerText.split(' ')[0] : 'ALL';
     
-    // Rieseguiamo il filtraggio (che ora terrà conto anche della ricerca)
     filterByCategory(currentCat, activeChip);
 }
 
 // ============================================
-// AGENDA - 4 PAGINE SEPARATE
-// ============================================
-
-// Variabili globali Agenda
-let currentAgendaView = 'synth'; // synth | chrono | calendar | add
-let calendarMonth = new Date();
-
-// ROUTER - Switch tra le 4 pagine
-function switchAgendaView(view) {
-    currentAgendaView = view;
-    
-    // Nascondi tutte le zone
-    document.getElementById('neural-input-zone').style.display = 'none';
-    document.getElementById('active-flow-zone').style.display = 'none';
-    document.getElementById('calendar-real-zone').style.display = 'none';
-    document.getElementById('calendar-month-zone').style.display = 'none';
-    document.getElementById('add-event-zone').style.display = 'none';
-    
-    // Resetta colori nav
-    document.querySelectorAll('#agenda .nav-item').forEach(el => el.style.color = 'var(--dim)');
-    
-    // Mostra zona corretta e colora icona
-    if (view === 'synth') {
-        document.getElementById('neural-input-zone').style.display = 'block';
-        document.querySelector('[onclick*="switchAgendaView(\'synth\')"]').style.color = '#fcee0a';
-    } else if (view === 'chrono') {
-    document.getElementById('calendar-real-zone').style.display = 'block';
-    chronoDisplayLimit = 7;
-    
-    console.log("CHRONO - agendaData:", window.agendaData); // DEBUG
-    console.log("CHRONO - lunghezza:", window.agendaData?.length); // DEBUG
-    
-    if (!window.agendaData || window.agendaData.length === 0) {
-        document.getElementById('events-container').innerHTML = 
-            `<div style="color:var(--dim); padding:20px; text-align:center;">
-                NESSUN_EVENTO_NEI_PROSSIMI_30_GIORNI
-            </div>`;
-    } else {
-        renderChronoEvents();
-    }
-    
-    document.querySelector('[onclick*="switchAgendaView(\'chrono\')"]').style.color = '#fcee0a';
-}
-         else if (view === 'calendar') {
-        document.getElementById('calendar-month-zone').style.display = 'block';
-        renderMonthCalendar();
-        document.querySelector('[onclick*="switchAgendaView(\'calendar\')"]').style.color = '#fcee0a';
-    } else if (view === 'add') {
-        document.getElementById('add-event-zone').style.display = 'block';
-        renderAddEventForm(); // ← AGGIUNGI QUESTA RIGA
-        document.querySelector('[onclick*="switchAgendaView(\'add\')"]').style.color = '#fcee0a';
-    }
-}
-
-// CHRONO - Già funzionante, basta chiamarlo
-// (la tua renderAgenda è già ok)
-
-// CALENDAR - Vista mensile con navigazione
-let selectedDay = null;
-
-function renderMonthCalendar() {
-    const zone = document.getElementById('calendar-month-zone');
-    if (!zone) return;
-    
-    const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", 
-                        "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
-    const year = calendarMonth.getFullYear();
-    const month = calendarMonth.getMonth();
-    
-    zone.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:10px;">
-            <i data-lucide="chevron-left" onclick="changeCalendarMonth(-1)" style="cursor:pointer; width:20px; color:var(--accent);"></i>
-            <div style="font-family:'Rajdhani'; font-size:1.2rem; letter-spacing:2px;">${monthNames[month]} ${year}</div>
-            <i data-lucide="chevron-right" onclick="changeCalendarMonth(1)" style="cursor:pointer; width:20px; color:var(--accent);"></i>
-        </div>
-        <div id="calendar-grid"></div>
-        <div id="day-detail-zone"></div>
-    `;
-    
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const grid = document.getElementById('calendar-grid');
-    
-    let html = '<div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px; text-align:center; font-size:10px; color:var(--dim); margin-bottom:10px;">';
-    ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'].forEach(d => html += `<div>${d}</div>`);
-    html += '</div><div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px;">';
-    
-    for (let i = 1; i < firstDay || (firstDay === 0 && i < 7); i++) {
-        html += '<div style="aspect-ratio:1; background:#0a0a0a;"></div>';
-    }
-    
-    const today = new Date();
-    for (let day = 1; day <= daysInMonth; day++) {
-        const isToday = (day === today.getDate() && month === today.getMonth() && year === today.getFullYear());
-        const isSelected = selectedDay && selectedDay.d === day && selectedDay.m === month && selectedDay.y === year;
-        
-        html += `
-            <div style="aspect-ratio:1; 
-                        background:${isSelected ? '#fcee0a' : isToday ? 'var(--accent)' : '#111'}; 
-                        color:${isSelected || isToday ? '#000' : '#fff'}; 
-                        display:flex; align-items:center; justify-content:center; 
-                        border-radius:4px; cursor:pointer; font-weight:${isToday || isSelected ? 'bold' : 'normal'};"
-                 onclick="selectCalendarDay(${year}, ${month}, ${day})">
-                ${day}
-            </div>`;
-    }
-    html += '</div>';
-    grid.innerHTML = html;
-    
-    if (window.lucide) lucide.createIcons();
-    
-    // Auto-seleziona oggi
-    if (!selectedDay) {
-        selectedDay = { y: today.getFullYear(), m: today.getMonth(), d: today.getDate() };
-        selectCalendarDay(today.getFullYear(), today.getMonth(), today.getDate());
-    }
-}
-
-
-function changeCalendarMonth(delta) {
-    calendarMonth.setMonth(calendarMonth.getMonth() + delta);
-    renderMonthCalendar();
-}
-
-function selectCalendarDay(y, m, d) {
-    selectedDay = { y, m, d };
-    
-    const selectedDateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", 
-                        "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
-    
-    // FIX: Resetta colori
-    const today = new Date();
-    document.querySelectorAll('#calendar-grid > div').forEach((row, idx) => {
-        if (idx === 0) return;
-        row.querySelectorAll('div').forEach(cell => {
-            const dayNum = parseInt(cell.innerText);
-            if (!dayNum) return;
-            
-            const isToday = (dayNum === today.getDate() && m === today.getMonth() && y === today.getFullYear());
-            const isSelected = (dayNum === d);
-            
-            if (isSelected) {
-                cell.style.background = '#fcee0a';
-                cell.style.color = '#000';
-            } else if (isToday) {
-                cell.style.background = 'var(--accent)';
-                cell.style.color = '#000';
-            } else {
-                cell.style.background = '#111';
-                cell.style.color = '#fff';
-            }
-        });
-    });
-    
-    // FIX: Confronto date corretto
-    const eventsForDay = [];
-    
-    if (window.agendaData) {
-        window.agendaData.forEach(dayGroup => {
-            // Confronta con formato yyyy-MM-dd
-            if (dayGroup.date === selectedDateStr) {
-                eventsForDay.push(...dayGroup.events);
-            }
-        });
-    }
-    
-    console.log("Eventi per", selectedDateStr, ":", eventsForDay); // DEBUG
-    
-    const dayDetailZone = document.getElementById('day-detail-zone');
-    if (!dayDetailZone) return;
-    
-    if (eventsForDay.length === 0) {
-        dayDetailZone.innerHTML = `
-            <div style="padding:20px; text-align:center; border-top:1px solid #222; margin-top:20px;">
-                <div style="font-family:'Rajdhani'; font-size:1rem; color:var(--dim); margin-bottom:15px;">
-                    ${d} ${monthNames[m]} ${y}
-                </div>
-                <div style="font-size:10px; color:#444; margin-bottom:15px;">NESSUN_EVENTO_PROGRAMMATO</div>
-                <button onclick="quickAddEvent('${selectedDateStr}')" 
-                        style="padding:12px 20px; background:var(--accent); color:#000; border:none; 
-                               font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:4px;">
-                    + AGGIUNGI EVENTO
-                </button>
-            </div>
-        `;
-    } else {
-        dayDetailZone.innerHTML = `
-            <div style="padding:20px; border-top:1px solid #222; margin-top:20px;">
-                <div style="font-family:'Rajdhani'; font-size:1rem; color:#fcee0a; margin-bottom:15px;">
-                    ${d} ${monthNames[m]} ${y} • ${eventsForDay.length} EVENTI
-                </div>
-                ${eventsForDay.map(ev => `
-                    <div style="display:flex; gap:15px; align-items:center; padding:10px 0; border-bottom:1px solid #111;">
-                        <div style="color:#fcee0a; font-weight:bold; font-family:'JetBrains Mono'; font-size:0.9rem;">
-                            ${ev.time}
-                        </div>
-                        <div style="color:#fff; flex:1;">${ev.title}</div>
-                    </div>
-                `).join('')}
-                <button onclick="quickAddEvent('${selectedDateStr}')" 
-                        style="margin-top:15px; padding:10px 15px; background:transparent; border:1px solid var(--accent); 
-                               color:var(--accent); font-family:'Rajdhani'; cursor:pointer; border-radius:4px; width:100%;">
-                    + NUOVO EVENTO
-                </button>
-            </div>
-        `;
-    }
-}
-
-function quickAddEvent(dateStr) {
-    switchAgendaView('add');
-    setTimeout(() => {
-        const dateInput = document.getElementById('new-event-date');
-        if (dateInput) dateInput.value = dateStr;
-        document.getElementById('new-event-title').focus();
-    }, 100);
-}
-
-// ADD - Form per aggiungere evento
-function renderAddEventForm() {
-    const zone = document.getElementById('add-event-zone');
-    if (!zone) return;
-    
-    zone.innerHTML = `
-        <div style="padding:20px;">
-            <h3 style="font-family:'Rajdhani'; color:#fcee0a; margin-bottom:20px;">NUOVO_EVENTO</h3>
-            
-            <label style="font-size:10px; color:var(--dim); display:block; margin-bottom:5px;">TITOLO</label>
-            <input id="new-event-title" type="text" placeholder="Es: Riunione con team"
-                   style="width:100%; background:#111; border:1px solid #222; color:#fff; padding:12px; margin-bottom:15px; font-family:inherit; outline:none; border-radius:4px;">
-            
-            <label style="font-size:10px; color:var(--dim); display:block; margin-bottom:5px;">DATA</label>
-            <input id="new-event-date" type="date" 
-                   style="width:100%; background:#111; border:1px solid #222; color:#fff; padding:12px; margin-bottom:15px; font-family:inherit; outline:none; border-radius:4px;">
-            
-            <label style="font-size:10px; color:var(--dim); display:block; margin-bottom:5px;">ORA</label>
-            <input id="new-event-time" type="time" 
-                   style="width:100%; background:#111; border:1px solid #222; color:#fff; padding:12px; margin-bottom:20px; font-family:inherit; outline:none; border-radius:4px;">
-            
-            <button onclick="submitNewEvent()" class="cyber-btn" 
-                    style="width:100%; padding:15px; border:1px solid #fcee0a; color:#fcee0a; background:transparent; cursor:pointer; font-family:'Rajdhani'; font-weight:bold; letter-spacing:2px;">
-                AGGIUNGI_AL_CALENDARIO
-            </button>
-        </div>
-    `;
-}
-
-function renderChronoEvents() {
-    const container = document.getElementById('events-container');
-    if (!container) return;
-
-    console.log("Total agendaData:", window.agendaData.length); // DEBUG
-    console.log("chronoDisplayLimit:", chronoDisplayLimit); // DEBUG
-    
-    const dataToShow = window.agendaData.slice(0, chronoDisplayLimit);
-    const hasMore = window.agendaData.length > chronoDisplayLimit;
-
-    console.log("hasMore:", hasMore); // DEBUG
-   
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; // FIX: formato yyyy-MM-dd
-    
-    container.innerHTML = dataToShow.map(day => {
-        const isToday = day.date === todayStr; // FIX: confronto corretto
-        
-        return `
-        <div class="day-group" style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px;">
-            <div class="day-label" style="font-family:'Rajdhani'; font-size:1rem; color:${isToday ? '#fcee0a' : 'var(--dim)'}; 
-                                          margin-bottom:12px; letter-spacing:1px;">
-                ${day.dateLabel}
-            </div>
-            ${day.events.length === 0 ? 
-                `<div style="font-size:10px; color:#333; padding:10px;">NESSUN_EVENTO</div>` :
-                day.events.map(ev => {
-                    const [h, m] = ev.time.split(':').map(Number);
-                    const evTime = h * 60 + m;
-                    const isPast = isToday && evTime < currentTime;
-                    const isUpcoming = isToday && evTime >= currentTime && evTime <= currentTime + 60;
-                    
-                    return `
-                    <div class="event-node" style="display:flex; gap:15px; align-items:center; padding:12px 10px; 
-                                                    border-left:2px solid ${isUpcoming ? '#fcee0a' : isPast ? '#333' : 'var(--accent)'}; 
-                                                    margin-bottom:8px; opacity:${isPast ? '0.4' : '1'};">
-                        <div class="event-time" style="color:${isUpcoming ? '#fcee0a' : 'var(--dim)'}; 
-                                                       font-weight:bold; font-family:'JetBrains Mono'; 
-                                                       font-size:0.85rem; min-width:50px;">
-                            ${ev.time}
-                        </div>
-                        <div class="event-title" style="color:#fff; flex:1; font-size:0.9rem;">
-                            ${ev.title}
-                        </div>
-                    </div>`;
-                }).join('')
-            }
-        </div>`;
-    }).join('');
-    
-    // FIX: Bottone Load More sempre visibile se ci sono più eventi
-    if (window.agendaData.length > 7) { // Se ci sono più di 7 giorni con eventi
-        container.innerHTML += `
-            <div style="text-align:center; padding:20px;">
-                <button onclick="loadMoreChrono()" 
-                        style="padding:12px 30px; background:transparent; border:1px solid var(--accent); 
-                               color:var(--accent); font-family:'Rajdhani'; cursor:pointer; border-radius:4px;">
-                    CARICA_ALTRI (${window.agendaData.length - chronoDisplayLimit} rimanenti)
-                </button>
-            </div>`;
-    }
-    
-    if (window.lucide) lucide.createIcons();
-}
-
-function showCustomAlert(message, isSuccess = false) {
-    const bubble = document.getElementById('analyst-bubble');
-    const text = document.getElementById('analyst-text');
-    
-    text.innerHTML = `
-        <div style="font-size:0.7rem; color:${isSuccess ? 'var(--accent)' : '#ff4d4d'}; 
-                    margin-bottom:8px; letter-spacing:2px;">
-            ${isSuccess ? '✓ OPERAZIONE_COMPLETATA' : '✗ ERRORE_SISTEMA'}
-        </div>
-        <div style="color:#fff; font-size:0.9rem; margin-top:10px;">
-            ${message}
-        </div>
-    `;
-    
-    bubble.classList.add('active');
-    setTimeout(() => bubble.classList.remove('active'), 3000);
-}
-
-function renderChronoEvents() {
-    const container = document.getElementById('events-container');
-    if (!container) return;
-    
-    const dataToShow = window.agendaData.slice(0, chronoDisplayLimit);
-    const hasMore = window.agendaData.length > chronoDisplayLimit;
-    
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; // FIX: formato yyyy-MM-dd
-    
-    container.innerHTML = dataToShow.map(day => {
-        const isToday = day.date === todayStr; // FIX: confronto corretto
-        
-        return `
-        <div class="day-group" style="margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px;">
-            <div class="day-label" style="font-family:'Rajdhani'; font-size:1rem; color:${isToday ? '#fcee0a' : 'var(--dim)'}; 
-                                          margin-bottom:12px; letter-spacing:1px;">
-                ${day.dateLabel}
-            </div>
-            ${day.events.length === 0 ? 
-                `<div style="font-size:10px; color:#333; padding:10px;">NESSUN_EVENTO</div>` :
-                day.events.map(ev => {
-                    const [h, m] = ev.time.split(':').map(Number);
-                    const evTime = h * 60 + m;
-                    const isPast = isToday && evTime < currentTime;
-                    const isUpcoming = isToday && evTime >= currentTime && evTime <= currentTime + 60;
-                    
-                    return `
-                    <div class="event-node" style="display:flex; gap:15px; align-items:center; padding:12px 10px; 
-                                                    border-left:2px solid ${isUpcoming ? '#fcee0a' : isPast ? '#333' : 'var(--accent)'}; 
-                                                    margin-bottom:8px; opacity:${isPast ? '0.4' : '1'};">
-                        <div class="event-time" style="color:${isUpcoming ? '#fcee0a' : 'var(--dim)'}; 
-                                                       font-weight:bold; font-family:'JetBrains Mono'; 
-                                                       font-size:0.85rem; min-width:50px;">
-                            ${ev.time}
-                        </div>
-                        <div class="event-title" style="color:#fff; flex:1; font-size:0.9rem;">
-                            ${ev.title}
-                        </div>
-                    </div>`;
-                }).join('')
-            }
-        </div>`;
-    }).join('');
-    
-    // FIX: Bottone Load More sempre visibile se ci sono più eventi
-    if (hasMore) {
-        container.innerHTML += `
-            <div style="text-align:center; padding:20px;">
-                <button onclick="loadMoreChrono()" 
-                        style="padding:12px 30px; background:transparent; border:1px solid var(--accent); 
-                               color:var(--accent); font-family:'Rajdhani'; cursor:pointer; border-radius:4px;">
-                    CARICA_ALTRI_7_GIORNI (${window.agendaData.length - chronoDisplayLimit} rimanenti)
-                </button>
-            </div>`;
-    }
-    
-    if (window.lucide) lucide.createIcons();
-}
-
-function loadMoreChrono() {
-    chronoDisplayLimit += 7;
-    renderChronoEvents();
-}
-
-function updateAgendaWidget(agendaData) {
-    const widget = document.getElementById('widget-tasks');
-    if (!widget) return;
-    
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    
-    // Trova eventi di oggi
-    const todayEvents = [];
-    agendaData.forEach(day => {
-        if (day.date === todayStr) {
-            todayEvents.push(...day.events);
-        }
-    });
-    
-    if (todayEvents.length === 0) {
-        widget.innerHTML = 'NO_EVENTS_TODAY';
-        widget.style.fontSize = '0.7rem';
-        return;
-    }
-    
-    // Trova il prossimo evento (futuro più vicino)
-    const upcomingEvents = todayEvents
-        .map(ev => {
-            const [h, m] = ev.time.split(':').map(Number);
-            const evTime = h * 60 + m;
-            return { ...ev, minutes: evTime };
-        })
-        .filter(ev => ev.minutes >= currentTime)
-        .sort((a, b) => a.minutes - b.minutes);
-    
-    if (upcomingEvents.length > 0) {
-        const next = upcomingEvents[0];
-        widget.innerHTML = `
-            <div style="font-size:0.9rem; color:var(--accent); font-weight:bold;">${next.time}</div>
-            <div style="font-size:0.65rem; opacity:0.7; margin-top:2px;">${next.title.substring(0, 20)}${next.title.length > 20 ? '...' : ''}</div>
-        `;
-    } else {
-        // Tutti gli eventi sono passati
-        widget.innerHTML = `
-            <div style="font-size:0.7rem;">${todayEvents.length} COMPLETATI</div>
-        `;
-    }
-}
-
-// ============================================
-// BODY MODULE - JavaScript
+// 9. BODY MODULE
 // ============================================
 
 let bodyData = {
@@ -3995,11 +2628,9 @@ let bodyData = {
     todayLog: {}
 };
 
-let currentBodyView = 'dashboard'; // dashboard | stats | history
-
-// ============================================
-// LOAD DATA
-// ============================================
+let currentBodyView = 'dashboard';
+let selectedMood = null;
+let selectedEnergy = null;
 
 async function loadBodyData() {
     if (!lastStatsData || !lastStatsData.body) {
@@ -4009,23 +2640,19 @@ async function loadBodyData() {
     
     bodyData.currentWeight = lastStatsData.body.weight || 94.5;
     bodyData.workouts = lastStatsData.body.workouts || [];
-    bodyData.weightHistory = lastStatsData.body.weightHistory || []; // ← AGGIUNGI QUESTA RIGA
+    bodyData.weightHistory = lastStatsData.body.weightHistory || [];
     
     renderBodyDashboard();
 }
 
 function renderBodyDashboard() {
-    // Peso attuale
     const weightEl = document.getElementById('body-current-weight');
     if (weightEl && bodyData.currentWeight) {
         weightEl.innerText = bodyData.currentWeight.toFixed(1);
     }
     
-    // Delta peso
     const deltaEl = document.getElementById('body-weight-delta');
     if (deltaEl) {
-        console.log("weightHistory:", bodyData.weightHistory); // ← DEBUG
-        
         if (bodyData.weightHistory && bodyData.weightHistory.length > 1) {
             const current = bodyData.currentWeight;
             const previous = bodyData.weightHistory[bodyData.weightHistory.length - 2].weight;
@@ -4038,17 +2665,13 @@ function renderBodyDashboard() {
         }
     }
     
-    // Streak (calcolato da workout history)
     const streakEl = document.getElementById('body-streak');
     if (streakEl) {
         const streak = calculateStreak(bodyData.workouts);
         streakEl.innerText = streak;
     }
     
-    // Today log
     renderTodayLog();
-    
-    // Recent workouts
     renderRecentWorkouts();
 }
 
@@ -4070,8 +2693,6 @@ function calculateStreak(workouts) {
     let currentDate = new Date(today);
     const currentWeekKey = `${currentDate.getFullYear()}-W${getWeekNumber(currentDate)}`;
 
-    // Se questa settimana ho già raggiunto il target, conto questa e vado indietro
-    // Se NON ho ancora raggiunto il target, salto questa (non rompo lo streak) e parto dalla scorsa
     if ((weeklyWorkouts[currentWeekKey] || 0) < TARGET_WORKOUTS_PER_WEEK) {
         currentDate.setDate(currentDate.getDate() - 7);
     }
@@ -4087,13 +2708,12 @@ function calculateStreak(workouts) {
             break; 
         }
         
-        if (streak > 52) break; // Safety break
+        if (streak > 52) break;
     }
     
     return streak;
 }
 
-// Helper per calcolare numero settimana
 function getWeekNumber(date) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -4109,20 +2729,17 @@ function renderTodayLog() {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
     
-    // Controlla workout di oggi confrontando la data in formato YYYY-MM-DD
     const todayWorkout = bodyData.workouts.find(w => {
         const wDate = new Date(w.date).toISOString().split('T')[0];
         return wDate === todayStr;
     });
     
-    // Controlla peso di oggi
     const todayWeight = bodyData.weightHistory && bodyData.weightHistory.length > 0 
         && new Date(bodyData.weightHistory[bodyData.weightHistory.length - 1].date).toISOString().split('T')[0] === todayStr;
     
     const todayLogs = [];
     
     if (todayWorkout) {
-        // Se exercises è una stringa, non ha .length array, quindi contiamo i separatori o diamo info generica
         const exCount = Array.isArray(todayWorkout.exercises) && typeof todayWorkout.exercises[0] === 'object' 
             ? todayWorkout.exercises.length 
             : 'Completato';
@@ -4175,14 +2792,12 @@ function renderRecentWorkouts() {
         return;
     }
     
-    // Prendiamo solo l'ultimo (il primo dell'array se è già reversed)
     const lastW = bodyData.workouts[0]; 
     
     const moodEmoji = { "-2": "😫", "-1": "😐", "0": "😊", "1": "😄", "2": "🔥" };
     const date = new Date(lastW.date);
     const dateStr = date.toLocaleDateString('it-IT', {day: '2-digit', month: 'long', year: 'numeric'}).toUpperCase();
     
-    // Pulizia testo esercizi (usando exercises_json che abbiamo sistemato nel .gs)
     const textContent = lastW.exercises_json || lastW.raw || 'Dettagli non disponibili';
     const formattedText = textContent
         .replace(/;/g, '<br>')
@@ -4190,6 +2805,7 @@ function renderRecentWorkouts() {
         .replace(/\(↓\)/g, '<b style="color: #ff4d4d;">↓</b>')
         .replace(/\(=\)/g, '<b style="color: #666;">=</b>')
         .replace(/\(new\)/g, '<b style="color: #666;">NEW</b>');
+    
     container.innerHTML = `
         <div style="background: #111; padding: 15px; border-radius: 6px; border-left: 3px solid #00d4ff;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -4218,63 +2834,46 @@ function renderRecentWorkouts() {
         </div>
     `;
 
-    // Re-inizializza le icone Lucide se necessario
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
-
-// ============================================
-// QUICK LOG
-// ============================================
-
-// Nel tuo script.js, SOSTITUISCI la funzione openQuickLog:
-
-let selectedMood = null; // Default: 😊
-let selectedEnergy = null; // Default: MID
 
 function selectWorkoutMood(value, btn) {
     selectedMood = value;
     
-    // Reset tutti i bottoni mood
     document.querySelectorAll('#mood-selector button').forEach(b => {
         b.style.borderColor = '#333';
     });
     
-    // Evidenzia selezionato
     btn.style.borderColor = '#00ff41';
 }
 
 function selectWorkoutEnergy(value, btn) {
     selectedEnergy = value;
     
-    // Reset tutti i bottoni energy
     document.querySelectorAll('#energy-selector button').forEach(b => {
         b.style.borderColor = '#333';
         b.style.color = '#666';
     });
     
-    // Evidenzia selezionato
     btn.style.borderColor = '#ff9500';
     btn.style.color = '#ff9500';
 }
 
 function openQuickLog(type) {
     if (type === 'workout') {
-    document.getElementById('workout-feeling-modal').style.display = 'block';
-    
-    // ← RESET selezioni
-    selectedMood = null;
-    selectedEnergy = null;
-    
-    // Reset UI
-    document.querySelectorAll('#mood-selector button').forEach(b => b.style.borderColor = '#333');
-    document.querySelectorAll('#energy-selector button').forEach(b => {
-        b.style.borderColor = '#333';
-        b.style.color = '#666';
-    });
-    
-    setTimeout(() => document.getElementById('workout-feeling-input').focus(), 300);
-} else if (type === 'weight') {
-        // FIX: Non usare modal-backdrop, crea backdrop inline nel modal stesso
+        document.getElementById('workout-feeling-modal').style.display = 'block';
+        
+        selectedMood = null;
+        selectedEnergy = null;
+        
+        document.querySelectorAll('#mood-selector button').forEach(b => b.style.borderColor = '#333');
+        document.querySelectorAll('#energy-selector button').forEach(b => {
+            b.style.borderColor = '#333';
+            b.style.color = '#666';
+        });
+        
+        setTimeout(() => document.getElementById('workout-feeling-input').focus(), 300);
+    } else if (type === 'weight') {
         const modal = document.getElementById('weight-log-modal');
         modal.style.display = 'flex';
         modal.style.position = 'fixed';
@@ -4282,14 +2881,12 @@ function openQuickLog(type) {
         modal.style.left = '0';
         modal.style.width = '100%';
         modal.style.height = '100%';
-        modal.style.background = 'rgba(0,0,0,0.9)'; // ← Backdrop integrato
+        modal.style.background = 'rgba(0,0,0,0.9)';
         modal.style.zIndex = '10000';
         modal.style.alignItems = 'center';
         modal.style.justifyContent = 'center';
         
         setTimeout(() => document.getElementById('weight-input').focus(), 300);
-    } else if (type === 'meal') {
-        showCustomAlert("INTEGRAZIONE_FATSECRET_IN_SVILUPPO");
     }
 }
 
@@ -4304,18 +2901,6 @@ function closeWorkoutFeeling() {
     document.getElementById('coach-response-zone').style.display = 'none';
 }
 
-function closeWeightLog() {
-    document.getElementById('weight-log-modal').style.display = 'none';
-    document.getElementById('modal-backdrop').style.display = 'none';
-    document.getElementById('weight-input').value = '';
-}
-
-// ============================================
-// SUBMIT WORKOUT FEELING
-// ============================================
-
-// In submitWorkoutFeeling(), SOSTITUISCI la parte del coach con questo:
-
 async function submitWorkoutFeeling() {
     const input = document.getElementById('workout-feeling-input').value.trim();
     if (!input) return;
@@ -4325,22 +2910,20 @@ async function submitWorkoutFeeling() {
     btn.disabled = true;
     
     try {
-        // Inviamo il testo + i dati certi selezionati dai bottoni
         await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({
                 service: 'save_workout',
                 raw_input: input,
-                manual_mood: selectedMood,      // Da variabile globale
-                manual_energy: selectedEnergy   // Da variabile globale
+                manual_mood: selectedMood,
+                manual_energy: selectedEnergy
             })
         });
 
-        // Feedback del coach
-const coachRes = await fetch(SCRIPT_URL, {
+        const coachRes = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ 
-                action: 'ask_body_coach', // Cambiato da service a action
+                action: 'ask_body_coach',
                 query: input,
                 mood: selectedMood,
                 energy: selectedEnergy
@@ -4348,7 +2931,6 @@ const coachRes = await fetch(SCRIPT_URL, {
         });
         const coachText = await coachRes.text();
 
-        // Mostra risultato
         const coachZone = document.getElementById('coach-response-zone');
         coachZone.style.display = 'block';
         coachZone.innerHTML = `<p style="color:#00ff41; font-family:'JetBrains Mono'; font-size:0.85rem; line-height:1.4;">${coachText}</p>
@@ -4361,10 +2943,6 @@ const coachRes = await fetch(SCRIPT_URL, {
     }
 }
 
-// ============================================
-// SUBMIT WEIGHT
-// ============================================
-
 async function submitWeight() {
     const input = document.getElementById('weight-input');
     const weight = parseFloat(input.value);
@@ -4374,13 +2952,11 @@ async function submitWeight() {
         return;
     }
     
-    // Feedback visivo immediato sull'input
     input.disabled = true;
     const originalValue = input.value;
     input.value = "SAVING...";
     
     try {
-        // 1. Chiamata al database (usando 'action' come nel tuo .gs)
         await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({
@@ -4389,35 +2965,26 @@ async function submitWeight() {
             })
         });
         
-        // --- AGGIUNTA QUI: AGGIORNAMENTO DATI LOCALI ---
         lastStatsData.body.weight = weight;
-        bodyData.currentWeight = weight; // Aggiorna il valore in memoria
+        bodyData.currentWeight = weight;
         
-        // Se hai un array della cronologia, aggiungiamo il punto di oggi per i grafici
         if (bodyData.weightHistory) {
             bodyData.weightHistory.push({ date: new Date().toISOString(), weight: weight });
         }
-        // ----------------------------------------------
 
-        // 2. Feedback visivo sui widget
-        // Widget nella Home del Body
         const bodyCurrentWeightEl = document.getElementById('body-current-weight');
         if (bodyCurrentWeightEl) bodyCurrentWeightEl.innerText = weight.toFixed(1);
         
-        // Widget esterno (quello piccolo sempre visibile)
         const widgetWeight = document.getElementById('widget-weight');
         if (widgetWeight) widgetWeight.innerText = weight.toFixed(1);
         
         showCustomAlert(`PESO_REGISTRATO: ${weight}kg`, true);
 
-        // 3. Chiudi e rinfresca la dashboard
         setTimeout(() => {
             closeWeightLog();
-            // --- AGGIUNTA QUI: RE-RENDER DASHBOARD ---
             if (typeof renderBodyDashboard === 'function') {
                 renderBodyDashboard(); 
             }
-            // -----------------------------------------
         }, 1500);
         
     } catch (e) {
@@ -4427,10 +2994,6 @@ async function submitWeight() {
         input.value = originalValue;
     }
 }
-
-// ============================================
-// COACH AI TOGGLE
-// ============================================
 
 function toggleBodyCoach() {
     const bubble = document.getElementById('body-coach-bubble');
@@ -4461,8 +3024,6 @@ function toggleBodyCoach() {
     setTimeout(() => document.getElementById('coach-input')?.focus(), 200);
 }
 
-// Nel tuo script.js, SOSTITUISCI handleCoachInput:
-
 async function handleCoachInput(event) {
     if (event.key !== 'Enter') return;
     
@@ -4470,9 +3031,8 @@ async function handleCoachInput(event) {
     const query = input.value.trim();
     if (!query) return;
     
-    const text = document.getElementById('body-coach-text'); // ID CORRETTO
+    const text = document.getElementById('body-coach-text');
     
-    // Mostra caricamento
     const originalContent = text.innerHTML;
     text.innerHTML = `<div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px;">COACH_AI // ANALYZING</div>
                       <div style="color: #00ff41;" class="blink">PENSANDO... (Sii pronto a piangere)</div>`;
@@ -4510,33 +3070,22 @@ async function handleCoachInput(event) {
     }
 }
 
-// ============================================
-// VIEW SWITCHING
-// ============================================
-
-// SOSTITUISCI la funzione switchBodyView:
-
 function switchBodyView(view) {
-    // Se clicchi sulla view attiva, torna a dashboard
     if (currentBodyView === view) {
         view = 'dashboard';
     }
     
     currentBodyView = view;
     
-    // Nascondi tutte le view tramite ID precisi
     document.getElementById('body-dashboard').style.display = 'none';
     document.getElementById('body-stats-view').style.display = 'none';
     document.getElementById('body-history-view').style.display = 'none';
     
-    // Reset colori nav (usa var(--dim) come base)
     document.querySelectorAll('#body .nav-item').forEach(el => el.style.color = 'var(--dim)');
     
     if (view === 'dashboard') {
         document.getElementById('body-dashboard').style.display = 'block';
-        // La dashboard non ha un'icona specifica attiva di solito, o puoi colorare la home
     } else if (view === 'stats') {
-        // CORREZIONE: Uso del selettore ID corretto
         document.getElementById('body-stats-view').style.display = 'block';
         document.getElementById('body-nav-stats').style.color = '#00ff41'; 
         renderBodyCharts(); 
@@ -4547,53 +3096,25 @@ function switchBodyView(view) {
     }
 }
 
-function renderBodyStats() {
-    // TODO: Implementare grafici Chart.js
-    console.log("Rendering body stats...");
-}
-
-
-function renderFullHistory() {
-    const container = document.getElementById('body-history-container');
-    if (!container) return;
-
-    if (!bodyData.workouts || bodyData.workouts.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color:#333; padding:40px;">NESSUN_LOG_TROVATO</div>';
-        return;
+function initBodyModule() {
+    console.log("initBodyModule called, lastStatsData:", lastStatsData);
+    
+    if (!lastStatsData) {
+        setTimeout(() => {
+            if (lastStatsData) {
+                loadBodyData();
+                switchBodyView('dashboard');
+            } else {
+                const dashboard = document.getElementById('body-dashboard');
+                if (dashboard) {
+                    dashboard.innerHTML = '<div style="text-align:center; padding:40px; color:var(--dim);" class="blink">SYNCING_BODY_DATA...</div>';
+                }
+            }
+        }, 1000);
+    } else {
+        loadBodyData();
+        switchBodyView('dashboard');
     }
-
-    container.innerHTML = bodyData.workouts.map(w => {
-        const date = new Date(w.date).toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: 'long' }).toUpperCase();
-        
-        // MOOD EMOJI corretta per il tuo sistema
-        const moodEmoji = w.mood == -2 ? '😫' : w.mood == -1 ? '😐' : w.mood == 0 ? '😊' : w.mood == 1 ? '😄' : '🔥';
-        
-        // PUNTAMENTO CORRETTO: exercises_json invece di exercises
-        const rawText = w.exercises_json || w.exercises || "";   
-
-                const formattedEx = rawText
-            .replace(/\(NEW\)/g, '<span style="color: #00d4ff; font-weight: bold;">(NEW)</span>')
-            .replace(/\(↑\)/g, '<span style="color: #00ff41;">↑</span>')
-            .replace(/\(↓\)/g, '<span style="color: #ff4d4d;">↓</span>')
-            .replace(/\(=\)/g, '<span style="color: #666;">=</span>')
-            .replace(/;/g, '<br>');
-
-        return `
-            <div style="background:#0a0a0a; border:1px solid #222; margin-bottom:15px; border-radius:8px; overflow:hidden; border-left: 3px solid ${w.mood >= 1 ? '#00ff41' : '#333'};">
-                <div style="background:#111; padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-family:'Rajdhani'; font-weight:bold; font-size:0.8rem; color:var(--accent);">${date}</span>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#00d4ff;">${w.duration ? w.duration + 'm' : '--'}</span>
-                        <span>${moodEmoji}</span>
-                    </div>
-                </div>
-                <div style="padding:15px;">
-                    <div style="font-size:0.85rem; color:#eee; line-height:1.4; font-family:'JetBrains Mono';">${formattedEx}</div>
-                    ${w.notes ? `<div style="margin-top:10px; font-size:0.75rem; color:var(--dim); border-top:1px solid #222; padding-top:8px; font-style:italic;">Note: ${w.notes}</div>` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
 }
 
 let weightChartInstance = null;
@@ -4606,12 +3127,10 @@ let weightViewYear = new Date().getFullYear();
 const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
 
 function renderBodyCharts() {
-    // --- A. GESTIONE GRAFICO PESO ---
     const weightCtx = document.getElementById('weight-chart');
     if (weightCtx && bodyData.weightHistory) {
         if (window.weightChartInstance) window.weightChartInstance.destroy();
         
-        // Filtro dati peso per mese selezionato
         const filteredWeight = bodyData.weightHistory.filter(h => {
             const d = new Date(h.date);
             return d.getMonth() === weightViewMonth && d.getFullYear() === weightViewYear;
@@ -4647,7 +3166,6 @@ function renderBodyCharts() {
         document.getElementById('weight-month-display').innerText = `${monthNames[weightViewMonth]} ${weightViewYear}`;
     }
 
-    // --- B. GESTIONE GRAFICO WORKOUT (MOOD + LINEA ENERGIA) ---
     const workoutCtx = document.getElementById('workout-chart');
     if (workoutCtx && bodyData.workouts) {
         if (window.workoutChartInstance) window.workoutChartInstance.destroy();
@@ -4662,7 +3180,6 @@ function renderBodyCharts() {
             const moodValues = filteredWorkouts.map(w => Number(w.mood || 0) + 2); 
             const backgroundFill = moodValues.map(v => 4 - v);
             
-            // Mapping energia: linea blu elettrica
             const energyMap = { 'low': 0.8, 'medium': 2, 'mid': 2, 'high': 3.2 };
             const energyValues = filteredWorkouts.map(w => energyMap[String(w.energy).toLowerCase()] || 2);
 
@@ -4715,7 +3232,6 @@ function renderBodyCharts() {
     renderTopImprovements();
 }
 
-// Funzioni Navigazione
 function changeMonth(delta) {
     currentViewMonth += delta;
     if (currentViewMonth > 11) { currentViewMonth = 0; currentViewYear++; }
@@ -4741,14 +3257,12 @@ function renderTopImprovements() {
 
     const stats = {};
 
-    // Analizziamo i workout dal più vecchio al più nuovo per vedere l'evoluzione
     [...bodyData.workouts].reverse().forEach(w => {
         const text = w.exercises_json || w.exercises_text || w.exercises || "";
         if (!text) return;        
 
         const items = text.split(';');
         items.forEach(item => {
-            // Regex per estrarre Nome e Peso (es: "Panca: 1x10x70kg")
             const match = item.match(/^([^:(]+).*?(\d+(?:\.\d+)?)\s*kg/);
             if (match) {
                 const name = match[1].trim();
@@ -4763,7 +3277,6 @@ function renderTopImprovements() {
         });
     });
 
-    // Filtriamo solo quelli che hanno avuto un incremento reale o molte freccette
     const top3 = Object.entries(stats)
         .map(([name, data]) => ({
             name,
@@ -4800,94 +3313,92 @@ function renderTopImprovements() {
     `;
 }
 
-
-// ============================================
-// INIT
-// ============================================
-
-// Chiamato quando entri nella pagina Body
-function initBodyModule() {
-    console.log("initBodyModule called, lastStatsData:", lastStatsData); // DEBUG
+function renderBodyHistory() {
+    const container = document.getElementById('history-list-container');
+    const totalSpan = document.getElementById('stat-total-workouts');
+    const avgMoodSpan = document.getElementById('stat-avg-mood');
+    const avgTimeSpan = document.getElementById('stat-avg-time');
     
-    if (!lastStatsData) {
-        console.log("lastStatsData null, aspetto..."); // DEBUG
-        // Se i dati non sono ancora arrivati, aspetta
-        setTimeout(() => {
-            if (lastStatsData) {
-                loadBodyData();
-                switchBodyView('dashboard');
-            } else {
-                // Mostra loading
-                const dashboard = document.getElementById('body-dashboard');
-                if (dashboard) {
-                    dashboard.innerHTML = '<div style="text-align:center; padding:40px; color:var(--dim);" class="blink">SYNCING_BODY_DATA...</div>';
-                }
-            }
-        }, 1000);
-    } else {
-        loadBodyData();
-        switchBodyView('dashboard');
-    }
+    if (!container || !bodyData.workouts) return;
+
+    container.innerHTML = '';
+    const workouts = [...bodyData.workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    totalSpan.innerText = workouts.length;
+
+    const avgMood = workouts.length > 0 
+        ? (workouts.reduce((acc, curr) => acc + Number(curr.mood || 0), 0) / workouts.length).toFixed(1)
+        : 0;
+    avgMoodSpan.innerText = (avgMood > 0 ? '+' : '') + avgMood;
+
+    const avgTime = workouts.length > 0
+        ? Math.round(workouts.reduce((acc, curr) => acc + Number(curr.duration || 0), 0) / workouts.length)
+        : 0;
+    if (avgTimeSpan) avgTimeSpan.innerText = avgTime + 'm';
+
+workouts.forEach(w => {
+        const dateObj = new Date(w.date);
+        const day = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+        
+        const moodEmojis = { "-2": "💀", "-1": "🫠", "0": "😐", "1": "🙂", "2": "🔥" };
+        const energyEmojis = { "low": "🪫", "medium": "⚡", "mid": "⚡", "high": "🚀" };
+        
+const rawText = w.exercises_json || w.exercises_text || w.exercises || "Dettaglio non trovato";
+const durationVal = w.duration || w.Duration || "--";
+
+const exercises = rawText.split(';').map(ex => {
+    return ex.trim()
+        .replace(/\(new\)/g, '<i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"></i><span style="color: #00d4ff; font-weight: bold;">NEW</span><i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"></i>')
+        .replace(/\(↑\)/g, '<i data-lucide="trending-up" style="width:14px;height:14px;color:#00ff41;display:inline-block;margin:0 3px;"></i>')
+        .replace(/\(↓\)/g, '<i data-lucide="trending-down" style="width:14px;height:14px;color:#ff4d4d;display:inline-block;margin:0 3px;"></i>')
+        .replace(/\(=\)/g, '<i data-lucide="equal" style="width:14px;height:14px;color:#666;display:inline-block;margin:0 3px;"></i>');
+}).filter(Boolean);
+
+const detailText = exercises.map(ex => `• ${ex}`).join('<br>');
+
+const card = document.createElement('div');
+        card.style = `
+            background: #0a0a0a; 
+            border: 1px solid #222; 
+            border-left: 4px solid ${Number(w.mood) >= 1 ? '#00ff41' : Number(w.mood) <= -1 ? '#ff4d4d' : '#555'};
+            padding: 15px; 
+            border-radius: 8px;
+            margin-bottom: 12px;
+        `;
+
+        card.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #fff; background: #1a1a1a; padding: 2px 6px; border-radius: 4px;">${day.toUpperCase()}</span>
+                    <span style="font-size: 0.9rem;">${moodEmojis[String(w.mood)] || '😐'}</span>
+                    <span style="font-size: 0.8rem; opacity: 0.7;">${energyEmojis[String(w.energy).toLowerCase()] || '⚡'}</span>
+                </div>
+                <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #00d4ff;">${durationVal} MIN</span>
+            </div>
+            
+            <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #ccc; line-height: 1.5; margin-bottom: 10px; padding-left: 5px;">
+                ${detailText !== "Dettaglio non trovato" 
+                    ? detailText
+                    : `<span style="color: #444;">Dettaglio non trovato</span>`}
+            </div>
+
+            ${w.notes ? `
+                <div style="border-top: 1px solid #1a1a1a; padding-top: 8px; margin-top: 5px; font-size: 0.7rem; color: #555; font-style: italic;">
+                    ${w.notes}
+                </div>
+            ` : ''}
+        `;
+        
+        container.appendChild(card);
+    });
+    
+if (window.lucide) lucide.createIcons();
 }
 
-async function submitNewEvent() {
-    const title = document.getElementById('new-event-title').value.trim();
-    const date = document.getElementById('new-event-date').value;
-    const time = document.getElementById('new-event-time').value;
-    
-    if (!title || !date || !time) {
-        showCustomAlert("COMPILA TUTTI I CAMPI");
-        return;
-    }
-    
-    // ← FEEDBACK CARICAMENTO
-    const btn = document.querySelector('#workout-feeling-modal button'); // ← Trova il bottone    const originalText = btn.innerHTML;
-    btn.innerHTML = '<span class="blink">ADDING...</span>';
-    btn.disabled = true;
-    
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'add_calendar_event',
-                title: title,
-                date: date,
-                time: time
-            })
-        });
-        
-        const result = await response.text();
-        
-        if (result === "EVENT_CREATED_SUCCESS") {
-            showCustomAlert("EVENTO AGGIUNTO", true);
-            
-            // ← REFRESH DATI PRIMA DI CAMBIARE VIEW
-            await loadStats();
-            
-            // Pulisci form
-            document.getElementById('new-event-title').value = '';
-            document.getElementById('new-event-date').value = '';
-            document.getElementById('new-event-time').value = '';
-            
-            // Dopo 1 secondo vai su calendar (dove hai appena aggiunto l'evento)
-            setTimeout(() => {
-                switchAgendaView('calendar');
-            }, 1000);
-        } else {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            showCustomAlert("ERRORE: " + result);
-        }
-    } catch (e) {
-        console.error("Errore submit evento:", e);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        showCustomAlert("ERRORE_CONNESSIONE");
-    }
-}
+// ============================================
+// 10. UTILITIES & HELPERS
+// ============================================
 
-
-// Popola l'app con i dati (cache o freschi)
 function renderWithData(data) {
     if (!data) {
         console.warn("renderWithData chiamato senza dati");
@@ -4896,35 +3407,25 @@ function renderWithData(data) {
     
     if (data.status !== "ONLINE") return;
     
-    // --- AGGIORNA VARIABILI GLOBALI ---
     historyData = data.history || [];
     extraItemsGlobal = data.extraDetails || [];
-    window.agendaData = data.agenda || [];
     loadedNotesData = data.notes || [];
     lastStatsData = data;
     allReviews = data.reviews || []; 
 
-    // Se la sezione Reviews è aperta, aggiorna la lista
     if (document.getElementById('reviews')?.classList.contains('active')) {
         const activeChip = document.querySelector('.filter-chip.active');
         const currentCat = activeChip ? activeChip.innerText.split(' ')[0] : 'ALL';
         filterByCategory(currentCat, activeChip || document.querySelector('.filter-chip'));
     }
     
-    // Se Body è aperto, aggiorna
     if (document.getElementById('body')?.classList.contains('active')) {
         loadBodyData();
     }
     
-    // Render griglia note
     renderGrid(data);
-    
-    // Render agenda se attiva
-    updateAgendaWidget(data.agenda || []);
 
-    // --- BLOCCO FINANCE CON CONTROLLI NULL ---
     if (data.finance) {
-        // 1. Widget home con COLORE DINAMICO
         const widgetSpent = document.getElementById('widget-spent');
         
         if (widgetSpent) {
@@ -4933,21 +3434,20 @@ function renderWithData(data) {
             
             widgetSpent.innerText = spent.toFixed(2);
             
-            // Calcola colore in base a % spesa/entrate
-            let color = '#00ff41'; // Verde default
+            let color = '#00ff41';
             
             if (income > 0) {
                 const spentPercent = (spent / income) * 100;
                 
                 if (spentPercent > 85) {
-                    color = '#ff0055'; // Rosso - stai spendendo troppo!
+                    color = '#ff0055';
                 } else if (spentPercent > 60) {
-                    color = '#ff9500'; // Arancione - occhio
+                    color = '#ff9500';
                 } else {
-                    color = '#00ff41'; // Verde - ok
+                    color = '#00ff41';
                 }
             } else if (spent > 0) {
-                color = '#ff0055'; // Rosso - spendi ma non hai entrate!
+                color = '#ff0055';
             }
             
             widgetSpent.style.color = color;
@@ -4956,20 +3456,13 @@ function renderWithData(data) {
         const widgetCash = document.getElementById('widget-cash');
         if (widgetCash) widgetCash.innerText = data.finance.cash || "--";
 
-        // 2. Pagina Finance - Saldi
         const totalEl = document.getElementById('total-balance');
         const bankEl = document.getElementById('bank-val');
         const cashEl = document.getElementById('cash-val');
-
         
-        
-        if (totalEl) totalEl.innerText = (data.finance.total || "0") + " €";
-        if (bankEl) bankEl.innerText = (data.finance.bank || "0") + " €";
-        if (cashEl) cashEl.innerText = (data.finance.cash || "0") + " €";
-
         if (totalEl) {
-    const totalValue = (data.finance.total || "0") + " €";
-    totalEl.innerText = balanceHidden ? '***,** €' : totalValue;
+            const totalValue = (data.finance.total || "0") + " €";
+            totalEl.innerText = balanceHidden ? '***,** €' : totalValue;
         }
         if (bankEl) {
             const bankValue = (data.finance.bank || "0") + " €";
@@ -4980,14 +3473,12 @@ function renderWithData(data) {
             cashEl.innerText = balanceHidden ? '***,** €' : cashValue;
         }
 
-        // Aggiorna icona
         const icon = document.getElementById('balance-toggle');
         if (icon) {
             icon.setAttribute('data-lucide', balanceHidden ? 'eye-off' : 'eye');
             if (window.lucide) lucide.createIcons();
         }
 
-        // 3. Burn Rate Bar
         const inc = parseFloat(data.finance.income) || 0;
         const out = parseFloat(data.finance.spent) || 0;
         const fill = document.getElementById('efficiency-fill');
@@ -5008,39 +3499,22 @@ function renderWithData(data) {
             }
         }
 
-        // 4. Log Transazioni
         if (data.finance.transactions) {
             renderFinanceLog(data.finance.transactions);
         }
 
-            if (data.finance) {
-        // Pre-calcola stats in background
-        cachedFinanceStats = calculateFinanceStats(data.finance);
+        if (data.finance) {
+            cachedFinanceStats = calculateFinanceStats(data.finance);
+        }
     }
-    }
-    if (data.habits) {
-    habitConfig = data.habits.config || [];
-    habitLogs = data.habits.logs || [];
-}
 }
 
-// Nuova funzione che SOLO calcola (non renderizza)
 function calculateFinanceStats(financeData) {
-    console.log("=== DEBUG calculateFinanceStats ===");
-    console.log("financeData ricevuto:", financeData);
-    console.log("financeData.categories:", financeData.categories);
-    
     const inc = parseFloat(financeData.income) || 0;
     const out = parseFloat(financeData.spent) || 0;
     const categories = financeData.categories || {};
     const total = parseFloat(financeData.total) || 0;
     
-    console.log("categories dopo assignment:", categories);
-    console.log("Object.keys(categories):", Object.keys(categories));
-    console.log("Object.entries(categories):", Object.entries(categories));
-    
-
-    // Survival Index
     let survivalMonths = '∞';
     let isNegative = false;
     
@@ -5052,7 +3526,6 @@ function calculateFinanceStats(financeData) {
         isNegative = true;
     }
     
-    // Top 3 categorie
     const sortedCats = Object.entries(categories)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3);
@@ -5077,13 +3550,11 @@ function toggleBalanceVisibility() {
     const cashEl = document.getElementById('cash-val');
     
     if (balanceHidden) {
-        // Nascondi
         totalEl.innerText = '***,** €';
         if (bankEl) bankEl.innerText = '***,** €';
         if (cashEl) cashEl.innerText = '***,** €';
         icon.setAttribute('data-lucide', 'eye-off');
     } else {
-        // Mostra
         if (lastStatsData?.finance) {
             totalEl.innerText = (lastStatsData.finance.total || "0") + " €";
             if (bankEl) bankEl.innerText = (lastStatsData.finance.bank || "0") + " €";
@@ -5095,10 +3566,8 @@ function toggleBalanceVisibility() {
     if (window.lucide) lucide.createIcons();
 }
 
-const LINK_PREVIEW_API_KEY = "76862f86fbf805677b3ee8f57b38702e"; // ← Inserisci la tua key
+const LINK_PREVIEW_API_KEY = "76862f86fbf805677b3ee8f57b38702e";
 let currentLinkData = null;
-
-
 
 async function fetchLinkPreview() {
     const input = document.getElementById('link-url-input');
@@ -5106,7 +3575,6 @@ async function fetchLinkPreview() {
     
     if (!url) return;
     
-    // Validazione URL base
     try {
         new URL(url);
     } catch(e) {
@@ -5114,7 +3582,6 @@ async function fetchLinkPreview() {
         return;
     }
     
-    // Feedback loading
     input.style.borderColor = 'var(--accent)';
     input.style.background = 'rgba(0,255,65,0.1)';
     input.disabled = true;
@@ -5132,7 +3599,6 @@ async function fetchLinkPreview() {
                 domain: new URL(url).hostname
             };
             
-            // Mostra preview
             document.getElementById('link-preview-title').innerText = data.title;
             document.getElementById('link-preview-description').innerText = data.description || 'No description';
             document.getElementById('link-preview-domain').innerText = '🔗 ' + currentLinkData.domain;
@@ -5181,11 +3647,9 @@ async function saveLinkNote() {
         title: currentLinkData.title
     };
     
-    // ← SOLO memoria, NON renderGrid
     loadedNotesData.unshift(fakeNote);
     lastStatsData.notes = loadedNotesData;
     
-    // ← CARD HTML
     const grid = document.getElementById('keep-grid');
     if (grid) {
         const cardHTML = `
@@ -5210,23 +3674,18 @@ async function saveLinkNote() {
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Questo evita l'errore CORS al salvataggio
+            mode: 'no-cors',
             body: JSON.stringify({ 
                 service: "note", 
-                text: todoText 
+                text: linkText 
             })
         });
         
-        showCustomAlert("NOTA_INVIATA", true);
-        
-        // Aspettiamo 2 secondi che Google scriva sul foglio e poi ricarichiamo tutto
-        setTimeout(() => {
-            loadStats(); 
-        }, 2000);
+        showCustomAlert("LINK_SALVATO", true);
+        setTimeout(() => loadStats(), 2000);
         
     } catch(e) {
         console.error("Errore salvataggio:", e);
-        // Rimuovi la card fake se fallisce
         const fakeCard = document.getElementById(`card-${fakeId}`);
         if (fakeCard) fakeCard.remove();
         showCustomAlert("SAVE_ERROR");
@@ -5238,6 +3697,8 @@ function closeLinkModal() {
     const backdrop = document.getElementById('modal-backdrop');
     if (backdrop) backdrop.style.display = 'none'; 
     currentLinkData = null;
+    document.getElementById('link-url-input').value = '';
+    document.getElementById('link-preview-container').style.display = 'none';
 }
 
 async function generateGhostText() {
@@ -5245,7 +3706,7 @@ async function generateGhostText() {
     if (!input) return showCustomAlert("SCRIVI_QUALCOSA");
 
     const btn = document.getElementById('ghost-generate-btn');
-    const saveBtn = document.getElementById('ghost-save-btn'); // Prendiamo il tasto salva
+    const saveBtn = document.getElementById('ghost-save-btn');
     
     btn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
     btn.disabled = true;
@@ -5262,14 +3723,13 @@ async function generateGhostText() {
         const result = await response.text();
         
         if (result && result.length > 0) {
-            ghostGeneratedText = result; // Salviamo il testo nella variabile globale
+            ghostGeneratedText = result;
             document.getElementById('ghost-output').innerText = result;
             document.getElementById('ghost-output-container').style.display = 'block';
 
-            // --- QUI SI ACCENDE IL TASTO ---
             saveBtn.disabled = false;
             saveBtn.style.opacity = '1';
-            saveBtn.style.filter = 'brightness(1.2)'; // Opzionale: lo illuminiamo
+            saveBtn.style.filter = 'brightness(1.2)';
             saveBtn.style.cursor = 'pointer';
         }
     } catch(e) {
@@ -5293,10 +3753,9 @@ async function saveGhostNote() {
     saveBtn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
     saveBtn.disabled = true;
     
-    closeGhostModal(); // ← Chiudi subito (optimistic UI)
+    closeGhostModal();
     
     try {
-        // 1. Genera con AI
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({
@@ -5307,7 +3766,6 @@ async function saveGhostNote() {
         
         const rewrittenText = await response.text();
         
-        // 2. Salva immediatamente
         await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ 
@@ -5328,7 +3786,7 @@ async function saveGhostNote() {
 function closeGhostModal() {
     document.getElementById('ghost-modal').style.display = 'none';
     const backdrop = document.getElementById('modal-backdrop');
-    if (backdrop) backdrop.style.display = 'none'; // ← FONDAMENTALE per sbloccare lo schermo
+    if (backdrop) backdrop.style.display = 'none';
     ghostGeneratedText = '';
 }
 
@@ -5356,14 +3814,11 @@ async function toggleArchive() {
     const note = loadedNotesData[currentNoteData.index];
     if (!note) return;
     
-    // Toggle: se è ARCHIVE torna NOTE, se è NOTE diventa ARCHIVE
     const newType = note.type === 'ARCHIVE' ? 'NOTE' : 'ARCHIVE';
     
-    // Aggiorna locale
     note.type = newType;
     currentNoteData.type = newType;
     
-    // Salva backend
     await fetch(SCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify({
@@ -5373,100 +3828,28 @@ async function toggleArchive() {
         })
     });
     
-    // Feedback e chiudi
     showCustomAlert(newType === 'ARCHIVE' ? "ARCHIVIATA" : "RIPRISTINATA", true);
     closeNoteDetail(false);
     
     setTimeout(() => loadStats(), 1000);
 }
 
-function renderBodyHistory() {
-    const container = document.getElementById('history-list-container');
-    const totalSpan = document.getElementById('stat-total-workouts');
-    const avgMoodSpan = document.getElementById('stat-avg-mood');
-    const avgTimeSpan = document.getElementById('stat-avg-time'); // Aggiungilo nell'HTML o crealo qui
+function showCustomAlert(message, isSuccess = false) {
+    const bubble = document.getElementById('analyst-bubble');
+    const text = document.getElementById('analyst-text');
     
-    if (!container || !bodyData.workouts) return;
-
-    container.innerHTML = '';
-    const workouts = [...bodyData.workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (!bubble || !text) return;
     
-    // --- CALCOLO STATS ---
-    totalSpan.innerText = workouts.length;
-
-    // Media Mood
-    const avgMood = workouts.length > 0 
-        ? (workouts.reduce((acc, curr) => acc + Number(curr.mood || 0), 0) / workouts.length).toFixed(1)
-        : 0;
-    avgMoodSpan.innerText = (avgMood > 0 ? '+' : '') + avgMood;
-
-    // Media Minuti (Nuova stat)
-    const avgTime = workouts.length > 0
-        ? Math.round(workouts.reduce((acc, curr) => acc + Number(curr.duration || 0), 0) / workouts.length)
-        : 0;
-    if (avgTimeSpan) avgTimeSpan.innerText = avgTime + 'm';
-
-    // --- GENERAZIONE CARD ---
-workouts.forEach(w => {
-        const dateObj = new Date(w.date);
-        const day = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
-        
-        const moodEmojis = { "-2": "💀", "-1": "🫠", "0": "😐", "1": "🙂", "2": "🔥" };
-        const energyEmojis = { "low": "🪫", "medium": "⚡", "mid": "⚡", "high": "🚀" };
-        
-
-
-const rawText = w.exercises_json || w.exercises_text || w.exercises || "Dettaglio non trovato";
-const durationVal = w.duration || w.Duration || "--";
-
-// ← PRIMA splitta per ';' (esercizi), POI formatta ogni pezzo
-const exercises = rawText.split(';').map(ex => {
-    return ex.trim()
-        .replace(/\(new\)/g, '<i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"></i><span style="color: #00d4ff; font-weight: bold;">NEW</span><i data-lucide="sparkles" style="width:14px;height:14px;color:#00d4ff;display:inline-block;margin:0 3px;"></i>')
-        .replace(/\(↑\)/g, '<i data-lucide="trending-up" style="width:14px;height:14px;color:#00ff41;display:inline-block;margin:0 3px;"></i>')
-        .replace(/\(↓\)/g, '<i data-lucide="trending-down" style="width:14px;height:14px;color:#ff4d4d;display:inline-block;margin:0 3px;"></i>')
-        .replace(/\(=\)/g, '<i data-lucide="equal" style="width:14px;height:14px;color:#666;display:inline-block;margin:0 3px;"></i>');
-}).filter(Boolean);
-
-const detailText = exercises.map(ex => `• ${ex}`).join('<br>');
-
-const card = document.createElement('div');
-        card.style = `
-            background: #0a0a0a; 
-            border: 1px solid #222; 
-            border-left: 4px solid ${Number(w.mood) >= 1 ? '#00ff41' : Number(w.mood) <= -1 ? '#ff4d4d' : '#555'};
-            padding: 15px; 
-            border-radius: 8px;
-            margin-bottom: 12px;
-        `;
-
-        card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #fff; background: #1a1a1a; padding: 2px 6px; border-radius: 4px;">${day.toUpperCase()}</span>
-                    <span style="font-size: 0.9rem;">${moodEmojis[String(w.mood)] || '😐'}</span>
-                    <span style="font-size: 0.8rem; opacity: 0.7;">${energyEmojis[String(w.energy).toLowerCase()] || '⚡'}</span>
-                </div>
-                <span style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #00d4ff;">${durationVal} MIN</span>
-            </div>
-            
-            <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #ccc; line-height: 1.5; margin-bottom: 10px; padding-left: 5px;">
-                ${detailText !== "Dettaglio non trovato" 
-                    ? detailText
-                    : `<span style="color: #444;">Dettaglio non trovato</span>`}
-            </div>
-
-            ${w.notes ? `
-                <div style="border-top: 1px solid #1a1a1a; padding-top: 8px; margin-top: 5px; font-size: 0.7rem; color: #555; font-style: italic;">
-                    ${w.notes}
-                </div>
-            ` : ''}
-        `;
-        
-        container.appendChild(card);
-    });
-    // Re-inizializza icone Lucide
-if (window.lucide) lucide.createIcons();
+    text.innerHTML = `
+        <div style="font-size:0.7rem; color:${isSuccess ? 'var(--accent)' : '#ff4d4d'}; 
+                    margin-bottom:8px; letter-spacing:2px;">
+            ${isSuccess ? '✓ OPERAZIONE_COMPLETATA' : '✗ ERRORE_SISTEMA'}
+        </div>
+        <div style="color:#fff; font-size:0.9rem; margin-top:10px;">
+            ${message}
+        </div>
+    `;
+    
+    bubble.classList.add('active');
+    setTimeout(() => bubble.classList.remove('active'), 3000);
 }
-
-
