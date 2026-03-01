@@ -28,6 +28,17 @@ let ghostGeneratedText = '';
 let balanceHidden = true;
 let cachedFinanceStats = null;
 
+// Wallet attivo per Finance input
+window.activeWallet = "BANK";
+
+function setWallet(wallet) {
+    window.activeWallet = wallet;
+    document.querySelectorAll('.wallet-btn').forEach(btn => {
+        btn.style.borderColor = btn.dataset.wallet === wallet ? '#00d4ff' : '#333';
+        btn.style.color = btn.dataset.wallet === wallet ? '#00d4ff' : '#666';
+    });
+}
+
 // Salva dati in cache
 function cacheData(data) {
     try {
@@ -332,9 +343,14 @@ filteredNotes.forEach((item) => {
         const totalItems = lines.filter(l => l.startsWith('☐') || l.startsWith('☑')).length;
         const checkedItems = lines.filter(l => l.startsWith('☑')).length;
         
+        // Estrai titolo: prima riga dopo [LISTA] che non è una checkbox
+        const contentLines = lines.filter(l => l !== '[LISTA]');
+        const titleLine = contentLines.find(l => !l.startsWith('☐') && !l.startsWith('☑') && l.trim());
+        const displayTitle = titleLine || note.title || "LISTA";
+        
         card.innerHTML = `
             ${isPinned ? `<div class="pin-indicator" onclick="event.stopPropagation(); togglePinFromCard('${note.id}')"><i class="fas fa-thumbtack"></i></div>` : ''}
-            <div class="title-row" style="color: #00ff41;">📋 ${(note.title || "LISTA").toUpperCase()}</div>
+            <div class="title-row" style="color: #00ff41;">📋 ${displayTitle.toUpperCase()}</div>
             <div class="content-preview">${note.content.substring(0, 100)}</div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                 <div class="label" style="font-size:9px; opacity:0.4;">
@@ -403,10 +419,6 @@ filteredNotes.forEach((item) => {
                 else card.before(draggedItem);
             }
         };
-
-        card.onclick = () => {
-    if (!card.classList.contains('dragging')) openNoteByIndex(index);
-};
 
         fragment.appendChild(card);
     });
@@ -613,7 +625,7 @@ function openNoteByIndex(index) {
             </div>
             ${description ? `<div style="color: #aaa; font-size: 13px; line-height: 1.6; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 4px;">${description}</div>` : ''}
         `;
-    } else if (note.content.includes('☐') || note.content.includes('☑')) {
+    } else if (note.content.includes('☐') || note.content.includes('☑') || note.content.startsWith('[LISTA]')) {
         renderInteractiveTodo(note);
     } else {
         detailText.value = note.content;
@@ -731,20 +743,7 @@ function closeNoteDetail(forceSave = true) {
             console.log("LINK - Mantengo contenuto originale:", newText.substring(0, 50));
             
         } else if (todoContainer && todoContainer.style.display !== 'none') {
-            const items = Array.from(todoContainer.children).map(div => {
-                const checkbox = div.querySelector('[data-checked]');
-                const textSpan = div.querySelector('[data-text]');
-                
-                if (!checkbox || !textSpan) return null;
-                
-                const checked = checkbox.getAttribute('data-checked') === 'true';
-                const text = textSpan.getAttribute('data-text');
-                
-                return `${checked ? '☑' : '☐'} ${text}`;
-            }).filter(Boolean);
-            
-            newText = items.join('\n');
-            console.log("TODO - Testo ricostruito:", newText);
+            newText = saveTodoStateSync();
         } else {
             newText = textArea.value.trim();
             console.log("NOTA - Testo da textarea:", newText);
@@ -1089,11 +1088,16 @@ async function handleFinanceSubmit(event) {
 
     try {
         const textLower = rawText.toLowerCase();
-        let targetWallet = "BANK";
+        // Priorità: keyword nel testo > wallet selezionato nell'UI
+        let targetWallet = window.activeWallet || "BANK";
 
-        if (textLower.includes('*c') || textLower.includes('cash') || textLower.includes('contanti')) {
+        if (textLower.includes('*cash') || (textLower.includes('cash') && !textLower.includes('cashback'))) {
             targetWallet = "CASH";
-        } else if (textLower.includes('*b') || textLower.includes('bank') || textLower.includes('banca')) {
+        } else if (textLower.includes('*tin') || textLower.includes('tinaba')) {
+            targetWallet = "TINABA";
+        } else if (textLower.includes('*pay') || textLower.includes('paypal')) {
+            targetWallet = "PAYPAL";
+        } else if (textLower.includes('*bank') || textLower.includes('banca')) {
             targetWallet = "BANK";
         }
         
@@ -1420,6 +1424,20 @@ function switchFinanceTab(target) {
     const searchView = document.getElementById('finance-search-view');
     const statsView = document.getElementById('finance-stats-view');
 
+    // Toggle: se già aperta la stessa vista, torna alla home
+    if (target === 'stats' && statsView && statsView.style.display === 'block') {
+        [searchView, statsView].forEach(v => { if(v) v.style.display = 'none'; });
+        if(dashboard) dashboard.style.display = 'block';
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
+    if (target === 'log' && searchView && searchView.style.display === 'block') {
+        [searchView, statsView].forEach(v => { if(v) v.style.display = 'none'; });
+        if(dashboard) dashboard.style.display = 'block';
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
+
     [dashboard, searchView, statsView].forEach(v => { if(v) v.style.display = 'none' });
 
     if (target === 'log') {
@@ -1599,22 +1617,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-function createNew(kind) {
-    console.log("createNew chiamato con:", kind);
-    createNewNote();
-    
-    if (kind === 'LINK') {
-        document.getElementById('detail-text').value = "https://";
-        document.getElementById('detail-type').innerText = "NUOVO_LINK";
-    }
-    if (kind === 'LIST') {
-        document.getElementById('detail-text').value = "☐ \n☐ \n☐ ";
-        document.getElementById('detail-type').innerText = "NUOVA_LISTA";
-    }
-    
-    toggleQuickMenu();
-}
-
 async function createNew(type) {
     const noteDetail = document.getElementById('note-detail');
     const detailText = document.getElementById('detail-text');
@@ -1661,6 +1663,10 @@ async function createNew(type) {
             
             document.getElementById('todo-items-container').innerHTML = '';
             
+            // Reset titolo
+            const titleInput = document.getElementById('todo-list-title');
+            if (titleInput) titleInput.value = '';
+            
             const input = document.getElementById('new-todo-item');
             if (input) {
                 input.value = '';
@@ -1669,25 +1675,6 @@ async function createNew(type) {
         } catch(e) {
             console.error("Errore LISTA:", e);
         }
-    }
-
-    if (type === 'LINK') {
-        const modalLink = document.getElementById('link-modal');
-        if (!modalLink) return;
-        
-        modalLink.style.display = 'flex';
-        if (backdrop) backdrop.style.display = 'block';
-        
-        const linkInput = document.getElementById('link-url-input');
-        linkInput.value = '';
-        document.getElementById('link-preview-container').style.display = 'none';
-        
-        const saveBtn = document.getElementById('save-link-btn');
-        saveBtn.disabled = true;
-        saveBtn.style.opacity = '0.5';
-        
-        currentLinkData = null;
-        setTimeout(() => linkInput.focus(), 50);
     }
 
     if (type === 'GHOST') {
@@ -1705,6 +1692,8 @@ async function createNew(type) {
         setTimeout(() => ghostInput.focus(), 50);
     }
 }
+
+let todoItems = [];
 
 function addTodoItem() {
     const input = document.getElementById('new-todo-item');
@@ -1798,7 +1787,12 @@ async function saveTodoList() {
     saveBtn.innerHTML = '<span class="blink">SAVING...</span>';
     saveBtn.disabled = true;
     
-    const todoText = "[LISTA]\n" + todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
+    // Includi titolo opzionale
+    const titleInput = document.getElementById('todo-list-title');
+    const listTitle = titleInput ? titleInput.value.trim() : '';
+    const titleLine = listTitle ? listTitle + '\n' : '';
+    
+    const todoText = "[LISTA]\n" + titleLine + todoItems.map(i => `${i.checked ? '☑' : '☐'} ${i.text}`).join('\n');
     
     const fakeId = 'temp_' + Date.now();
     const fakeNote = {
@@ -1807,7 +1801,7 @@ async function saveTodoList() {
         type: 'LISTA',
         content: todoText,
         color: 'default',
-        title: 'TODO_LIST'
+        title: listTitle || 'TODO_LIST'
     };
     
     loadedNotesData.unshift(fakeNote);
@@ -1820,7 +1814,7 @@ async function saveTodoList() {
         
         const cardHTML = `
             <div class="keep-card bg-default" id="card-${fakeId}" style="cursor: pointer; border-left: 3px solid #00ff41;">
-                <div class="title-row" style="color: #00ff41;">📋 TODO_LIST</div>
+                <div class="title-row" style="color: #00ff41;">📋 ${(listTitle || 'TODO_LIST').toUpperCase()}</div>
                 <div class="content-preview">${todoText.substring(0, 100)}</div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                     <div class="label" style="font-size:9px; opacity:0.4;">JUST_NOW</div>
@@ -1866,15 +1860,12 @@ function closeTodoModal() {
     if (backdrop) backdrop.style.display = 'none'; 
     todoItems = [];
     document.getElementById('todo-items-container').innerHTML = '';
+    const titleInput = document.getElementById('todo-list-title');
+    if (titleInput) titleInput.value = '';
 }
 
 function openNoteDetail(noteId) {
     const note = loadedNotesData.find(n => String(n.id) === String(noteId));
-    
-    console.log("=== DEBUG APERTURA NOTA ===");
-    console.log("Nota:", note);
-    console.log("Contenuto:", note?.content);
-    console.log("Ha checkbox?", note?.content.includes('☐') || note?.content.includes('☑'));
     
     if (!note) {
         console.error("Nota non trovata:", noteId);
@@ -1891,11 +1882,9 @@ function openNoteDetail(noteId) {
     
     const textArea = document.getElementById('detail-text');
     
-    if (note.content.includes('☐') || note.content.includes('☑')) {
-        console.log("→ Rendering TODO interattiva");
+    if (note.content.includes('☐') || note.content.includes('☑') || note.content.startsWith('[LISTA]')) {
         renderInteractiveTodo(note);
     } else {
-        console.log("→ Rendering nota normale");
         textArea.style.display = 'block';
         textArea.value = note.content;
         
@@ -1908,7 +1897,6 @@ function openNoteDetail(noteId) {
 
 function renderInteractiveTodo(note) {
     const textArea = document.getElementById('detail-text');
-    
     textArea.style.display = 'none';
     
     let todoContainer = document.getElementById('interactive-todo-container');
@@ -1922,16 +1910,60 @@ function renderInteractiveTodo(note) {
     todoContainer.style.display = 'block';
     
     const lines = note.content.split('\n');
-    const items = lines.map((line, idx) => {
+    
+    // Filtra [LISTA] tag
+    const contentLines = lines.filter(l => l !== '[LISTA]');
+    
+    // Prima riga non-checkbox = titolo
+    const titleLine = contentLines.find(l => !l.startsWith('☐') && !l.startsWith('☑') && l.trim());
+    const checkboxLines = contentLines.filter(l => l.startsWith('☐') || l.startsWith('☑'));
+    
+    const items = checkboxLines.map((line, idx) => {
         const checked = line.startsWith('☑');
+        // Detect URL nel testo
         const text = line.replace(/^[☐☑]\s*/, '');
-        return { id: 'saved_' + idx, text: text, checked: checked };
+        return { id: 'saved_' + idx, text, checked };
     }).filter(i => i.text.trim());
     
-    todoContainer.innerHTML = items.map(item => `
+    const titleHTML = titleLine ? `
+        <input 
+            type="text" 
+            id="todo-title-edit" 
+            value="${titleLine.replace(/"/g, '&quot;')}"
+            placeholder="NOME_LISTA..."
+            style="width:100%; background:transparent; border:none; border-bottom:1px solid #333; 
+                   color:#00ff41; font-family:'Rajdhani'; font-size:1rem; font-weight:bold;
+                   letter-spacing:1px; padding:8px 0; margin-bottom:12px; outline:none; box-sizing:border-box;"
+            onchange="saveTodoState()"
+        >
+    ` : `
+        <input 
+            type="text" 
+            id="todo-title-edit" 
+            value=""
+            placeholder="AGGIUNGI_TITOLO..."
+            style="width:100%; background:transparent; border:none; border-bottom:1px solid #222; 
+                   color:#555; font-family:'Rajdhani'; font-size:0.9rem;
+                   letter-spacing:1px; padding:6px 0; margin-bottom:12px; outline:none; box-sizing:border-box;"
+            onchange="saveTodoState()"
+        >
+    `;
+    
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    
+    todoContainer.innerHTML = titleHTML + items.map(item => {
+        // Render URL come link cliccabili
+        const textWithLinks = item.text.replace(urlRegex, (url) => {
+            let domain = url;
+            try { domain = new URL(url).hostname.replace('www.', ''); } catch(e) {}
+            return `<a href="${url}" target="_blank" onclick="event.stopPropagation()" 
+                       style="color:#00d4ff; text-decoration:none; font-size:11px;">↗ ${domain}</a>`;
+        });
+        
+        return `
         <div style="
             display: flex; 
-            align-items: center; 
+            align-items: flex-start; 
             gap: 12px; 
             padding: 12px; 
             background: rgba(255,255,255,0.02); 
@@ -1941,29 +1973,22 @@ function renderInteractiveTodo(note) {
             <div 
                 onclick="toggleSavedTodo(this, '${item.id}')" 
                 style="
-                    min-width: 20px;
-                    width: 20px; 
-                    height: 20px; 
+                    min-width: 20px; width: 20px; height: 20px; margin-top: 2px;
                     border: 2px solid ${item.checked ? 'var(--accent)' : '#444'};
                     background: ${item.checked ? 'var(--accent)' : 'transparent'};
-                    border-radius: 3px;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    border-radius: 3px; cursor: pointer;
+                    display: flex; align-items: center; justify-content: center;
                 "
                 data-checked="${item.checked}"
             >
                 ${item.checked ? '<i data-lucide="check" style="width: 14px; color: #000;"></i>' : ''}
             </div>
             <span style="
-                flex: 1; 
-                font-family: 'JetBrains Mono';
-                font-size: 13px;
+                flex: 1; font-family: 'JetBrains Mono'; font-size: 13px; line-height: 1.5;
                 ${item.checked ? 'text-decoration: line-through; opacity: 0.4;' : 'color: #eee;'}
-            " data-text="${item.text}">${item.text}</span>
-        </div>
-    `).join('');
+            " data-text="${item.text.replace(/"/g, '&quot;')}">${textWithLinks}</span>
+        </div>`;
+    }).join('');
     
     if(window.lucide) lucide.createIcons();
 }
@@ -1991,19 +2016,37 @@ function toggleSavedTodo(checkbox, id) {
     saveTodoState();
 }
 
-async function saveTodoState() {
+// Versione sincrona per closeNoteDetail
+function saveTodoStateSync() {
     const container = document.getElementById('interactive-todo-container');
-    const items = Array.from(container.children).map(div => {
-        const checkbox = div.querySelector('[data-checked]');
-        const text = div.querySelector('[data-text]').getAttribute('data-text');
-        const checked = checkbox.getAttribute('data-checked') === 'true';
+    if (!container) return '';
+    
+    const titleInput = document.getElementById('todo-title-edit');
+    const titleLine = titleInput ? titleInput.value.trim() : '';
+    
+    const items = Array.from(container.querySelectorAll('[data-text]')).map(span => {
+        const checkbox = span.previousElementSibling;
+        const checked = checkbox ? checkbox.getAttribute('data-checked') === 'true' : false;
+        const text = span.getAttribute('data-text');
         return `${checked ? '☑' : '☐'} ${text}`;
     });
     
-    const newContent = items.join('\n');
+    return '[LISTA]\n' + (titleLine ? titleLine + '\n' : '') + items.join('\n');
+}
+
+async function saveTodoState() {
+    const container = document.getElementById('interactive-todo-container');
+    if (!container || !currentNoteData || !currentNoteData.id) return;
+    
+    const newContent = saveTodoStateSync();
+    
+    // Aggiorna dati locali
+    const note = loadedNotesData[currentNoteData.index];
+    if (note) note.content = newContent;
     
     await fetch(SCRIPT_URL, {
         method: 'POST',
+        mode: 'no-cors',
         body: JSON.stringify({
             service: 'update_note',
             id: currentNoteData.id,
@@ -2588,7 +2631,7 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
 
 function filterByCategory(cat, element) {
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
-    element.classList.add('active');
+    if (element) element.classList.add('active');
 
     if (isStatsView) {
         generateStatsHTML('6M', cat);
@@ -3004,12 +3047,12 @@ function toggleBodyCoach() {
 
     if (bubble.classList.contains('active')) {
         bubble.classList.remove('active');
-        navItem.style.color = 'var(--dim)';
+        if (navItem) navItem.style.color = 'var(--dim)';
         return;
     }
     
     bubble.classList.add('active');
-    navItem.style.color = '#00ff41';
+    if (navItem) navItem.style.color = '#00ff41';
     
     text.innerHTML = `
         <div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px; font-family: 'Rajdhani';">COACH_AI // READY</div>
@@ -3033,7 +3076,6 @@ async function handleCoachInput(event) {
     
     const text = document.getElementById('body-coach-text');
     
-    const originalContent = text.innerHTML;
     text.innerHTML = `<div style="font-size: 0.7rem; color: var(--dim); margin-bottom: 8px; letter-spacing: 2px;">COACH_AI // ANALYZING</div>
                       <div style="color: #00ff41;" class="blink">PENSANDO... (Sii pronto a piangere)</div>`;
     
@@ -3458,20 +3500,17 @@ function renderWithData(data) {
 
         const totalEl = document.getElementById('total-balance');
         const bankEl = document.getElementById('bank-val');
+        const tinabaEl = document.getElementById('tinaba-val');
+        const paypalEl = document.getElementById('paypal-val');
         const cashEl = document.getElementById('cash-val');
+
+        const fmt = (v) => balanceHidden ? '***,** €' : (parseFloat(v) || 0).toFixed(2) + ' €';
         
-        if (totalEl) {
-            const totalValue = (data.finance.total || "0") + " €";
-            totalEl.innerText = balanceHidden ? '***,** €' : totalValue;
-        }
-        if (bankEl) {
-            const bankValue = (data.finance.bank || "0") + " €";
-            bankEl.innerText = balanceHidden ? '***,** €' : bankValue;
-        }
-        if (cashEl) {
-            const cashValue = (data.finance.cash || "0") + " €";
-            cashEl.innerText = balanceHidden ? '***,** €' : cashValue;
-        }
+        if (totalEl) totalEl.innerText = fmt(data.finance.total);
+        if (bankEl) bankEl.innerText = fmt(data.finance.bank);
+        if (tinabaEl) tinabaEl.innerText = fmt(data.finance.tinaba);
+        if (paypalEl) paypalEl.innerText = fmt(data.finance.paypal);
+        if (cashEl) cashEl.innerText = fmt(data.finance.cash);
 
         const icon = document.getElementById('balance-toggle');
         if (icon) {
@@ -3547,20 +3586,28 @@ function toggleBalanceVisibility() {
     const icon = document.getElementById('balance-toggle');
     const totalEl = document.getElementById('total-balance');
     const bankEl = document.getElementById('bank-val');
+    const tinabaEl = document.getElementById('tinaba-val');
+    const paypalEl = document.getElementById('paypal-val');
     const cashEl = document.getElementById('cash-val');
     
+    const fmt = (v) => balanceHidden ? '***,** €' : (parseFloat(v) || 0).toFixed(2) + ' €';
+
     if (balanceHidden) {
-        totalEl.innerText = '***,** €';
+        if (totalEl) totalEl.innerText = '***,** €';
         if (bankEl) bankEl.innerText = '***,** €';
+        if (tinabaEl) tinabaEl.innerText = '***,** €';
+        if (paypalEl) paypalEl.innerText = '***,** €';
         if (cashEl) cashEl.innerText = '***,** €';
-        icon.setAttribute('data-lucide', 'eye-off');
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
     } else {
         if (lastStatsData?.finance) {
-            totalEl.innerText = (lastStatsData.finance.total || "0") + " €";
-            if (bankEl) bankEl.innerText = (lastStatsData.finance.bank || "0") + " €";
-            if (cashEl) cashEl.innerText = (lastStatsData.finance.cash || "0") + " €";
+            if (totalEl) totalEl.innerText = fmt(lastStatsData.finance.total);
+            if (bankEl) bankEl.innerText = fmt(lastStatsData.finance.bank);
+            if (tinabaEl) tinabaEl.innerText = fmt(lastStatsData.finance.tinaba);
+            if (paypalEl) paypalEl.innerText = fmt(lastStatsData.finance.paypal);
+            if (cashEl) cashEl.innerText = fmt(lastStatsData.finance.cash);
         }
-        icon.setAttribute('data-lucide', 'eye');
+        if (icon) icon.setAttribute('data-lucide', 'eye');
     }
     
     if (window.lucide) lucide.createIcons();

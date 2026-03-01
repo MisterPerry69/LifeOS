@@ -210,9 +210,7 @@
       <div onclick="createNew('LISTA')" style="padding: 12px 20px; color: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
         <i data-lucide="list-checks" style="width:14px"></i> LISTA
       </div>
-      <div onclick="createNew('LINK')" style="padding: 12px 20px; color: #fff; display: flex; align-items: center; gap: 10px;">
-        <i data-lucide="link" style="width:14px"></i> LINK
-      </div>
+
     </div>
 
     <div id="brain-search-overlay" style="position: fixed; bottom: 75px; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid var(--accent);
@@ -261,7 +259,7 @@
     <div class="menu-item" onclick="setFilter('LISTA', this)"><i data-lucide="clipboard-list"></i> <span>LISTE</span></div>
     <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="zap"></i> <span>STRAORDINARI</span></div>
     <div class="menu-item" onclick="setFilter('NOTE', this)"><i data-lucide="file-text"></i> <span>NOTE</span></div>
-    <div class="menu-item" onclick="setFilter('LINK', this)"><i data-lucide="link"></i> <span>LINK</span></div>
+
   </div>
 
   <!-- ============================================ -->
@@ -516,9 +514,23 @@
               <div id="efficiency-fill" style="height: 100%; width: 0%; transition: width 1s; background: var(--accent);"></div>
             </div>
           </div>
-          <div style="display: flex; justify-content: space-between; margin-top: 20px; font-size: 11px;">
-            <div style="color: #fff;"><span class="label" style="color: var(--dim);">DIGITAL:</span> <span id="bank-val">0.00 €</span></div>
-            <div style="color: #fff;"><span class="label" style="color: var(--dim);">PHYSICAL:</span> <span id="cash-val">0.00 €</span></div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; font-size: 11px;">
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">BANK</div>
+              <span id="bank-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
+            </div>
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">TINABA</div>
+              <span id="tinaba-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
+            </div>
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">PAYPAL</div>
+              <span id="paypal-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
+            </div>
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">CASH</div>
+              <span id="cash-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
+            </div>
           </div>
         </div>
         <div id="finance-log" style="margin-top: 20px;"></div>
@@ -628,6 +640,28 @@
     </div>
 
     <div id="finance-input-zone" class="side-input-wrapper" style="display: none; transform: translateY(100%);">
+      <div style="display:flex;gap:6px;padding:8px 15px 0 15px;background:#0a0a0a;">
+        <button class="wallet-btn" data-wallet="BANK" onclick="setWallet('BANK')"
+          style="flex:1;padding:6px;background:transparent;border:1px solid #00d4ff;color:#00d4ff;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          BANK
+        </button>
+        <button class="wallet-btn" data-wallet="TINABA" onclick="setWallet('TINABA')"
+          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          TINABA
+        </button>
+        <button class="wallet-btn" data-wallet="PAYPAL" onclick="setWallet('PAYPAL')"
+          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          PAYPAL
+        </button>
+        <button class="wallet-btn" data-wallet="CASH" onclick="setWallet('CASH')"
+          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          CASH
+        </button>
+      </div>
       <input type="text" id="finance-input" placeholder="> -20 PIZZA, +1500 STIPENDIO"
         autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"
         onkeypress="handleFinanceSubmit(event)">
@@ -743,6 +777,10 @@
       <div class="esc-btn" onclick="closeTodoModal()">[esc X]</div>
     </div>
     <div style="flex: 1; padding: 20px; overflow-y: auto;">
+      <input type="text" id="todo-list-title" placeholder="NOME_LISTA (opzionale)..."
+        style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #333; 
+               padding: 10px 0; color: #00ff41; font-family: 'Rajdhani'; font-size: 1.1rem; 
+               font-weight: 700; margin-bottom: 20px; outline: none; letter-spacing: 1px;">
       <div id="todo-items-container" style="margin-bottom: 20px;"></div>
       <input type="text" id="new-todo-item" placeholder="TYPE_AND_PRESS_ENTER..."
         style="width: 100%; background: #0a0a0a; border: 1px solid var(--accent); padding: 15px; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 13px;"
