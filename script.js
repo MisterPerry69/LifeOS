@@ -37,6 +37,9 @@ function setWallet(wallet) {
         btn.style.borderColor = btn.dataset.wallet === wallet ? '#00d4ff' : '#333';
         btn.style.color = btn.dataset.wallet === wallet ? '#00d4ff' : '#666';
     });
+    // Rimette focus sull'input (il blur del bottone lo chiuderebbe altrimenti)
+    const input = document.getElementById('finance-input');
+    if (input) setTimeout(() => input.focus(), 10);
 }
 
 // Salva dati in cache
@@ -3520,21 +3523,28 @@ function renderWithData(data) {
 
         const inc = parseFloat(data.finance.income) || 0;
         const out = parseFloat(data.finance.spent) || 0;
+        const totalBalance = parseFloat(data.finance.total) || 0;
         const fill = document.getElementById('efficiency-fill');
         const infoText = document.getElementById('burn-info-text');
 
         if (fill && infoText) {
-            if (inc > 0) {
-                const lifePct = Math.max(0, ((inc - out) / inc) * 100);
+            if (inc > 0 && out > 0) {
+                // Burn rate: quanti mesi regge il saldo attuale alla spesa mensile corrente
+                const monthsLeft = totalBalance / out;
                 const spentPct = ((out / inc) * 100).toFixed(1);
+                const barPct = Math.max(0, Math.min(100, (monthsLeft / 12) * 100));
                 
-                fill.style.width = lifePct + "%";
-                fill.style.background = lifePct < 20 ? "#ff4d4d" : "var(--accent)";
-                infoText.innerText = `STAI_SPENDENDO_IL_${spentPct}%_DELLE_TUE_ENTRATE`;
+                fill.style.width = barPct + "%";
+                fill.style.background = monthsLeft < 1 ? "#ff4d4d" : monthsLeft < 3 ? "#ff9500" : "var(--accent)";
+                infoText.innerText = `SALDO: ${totalBalance.toFixed(0)}€ | SPESA_MESE: ${out.toFixed(0)}€ | AUTONOMIA: ${monthsLeft > 0 ? monthsLeft.toFixed(1) + ' MESI' : 'NEGATIVO'}`;
+            } else if (totalBalance !== 0) {
+                fill.style.width = totalBalance > 0 ? "100%" : "0%";
+                fill.style.background = totalBalance > 0 ? "var(--accent)" : "#ff4d4d";
+                infoText.innerText = totalBalance > 0 ? `SALDO: ${totalBalance.toFixed(2)}€` : "SALDO_NEGATIVO";
             } else {
                 fill.style.width = "0%";
                 fill.style.background = "#ff4d4d";
-                infoText.innerText = "NESSUNA_ENTRATA_RILEVATA";
+                infoText.innerText = "NESSUN_DATO_DISPONIBILE";
             }
         }
 
