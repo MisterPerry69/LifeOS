@@ -641,22 +641,22 @@
 
     <div id="finance-input-zone" class="side-input-wrapper" style="display: none; transform: translateY(100%);">
       <div style="display:flex;gap:6px;padding:8px 15px 0 15px;background:#0a0a0a;">
-        <button class="wallet-btn" data-wallet="BANK" onclick="setWallet('BANK')"
+        <button class="wallet-btn" data-wallet="BANK" onmousedown="event.preventDefault()" onclick="setWallet('BANK')"
           style="flex:1;padding:6px;background:transparent;border:1px solid #00d4ff;color:#00d4ff;
                  font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           BANK
         </button>
-        <button class="wallet-btn" data-wallet="TINABA" onclick="setWallet('TINABA')"
+        <button class="wallet-btn" data-wallet="TINABA" onmousedown="event.preventDefault()" onclick="setWallet('TINABA')"
           style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
                  font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           TINABA
         </button>
-        <button class="wallet-btn" data-wallet="PAYPAL" onclick="setWallet('PAYPAL')"
+        <button class="wallet-btn" data-wallet="PAYPAL" onmousedown="event.preventDefault()" onclick="setWallet('PAYPAL')"
           style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
                  font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           PAYPAL
         </button>
-        <button class="wallet-btn" data-wallet="CASH" onclick="setWallet('CASH')"
+        <button class="wallet-btn" data-wallet="CASH" onmousedown="event.preventDefault()" onclick="setWallet('CASH')"
           style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
                  font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           CASH
