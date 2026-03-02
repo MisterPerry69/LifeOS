@@ -7,15 +7,108 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>System OS v3.0</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css?v=4">
+  <title>System OS v2.0</title>
+  <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css?v=3">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/augmented-ui@2.0.0/augmented-ui.min.css">
+  <link rel="stylesheet" href="https://misterperry69.github.io/LifeOS/style.css">
   <script src="https://misterperry69.github.io/LifeOS/script.js"></script>
+
+  <style>
+    /* ============ HOME 4-BUTTON GRID ============ */
+    #home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 12px;
+      flex: 1;
+      padding: 12px 20px 20px 20px;
+    }
+
+    .home-module-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: #0a0a0a;
+      border: 1px solid #1a1a1a;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      padding: 20px 10px;
+    }
+
+    .home-module-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .home-module-btn:active {
+      transform: scale(0.96);
+    }
+
+    .home-module-btn:active::before {
+      opacity: 1;
+    }
+
+    /* Colori per modulo */
+    .home-module-btn[data-module="braindump"] { border-color: #222; }
+    .home-module-btn[data-module="braindump"]:active { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,255,65,0.15); }
+    .home-module-btn[data-module="braindump"] .module-icon { color: var(--accent); }
+
+    .home-module-btn[data-module="finance"] { border-color: #222; }
+    .home-module-btn[data-module="finance"]:active { border-color: #00d4ff; box-shadow: 0 0 20px rgba(0,212,255,0.15); }
+    .home-module-btn[data-module="finance"] .module-icon { color: #00d4ff; }
+
+    .home-module-btn[data-module="body"] { border-color: #222; }
+    .home-module-btn[data-module="body"]:active { border-color: #00ff41; box-shadow: 0 0 20px rgba(0,255,65,0.15); }
+    .home-module-btn[data-module="body"] .module-icon { color: #00ff41; }
+
+    .home-module-btn[data-module="reviews"] { border-color: #222; }
+    .home-module-btn[data-module="reviews"]:active { border-color: #ff9500; box-shadow: 0 0 20px rgba(255,149,0,0.15); }
+    .home-module-btn[data-module="reviews"] .module-icon { color: #ff9500; }
+
+    .module-icon {
+      width: 38px;
+      height: 38px;
+    }
+
+    .module-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .module-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: #555;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    /* Glow animato al caricamento dati */
+    .home-module-btn.data-loaded {
+      animation: data-ping 0.6s ease-out;
+    }
+
+    @keyframes data-ping {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.3); }
+      100% { box-shadow: 0 0 0 20px rgba(0, 255, 65, 0); }
+    }
+  </style>
 </head>
 
 <body>
@@ -36,22 +129,25 @@
   <!-- ============================================ -->
   <div id="home" class="page active">
 
-    <div class="header" style="display:flex; justify-content:space-between; align-items:flex-start; padding:15px 20px;">
-      <div style="display:flex; flex-direction:column; gap:4px;">
-        <div class="status-indicator">
+    <!-- HEADER -->
+    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 15px 20px;">
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
           <span class="blink-dot"></span>
-          <span>SYSTEM_OS // READY</span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">SYSTEM_OS // READY</span>
         </div>
-        <h1 style="margin:0; font-family:'Rajdhani'; font-size:1.875rem; line-height:1; color:var(--text); letter-spacing:1px;">Life_OS <span style="color:var(--accent);">v3.0</span></h1>
+        <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">Life_OS v2.0</h1>
       </div>
 
-      <div style="text-align:right; font-family:'JetBrains Mono'; line-height:1.2;">
-        <div id="dateStr" style="font-size:10px; color:var(--dim);">--/--</div>
-        <div id="clock" style="font-size:14px; color:var(--accent); font-weight:bold;">00:00</div>
+      <div style="text-align: right; font-family: 'JetBrains Mono'; line-height: 1.2;">
+        <div id="dateStr" style="font-size: 10px; color: var(--dim);">--/--</div>
+        <div id="clock" style="font-size: 14px; color: var(--accent); font-weight: bold;">00:00</div>
       </div>
     </div>
 
+    <!-- 4 MODULI FULLSCREEN -->
     <div id="home-grid">
+
       <div class="home-module-btn" data-module="braindump" onclick="nav('braindump')">
         <i data-lucide="brain" class="module-icon"></i>
         <div class="module-label">Brain Dump</div>
@@ -61,7 +157,9 @@
       <div class="home-module-btn" data-module="finance" onclick="nav('finance')">
         <i data-lucide="wallet" class="module-icon"></i>
         <div class="module-label">Credits</div>
-        <div class="module-value"><span id="widget-spent">--</span> € SPENT</div>
+        <div class="module-value">
+          <span id="widget-spent">--</span> € SPENT
+        </div>
       </div>
 
       <div class="home-module-btn" data-module="body" onclick="nav('body')">
@@ -75,6 +173,7 @@
         <div class="module-label">Reviews</div>
         <div class="module-value"><span id="widget-reviews">--</span> LOGGED</div>
       </div>
+
     </div>
 
   </div>
@@ -89,9 +188,9 @@
           <span class="blink-dot"></span>
           <span>BRAIN_DUMP // SYNC</span>
         </div>
-        <div style="display:flex; align-items:center; gap:12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
           <i data-lucide="brain" class="brain-icon" onclick="toggleSidebar()"></i>
-          <h1 style="margin:0; font-family:'Rajdhani'; font-size:1.875rem; color:var(--text);">BRAIN DUMP</h1>
+          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem;">BRAIN DUMP</h1>
         </div>
       </div>
       <div class="header-right">
@@ -105,47 +204,46 @@
     </main>
 
     <div id="quick-menu" class="quick-menu-hidden">
-      <div onclick="createNew('NOTE')" class="quick-option">
-        <i data-lucide="sticky-note"></i> NOTA
+      <div onclick="createNew('NOTE')" style="padding: 12px 20px; color: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
+        <i data-lucide="sticky-note" style="width:14px"></i> NOTA
       </div>
-      <div onclick="createNew('LISTA')" class="quick-option">
-        <i data-lucide="list-checks"></i> LISTA
+      <div onclick="createNew('LISTA')" style="padding: 12px 20px; color: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
+        <i data-lucide="list-checks" style="width:14px"></i> LISTA
       </div>
+
     </div>
 
-    <div id="brain-search-overlay" style="position:fixed; bottom:75px; left:0; right:0; background:var(--bg-2);
-      border-top:1px solid var(--accent-border); padding:15px; transform:translateY(100%);
-      transition:transform 0.3s ease; z-index:8000; display:none;">
-      <div style="position:relative;">
-        <i data-lucide="search" style="position:absolute; left:10px; top:34%; transform:translateY(-50%); width:14px; color:var(--dim);"></i>
-        <input type="text" id="brain-search-input" placeholder="SEARCH_NOTES..."
-          style="width:100%; background:transparent; border:1px solid var(--border-mid); padding:10px 10px 10px 35px;
-          color:var(--accent); font-family:'JetBrains Mono'; font-size:11px; outline:none; border-radius:6px; margin:0;"
-          oninput="filterNotes(this.value)"/>
+    <div id="brain-search-overlay" style="position: fixed; bottom: 75px; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid var(--accent);
+      padding: 15px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 8000; display: none;">
+      <div style="position: relative;">
+        <i data-lucide="search" style="position: absolute; left: 10px; top: 34%; transform: translateY(-50%); width: 14px; color: #444;"></i>
+        <input type="text" id="brain-search-input" placeholder="SEARCH_NOTES..." style="width: 100%; background: transparent;
+          border: 1px solid #333; padding: 10px 10px 10px 35px; color: var(--accent); font-family: 'JetBrains Mono';
+          font-size: 11px; outline: none;" oninput="filterNotes(this.value)"/>
       </div>
     </div>
 
     <div class="bottom-nav">
       <div class="nav-item" id="nav-analyst" onclick="createNew('GHOST')">
-        <i data-lucide="cpu" style="width:22px;"></i>
-        <div>GHOST</div>
+        <i data-lucide="cpu" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">GHOST</div>
       </div>
       <div class="nav-item" id="nav-search" onclick="toggleBrainSearch()">
-        <i data-lucide="search" style="width:22px;"></i>
-        <div>SEARCH</div>
+        <i data-lucide="search" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">SEARCH</div>
       </div>
       <div class="nav-item nav-home" onclick="nav('home')">
         <div class="home-btn-circle">
-          <i data-lucide="home" style="width:22px; color:var(--accent);"></i>
+          <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
       </div>
       <div class="nav-item" id="nav-stats" onclick="filterArchive()">
-        <i data-lucide="archive" style="width:22px;"></i>
-        <div>ARCHIVE</div>
+        <i data-lucide="archive" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ARCHIVE</div>
       </div>
       <div class="nav-item" id="nav-entry" onclick="toggleQuickMenu()">
-        <i data-lucide="plus-square" style="width:22px;"></i>
-        <div>ENTRY</div>
+        <i data-lucide="plus-square" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
       </div>
     </div>
   </div>
@@ -155,12 +253,13 @@
   <!-- ============================================ -->
   <div id="menu-backdrop" onclick="toggleSidebar()"></div>
   <div id="side-menu">
-    <div style="color:var(--accent); font-size:10px; margin-bottom:25px; letter-spacing:2px; font-weight:700; padding-left:10px; font-family:'JetBrains Mono';">FILESYSTEM_ROOT</div>
+    <div style="color: var(--accent); font-size: 10px; margin-bottom: 25px; letter-spacing: 2px; font-weight: 700; padding-left: 10px;">FILESYSTEM_ROOT</div>
     <div class="menu-item active" onclick="setFilter('ALL', this)"><i data-lucide="layers"></i> <span>TUTTO</span></div>
     <div class="menu-item" onclick="setFilter('PINNED', this)"><i data-lucide="pin"></i> <span>PINNATI</span></div>
     <div class="menu-item" onclick="setFilter('LISTA', this)"><i data-lucide="clipboard-list"></i> <span>LISTE</span></div>
     <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="zap"></i> <span>STRAORDINARI</span></div>
     <div class="menu-item" onclick="setFilter('NOTE', this)"><i data-lucide="file-text"></i> <span>NOTE</span></div>
+
   </div>
 
   <!-- ============================================ -->
@@ -169,13 +268,13 @@
   <div id="body" class="page">
     <div class="header">
       <div class="header-left">
-        <div class="status-indicator" style="color:var(--green);">
-          <span class="blink-dot" style="background-color:var(--green); box-shadow:0 0 8px var(--green);"></span>
-          <span style="color:var(--green);">BODY_SYNC // ACTIVE</span>
+        <div class="status-indicator">
+          <span class="blink-dot" style="background-color: #00ff41; box-shadow: 0 0 8px #00ff41;"></span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: #00ff41; font-weight: 700;">BODY_SYNC // ACTIVE</span>
         </div>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <i data-lucide="activity" style="color:var(--green); width:28px; height:28px;"></i>
-          <h1 style="margin:0; font-family:'Rajdhani'; font-size:1.875rem; color:var(--text);">BODY</h1>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="activity" style="color: #00ff41; width: 28px; height: 28px;"></i>
+          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff;">BODY</h1>
         </div>
       </div>
       <div class="header-right">
@@ -183,61 +282,62 @@
       </div>
     </div>
 
-    <main id="body-main" style="padding:0 20px; flex:1; overflow-y:auto; padding-bottom:120px;">
+    <main id="body-main" style="padding: 0 20px; flex: 1; overflow-y: auto; padding-bottom: 120px;">
 
-      <div id="body-dashboard" style="margin-top:20px;">
+      <!-- DASHBOARD PRINCIPALE -->
+      <div id="body-dashboard" style="margin-top: 20px;">
 
-        <div style="background:var(--card); border:1px solid var(--border); padding:20px; border-radius:12px; margin-bottom:20px; backdrop-filter:var(--blur-light);">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+        <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div>
-              <div style="font-size:10px; color:var(--dim); margin-bottom:5px; letter-spacing:1px; font-family:'JetBrains Mono';">PESO_ATTUALE</div>
-              <div style="font-size:1.8rem; font-family:'Rajdhani'; color:var(--green); font-weight:bold;">
+              <div style="font-size: 10px; color: var(--dim); margin-bottom: 5px; letter-spacing: 1px;">PESO_ATTUALE</div>
+              <div style="font-size: 1.8rem; font-family: 'Rajdhani'; color: #00ff41; font-weight: bold;">
                 <span id="body-current-weight">--</span>
-                <span style="font-size:1rem; color:var(--text-2);">kg</span>
+                <span style="font-size: 1rem;">kg</span>
               </div>
-              <div id="body-weight-delta" style="font-size:0.7rem; color:var(--dim); margin-top:3px; font-family:'JetBrains Mono';"></div>
+              <div id="body-weight-delta" style="font-size: 0.7rem; color: #666; margin-top: 3px;"></div>
             </div>
             <div>
-              <div style="font-size:10px; color:var(--dim); margin-bottom:5px; letter-spacing:1px; font-family:'JetBrains Mono';">STREAK_ATTIVO</div>
-              <div style="font-size:1.8rem; font-family:'Rajdhani'; color:var(--orange); font-weight:bold;">
+              <div style="font-size: 10px; color: var(--dim); margin-bottom: 5px; letter-spacing: 1px;">STREAK_ATTIVO</div>
+              <div style="font-size: 1.8rem; font-family: 'Rajdhani'; color: #ff9500; font-weight: bold;">
                 <span id="body-streak">0</span>
-                <span style="font-size:1rem;">🔥</span>
+                <span style="font-size: 1rem;">🔥</span>
               </div>
-              <div style="font-size:0.7rem; color:var(--dim); margin-top:3px; font-family:'JetBrains Mono';">settimane consecutive</div>
+              <div style="font-size: 0.7rem; color: #666; margin-top: 3px;">settimane consecutive</div>
             </div>
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
           <button onclick="openQuickLog('workout')"
-            style="padding:15px; background:transparent; border:1px solid var(--green); color:var(--green);
-                   font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:8px; font-size:0.9rem; letter-spacing:1px;">
+            style="padding: 15px; background: transparent; border: 1px solid #00ff41; color: #00ff41;
+                   font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
             💪 WORKOUT
           </button>
           <button onclick="openQuickLog('meal')"
-            style="padding:15px; background:transparent; border:1px solid var(--orange); color:var(--orange);
-                   font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:8px; font-size:0.9rem; letter-spacing:1px;">
+            style="padding: 15px; background: transparent; border: 1px solid #ff9500; color: #ff9500;
+                   font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
             🍽️ PASTO
           </button>
           <button onclick="openQuickLog('weight')"
-            style="padding:15px; background:transparent; border:1px solid var(--blue); color:var(--blue);
-                   font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:8px; font-size:0.9rem; letter-spacing:1px;">
+            style="padding: 15px; background: transparent; border: 1px solid #00d4ff; color: #00d4ff;
+                   font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
             ⚖️ PESO
           </button>
         </div>
 
-        <div style="background:var(--card); border:1px solid var(--border); padding:20px; border-radius:12px; margin-bottom:20px; backdrop-filter:var(--blur-light);">
-          <div style="font-size:10px; color:var(--dim); margin-bottom:12px; letter-spacing:2px; border-bottom:1px solid var(--border); padding-bottom:8px; font-family:'JetBrains Mono';">OGGI_LOG</div>
+        <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <div style="font-size: 10px; color: var(--dim); margin-bottom: 12px; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 8px;">OGGI_LOG</div>
           <div id="body-today-log">
-            <div style="text-align:center; color:var(--dim); padding:20px; font-size:10px; font-family:'JetBrains Mono';">NESSUN_DATO_OGGI</div>
+            <div style="text-align: center; color: #333; padding: 20px; font-size: 10px;">NESSUN_DATO_OGGI</div>
           </div>
         </div>
 
-        <div style="background:var(--card); border:1px solid var(--border); padding:20px; border-radius:12px; backdrop-filter:var(--blur-light);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="font-family:'Rajdhani'; font-size:0.9rem; color:var(--dim); margin:0; letter-spacing:1px;">LAST_SESSION</h3>
-            <div onclick="switchBodyView('history')" style="cursor:pointer; color:var(--dim);">
-              <i data-lucide="calendar-days" style="width:20px; height:20px;"></i>
+        <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-family: 'Rajdhani'; font-size: 0.9rem; color: var(--dim); margin: 0; letter-spacing: 1px;">LAST_SESSION</h3>
+            <div onclick="switchBodyView('history')" style="cursor: pointer; color: #555;">
+              <i data-lucide="calendar-days" style="width: 20px; height: 20px;"></i>
             </div>
           </div>
           <div id="body-recent-workouts"></div>
@@ -246,131 +346,131 @@
       </div>
 
       <!-- STATS VIEW -->
-      <div id="body-stats-view" style="display:none; margin-top:20px;">
-        <div style="background:var(--card); border:1px solid var(--border); padding:20px; border-radius:12px; margin-bottom:20px; backdrop-filter:var(--blur-light);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="font-family:'Rajdhani'; font-size:0.9rem; color:var(--dim); margin:0; letter-spacing:1px;">PESO_TREND</h3>
-            <div style="display:flex; align-items:center; gap:10px; background:var(--bg-2); padding:4px 10px; border-radius:20px; border:1px solid var(--border-mid);">
-              <button onclick="changeWeightMonth(-1)" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:0.8rem;">◀</button>
-              <span id="weight-month-display" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--text-2); min-width:80px; text-align:center;">---</span>
-              <button onclick="changeWeightMonth(1)" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:0.8rem;">▶</button>
+      <div id="body-stats-view" style="display: none; margin-top: 20px;">
+        <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-family: 'Rajdhani'; font-size: 0.9rem; color: var(--dim); margin: 0; letter-spacing: 1px;">PESO_TREND</h3>
+            <div style="display: flex; align-items: center; gap: 10px; background: #111; padding: 4px 10px; border-radius: 20px; border: 1px solid #333;">
+              <button onclick="changeWeightMonth(-1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">◀</button>
+              <span id="weight-month-display" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#aaa; min-width:80px; text-align:center;">---</span>
+              <button onclick="changeWeightMonth(1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">▶</button>
             </div>
           </div>
-          <canvas id="weight-chart" style="max-height:200px;"></canvas>
+          <canvas id="weight-chart" style="max-height: 200px;"></canvas>
         </div>
 
-        <div style="background:var(--card); border:1px solid var(--border); padding:20px; border-radius:12px; backdrop-filter:var(--blur-light);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="font-family:'Rajdhani'; font-size:0.9rem; color:var(--dim); margin:0; letter-spacing:1px;">WORKOUT_FREQUENCY</h3>
-            <div style="display:flex; align-items:center; gap:10px; background:var(--bg-2); padding:4px 10px; border-radius:20px; border:1px solid var(--border-mid);">
-              <button onclick="changeMonth(-1)" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:0.8rem;">◀</button>
-              <span id="current-month-display" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--text-2); min-width:80px; text-align:center;">---</span>
-              <button onclick="changeMonth(1)" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:0.8rem;">▶</button>
+        <div style="background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-family: 'Rajdhani'; font-size: 0.9rem; color: var(--dim); margin: 0; letter-spacing: 1px;">WORKOUT_FREQUENCY</h3>
+            <div style="display: flex; align-items: center; gap: 10px; background: #111; padding: 4px 10px; border-radius: 20px; border: 1px solid #333;">
+              <button onclick="changeMonth(-1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">◀</button>
+              <span id="current-month-display" style="font-family:'JetBrains Mono'; font-size:0.7rem; color:#aaa; min-width:80px; text-align:center;">---</span>
+              <button onclick="changeMonth(1)" style="background:none; border:none; color:#555; cursor:pointer; font-size:0.8rem;">▶</button>
             </div>
           </div>
-          <canvas id="workout-chart" style="max-height:200px;"></canvas>
+          <canvas id="workout-chart" style="max-height: 200px;"></canvas>
         </div>
       </div>
 
       <!-- HISTORY VIEW -->
-      <div id="body-history-view" style="display:none; margin-top:20px;">
-        <div id="history-stats-summary" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px;">
-          <div style="background:var(--card); border:1px solid var(--border); padding:12px 5px; border-radius:10px; text-align:center;">
-            <span style="display:block; font-size:0.6rem; color:var(--dim); font-family:'Rajdhani'; letter-spacing:1px;">SESSIONS</span>
-            <span id="stat-total-workouts" style="font-size:1.2rem; font-family:'JetBrains Mono'; color:var(--text);">0</span>
+      <div id="body-history-view" style="display: none; margin-top: 20px;">
+        <div id="history-stats-summary" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+          <div style="background: #0a0a0a; border: 1px solid #222; padding: 12px 5px; border-radius: 8px; text-align: center;">
+            <span style="display: block; font-size: 0.6rem; color: var(--dim); font-family: 'Rajdhani';">SESSIONS</span>
+            <span id="stat-total-workouts" style="font-size: 1.2rem; font-family: 'JetBrains Mono'; color: #fff;">0</span>
           </div>
-          <div style="background:var(--card); border:1px solid var(--border); padding:12px 5px; border-radius:10px; text-align:center;">
-            <span style="display:block; font-size:0.6rem; color:var(--dim); font-family:'Rajdhani'; letter-spacing:1px;">AVG_TIME</span>
-            <span id="stat-avg-time" style="font-size:1.2rem; font-family:'JetBrains Mono'; color:var(--blue);">0m</span>
+          <div style="background: #0a0a0a; border: 1px solid #222; padding: 12px 5px; border-radius: 8px; text-align: center;">
+            <span style="display: block; font-size: 0.6rem; color: var(--dim); font-family: 'Rajdhani';">AVG_TIME</span>
+            <span id="stat-avg-time" style="font-size: 1.2rem; font-family: 'JetBrains Mono'; color: #00d4ff;">0m</span>
           </div>
-          <div style="background:var(--card); border:1px solid var(--border); padding:12px 5px; border-radius:10px; text-align:center;">
-            <span style="display:block; font-size:0.6rem; color:var(--dim); font-family:'Rajdhani'; letter-spacing:1px;">AVG_MOOD</span>
-            <span id="stat-avg-mood" style="font-size:1.2rem; font-family:'JetBrains Mono'; color:var(--green);">0</span>
+          <div style="background: #0a0a0a; border: 1px solid #222; padding: 12px 5px; border-radius: 8px; text-align: center;">
+            <span style="display: block; font-size: 0.6rem; color: var(--dim); font-family: 'Rajdhani';">AVG_MOOD</span>
+            <span id="stat-avg-mood" style="font-size: 1.2rem; font-family: 'JetBrains Mono'; color: #00ff41;">0</span>
           </div>
         </div>
-        <div id="history-list-container" style="display:flex; flex-direction:column; gap:15px;"></div>
+        <div id="history-list-container" style="display: flex; flex-direction: column; gap: 15px;"></div>
       </div>
 
     </main>
 
     <div id="body-coach-bubble">
-      <div style="font-size:9px; color:var(--green); letter-spacing:2px; margin-bottom:12px; font-family:'JetBrains Mono';">COACH_AI // ONLINE</div>
+      <div style="font-size:9px; color:#00ff41; letter-spacing:2px; margin-bottom:12px;">COACH_AI // ONLINE</div>
       <div id="body-coach-text"></div>
     </div>
 
     <div class="bottom-nav">
       <div class="nav-item" id="body-nav-ai" onclick="toggleBodyCoach()">
-        <i data-lucide="message-circle" style="width:22px;"></i>
-        <div>COACH</div>
+        <i data-lucide="message-circle" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">COACH</div>
       </div>
       <div class="nav-item" id="body-nav-stats" onclick="switchBodyView('stats')">
-        <i data-lucide="trending-up" style="width:22px;"></i>
-        <div>STATS</div>
+        <i data-lucide="trending-up" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">STATS</div>
       </div>
       <div class="nav-item nav-home" onclick="nav('home')">
         <div class="home-btn-circle">
-          <i data-lucide="home" style="width:22px; color:var(--accent);"></i>
+          <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
       </div>
       <div class="nav-item" id="body-nav-history" onclick="switchBodyView('history')">
-        <i data-lucide="calendar-days" style="width:22px;"></i>
-        <div>HISTORY</div>
+        <i data-lucide="calendar-days" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
       </div>
       <div class="nav-item" id="body-nav-log" onclick="openQuickLog('workout')">
-        <i data-lucide="plus-circle" style="width:22px;"></i>
-        <div>LOG</div>
+        <i data-lucide="plus-circle" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">LOG</div>
       </div>
     </div>
 
     <!-- WORKOUT FEELING MODAL -->
-    <div id="workout-feeling-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; padding:20px; overflow-y:auto;">
-      <div style="max-width:500px; margin:50px auto; background:var(--card-solid); border:1px solid var(--green); border-radius:12px; padding:25px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-          <h3 style="font-family:'Rajdhani'; font-size:1.3rem; color:var(--green); margin:0; letter-spacing:1px;">WORKOUT_SESSION_LOG</h3>
-          <button onclick="closeWorkoutFeeling()" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:1.2rem;">✕</button>
+    <div id="workout-feeling-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; padding: 20px; overflow-y: auto;">
+      <div style="max-width: 500px; margin: 50px auto; background: #0a0a0a; border: 2px solid #00ff41; border-radius: 8px; padding: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="font-family: 'Rajdhani'; font-size: 1.3rem; color: #00ff41; margin: 0;">WORKOUT_SESSION_LOG</h3>
+          <button onclick="closeWorkoutFeeling()" style="background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.2rem;">✕</button>
         </div>
-        <div style="margin-bottom:20px;">
-          <div style="font-size:10px; color:var(--dim); margin-bottom:10px; letter-spacing:1px; font-family:'JetBrains Mono';">MOOD_FEELING</div>
-          <div id="mood-selector" style="display:flex; justify-content:space-between; gap:5px;">
-            <button onclick="selectWorkoutMood(-2, this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); padding:10px; border-radius:8px; font-size:1.2rem; cursor:pointer;">😫</button>
-            <button onclick="selectWorkoutMood(-1, this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); padding:10px; border-radius:8px; font-size:1.2rem; cursor:pointer;">😐</button>
-            <button onclick="selectWorkoutMood(0, this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); padding:10px; border-radius:8px; font-size:1.2rem; cursor:pointer;">😊</button>
-            <button onclick="selectWorkoutMood(1, this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); padding:10px; border-radius:8px; font-size:1.2rem; cursor:pointer;">😄</button>
-            <button onclick="selectWorkoutMood(2, this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); padding:10px; border-radius:8px; font-size:1.2rem; cursor:pointer;">🔥</button>
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 10px; color: var(--dim); margin-bottom: 10px; letter-spacing: 1px;">MOOD_FEELING</div>
+          <div id="mood-selector" style="display: flex; justify-content: space-between; gap: 5px;">
+            <button onclick="selectWorkoutMood(-2, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">😫</button>
+            <button onclick="selectWorkoutMood(-1, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">😐</button>
+            <button onclick="selectWorkoutMood(0, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">😊</button>
+            <button onclick="selectWorkoutMood(1, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">😄</button>
+            <button onclick="selectWorkoutMood(2, this)" style="flex:1; background:#111; border:1px solid #333; padding:10px; border-radius:4px; font-size:1.2rem; cursor:pointer;">🔥</button>
           </div>
         </div>
-        <div style="margin-bottom:20px;">
-          <div style="font-size:10px; color:var(--dim); margin-bottom:10px; letter-spacing:1px; font-family:'JetBrains Mono';">ENERGY_LEVEL</div>
-          <div id="energy-selector" style="display:flex; gap:10px;">
-            <button onclick="selectWorkoutEnergy('low', this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); color:var(--dim); padding:8px; border-radius:6px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer; letter-spacing:1px;">LOW</button>
-            <button onclick="selectWorkoutEnergy('mid', this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); color:var(--dim); padding:8px; border-radius:6px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer; letter-spacing:1px;">MID</button>
-            <button onclick="selectWorkoutEnergy('high', this)" style="flex:1; background:var(--bg-2); border:1px solid var(--border-mid); color:var(--dim); padding:8px; border-radius:6px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer; letter-spacing:1px;">HIGH</button>
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 10px; color: var(--dim); margin-bottom: 10px; letter-spacing: 1px;">ENERGY_LEVEL</div>
+          <div id="energy-selector" style="display: flex; gap: 10px;">
+            <button onclick="selectWorkoutEnergy('low', this)" style="flex:1; background:#111; border:1px solid #333; color:#666; padding:8px; border-radius:4px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer;">LOW</button>
+            <button onclick="selectWorkoutEnergy('mid', this)" style="flex:1; background:#111; border:1px solid #333; color:#666; padding:8px; border-radius:4px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer;">MID</button>
+            <button onclick="selectWorkoutEnergy('high', this)" style="flex:1; background:#111; border:1px solid #333; color:#666; padding:8px; border-radius:4px; font-family:'Rajdhani'; font-size:0.8rem; cursor:pointer;">HIGH</button>
           </div>
         </div>
         <textarea id="workout-feeling-input"
-          placeholder="Scrivi qui gli esercizi o come ti senti..."
-          style="width:100%; height:120px; background:var(--bg-2); border:1px solid var(--border-mid); color:var(--text); padding:15px; font-family:'JetBrains Mono'; font-size:0.9rem; outline:none; border-radius:8px; resize:vertical; box-sizing:border-box;"></textarea>
+          placeholder="Scrivi qui gli esercizi o come ti senti... Gemini penserà al resto."
+          style="width: 100%; height: 120px; background: #111; border: 1px solid #222; color: #fff; padding: 15px; font-family: 'JetBrains Mono'; font-size: 0.9rem; outline: none; border-radius: 4px; resize: vertical; box-sizing: border-box;"></textarea>
         <button onclick="submitWorkoutFeeling()"
-          style="width:100%; margin-top:15px; padding:15px; background:var(--green); color:#000; border:none; font-family:'Rajdhani'; font-weight:bold; font-size:1rem; cursor:pointer; border-radius:8px; letter-spacing:1px;">
+          style="width: 100%; margin-top: 15px; padding: 15px; background: #00ff41; color: #000; border: none; font-family: 'Rajdhani'; font-weight: bold; font-size: 1rem; cursor: pointer; border-radius: 4px;">
           SINC_LOG_CON_COACH
         </button>
-        <div id="coach-response-zone" style="margin-top:20px; padding:15px; background:var(--bg-2); border-left:3px solid var(--green); display:none; font-size:0.85rem; color:var(--text-2); line-height:1.4; border-radius:4px;"></div>
+        <div id="coach-response-zone" style="margin-top: 20px; padding: 15px; background: #050505; border-left: 3px solid #00ff41; display: none; font-size: 0.85rem; color: #eee; line-height: 1.4;"></div>
       </div>
     </div>
 
     <!-- WEIGHT LOG MODAL -->
-    <div id="weight-log-modal" style="display:none;">
-      <div style="background:var(--card-solid); border:1px solid var(--blue); border-radius:12px; padding:25px; max-width:350px; width:90%; position:relative;">
-        <h3 style="font-family:'Rajdhani'; font-size:1.3rem; color:var(--blue); margin:0 0 15px 0; letter-spacing:1px;">LOG PESO</h3>
+    <div id="weight-log-modal" style="display: none;">
+      <div style="background: #0a0a0a; border: 2px solid #00d4ff; border-radius: 8px; padding: 25px; max-width: 350px; width: 90%; position: relative;">
+        <h3 style="font-family: 'Rajdhani'; font-size: 1.3rem; color: #00d4ff; margin: 0 0 15px 0;">LOG PESO</h3>
         <input type="number" id="weight-input" step="0.1" placeholder="es: 95.5"
-          style="width:100%; background:var(--bg-2); border:1px solid var(--border-mid); color:var(--text); padding:12px; font-family:'JetBrains Mono'; font-size:1.2rem; outline:none; border-radius:6px; box-sizing:border-box; margin-bottom:15px;">
-        <div style="display:flex; gap:10px;">
+          style="width: 100%; background: #111; border: 1px solid #222; color: #fff; padding: 12px; font-family: 'JetBrains Mono'; font-size: 1.2rem; outline: none; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px;">
+        <div style="display: flex; gap: 10px;">
           <button onclick="submitWeight()"
-            style="flex:1; padding:12px; background:var(--blue); color:#000; border:none; font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:6px; letter-spacing:1px;">
+            style="flex: 1; padding: 12px; background: #00d4ff; color: #000; border: none; font-family: 'Rajdhani'; font-weight: bold; cursor: pointer; border-radius: 4px;">
             SALVA
           </button>
           <button onclick="closeWeightLog()"
-            style="flex:1; padding:12px; background:transparent; border:1px solid var(--border-mid); color:var(--dim); font-family:'Rajdhani'; cursor:pointer; border-radius:6px;">
+            style="flex: 1; padding: 12px; background: transparent; border: 1px solid var(--dim); color: var(--dim); font-family: 'Rajdhani'; cursor: pointer; border-radius: 4px;">
             ANNULLA
           </button>
         </div>
@@ -382,111 +482,111 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
   <div id="finance" class="page">
-    <div class="header" style="display:flex; justify-content:space-between; align-items:flex-start; width:100%; padding:20px 20px 10px 20px; box-sizing:border-box;">
-      <div class="header-left" style="display:flex; flex-direction:column; gap:8px;">
-        <div class="status-indicator" style="color:var(--blue);">
-          <span class="blink-dot" style="background-color:var(--blue); box-shadow:0 0 8px var(--blue);"></span>
-          <span style="color:var(--blue);">ECON_SYNC // ACTIVE</span>
+    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 20px 20px 10px 20px; box-sizing: border-box;">
+      <div class="header-left" style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
+          <span class="blink-dot" style="background-color: #00d4ff;"></span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700; text-transform: uppercase;">ECON_SYNC // ACTIVE</span>
         </div>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <i data-lucide="wallet" style="color:var(--accent); width:28px; height:28px;"></i>
-          <h1 style="margin:0; font-family:'Rajdhani'; font-size:1.875rem; color:var(--text); text-transform:uppercase; line-height:1; letter-spacing:2px;">CREDITS</h1>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="wallet" style="color: var(--accent); width: 28px; height: 28px;"></i>
+          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff; text-transform: uppercase; line-height: 1;">CREDITS</h1>
         </div>
       </div>
       <div class="header-right">
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
+        <div class="esc-btn" onclick="nav('home')" style="cursor: pointer; opacity: 0.7;">[esc X]</div>
       </div>
     </div>
 
-    <main style="padding:0 15px; max-width:100%;">
+    <main style="padding: 0 15px; max-width: 100%;">
       <div id="finance-home-view">
-        <div class="finance-card-main">
-          <div style="text-align:center;">
-            <div style="font-size:9px; color:var(--dim); font-family:'JetBrains Mono'; letter-spacing:1px; margin-bottom:5px;">TOTAL_LIQUID_ASSETS</div>
-            <div style="display:flex; align-items:center; justify-content:center; gap:15px;">
+        <div class="finance-card-main" style="background: rgba(255,255,255,0.05); border: 1px solid #333; padding: 20px; border-radius: 8px;">
+          <div style="text-align: center;">
+            <div class="label" style="font-size: 9px; color: var(--dim);">TOTAL_LIQUID_ASSETS</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
               <h2 class="big-money" id="total-balance">***,** €</h2>
-              <i data-lucide="eye-off" id="balance-toggle" onclick="toggleBalanceVisibility()" style="width:24px; color:var(--dim); cursor:pointer;"></i>
+              <i data-lucide="eye-off" id="balance-toggle" onclick="toggleBalanceVisibility()" style="width: 24px; color: var(--dim); cursor: pointer;"></i>
             </div>
           </div>
-          <div style="border-top:1px solid var(--border); padding-top:10px; margin-top:10px;">
-            <div id="burn-info-text" style="font-size:10px; color:var(--text-2); text-align:center; margin-bottom:8px; font-family:'JetBrains Mono'; letter-spacing:0.5px;">ANALISI_FLUSSI...</div>
-            <div class="hp-bar-outer">
-              <div id="efficiency-fill" style="height:100%; width:0%; transition:width 1s; background:var(--accent);"></div>
+          <div class="survival-box" style="border-top: 1px solid #222; padding-top: 10px;">
+            <div id="burn-info-text" style="font-size: 10px; color: #fff; text-align: center; margin-bottom: 8px; font-weight: bold;">ANALISI_FLUSSI...</div>
+            <div class="hp-bar-outer" style="width: 100%; height: 6px; border-radius: 3px; overflow: hidden;">
+              <div id="efficiency-fill" style="height: 100%; width: 0%; transition: width 1s; background: var(--accent);"></div>
             </div>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:15px; font-size:11px;">
-            <div style="background:var(--bg-2); padding:8px; border-radius:6px; border:1px solid var(--border);">
-              <div style="font-size:8px; color:var(--dim); margin-bottom:3px; letter-spacing:1px; font-family:'JetBrains Mono';">BANK</div>
-              <span id="bank-val" style="color:var(--text); font-family:'JetBrains Mono';">0.00 €</span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; font-size: 11px;">
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">BANK</div>
+              <span id="bank-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
             </div>
-            <div style="background:var(--bg-2); padding:8px; border-radius:6px; border:1px solid var(--border);">
-              <div style="font-size:8px; color:var(--dim); margin-bottom:3px; letter-spacing:1px; font-family:'JetBrains Mono';">TINABA</div>
-              <span id="tinaba-val" style="color:var(--text); font-family:'JetBrains Mono';">0.00 €</span>
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">TINABA</div>
+              <span id="tinaba-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
             </div>
-            <div style="background:var(--bg-2); padding:8px; border-radius:6px; border:1px solid var(--border);">
-              <div style="font-size:8px; color:var(--dim); margin-bottom:3px; letter-spacing:1px; font-family:'JetBrains Mono';">PAYPAL</div>
-              <span id="paypal-val" style="color:var(--text); font-family:'JetBrains Mono';">0.00 €</span>
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">PAYPAL</div>
+              <span id="paypal-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
             </div>
-            <div style="background:var(--bg-2); padding:8px; border-radius:6px; border:1px solid var(--border);">
-              <div style="font-size:8px; color:var(--dim); margin-bottom:3px; letter-spacing:1px; font-family:'JetBrains Mono';">CASH</div>
-              <span id="cash-val" style="color:var(--text); font-family:'JetBrains Mono';">0.00 €</span>
+            <div style="background:#111;padding:8px;border-radius:4px;">
+              <div style="font-size:8px;color:var(--dim);margin-bottom:3px;letter-spacing:1px;">CASH</div>
+              <span id="cash-val" style="color:#fff;font-family:'JetBrains Mono';">0.00 €</span>
             </div>
           </div>
         </div>
-        <div id="finance-log" style="margin-top:20px;"></div>
+        <div id="finance-log" style="margin-top: 20px;"></div>
       </div>
 
       <div id="finance-stats-view" style="display:none;">
         <div class="stats-grid-container">
-          <h2 style="grid-column:1 / -1; font-size:1.1rem; color:var(--accent); font-family:'Rajdhani'; letter-spacing:2px;">DIAGNOSTICS_V1.0</h2>
+          <h2 style="grid-column: 1 / -1; font-size: 1.1rem; color: var(--accent); font-family:'Rajdhani'; letter-spacing: 2px;">DIAGNOSTICS_V1.0</h2>
           <div class="stats-card full-width-card">
-            <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--dim); font-family:'JetBrains Mono';">
+            <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--dim);">
               <span>SURVIVAL_INDEX</span>
               <span id="survival-percentage">0%</span>
             </div>
             <div class="survival-bar-container"><div id="survival-bar-fill"></div></div>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div class="stats-card">
-              <div style="font-size:9px; color:var(--dim); font-family:'JetBrains Mono';">MONTHLY_SPENT</div>
-              <div id="stat-total-spent" style="font-size:1.2rem; color:var(--red); font-family:'Rajdhani';">0.00€</div>
+              <div style="font-size: 9px; color: var(--dim);">MONTHLY_SPENT</div>
+              <div id="stat-total-spent" style="font-size: 1.2rem; color: #ff4d4d; font-family:'Rajdhani';">0.00€</div>
             </div>
             <div class="stats-card">
-              <div style="font-size:9px; color:var(--dim); font-family:'JetBrains Mono';">MONTHLY_INCOME</div>
-              <div id="stat-total-income" style="font-size:1.2rem; color:var(--accent); font-family:'Rajdhani';">0.00€</div>
+              <div style="font-size: 9px; color: var(--dim);">MONTHLY_INCOME</div>
+              <div id="stat-total-income" style="font-size: 1.2rem; color: var(--accent); font-family:'Rajdhani';">0.00€</div>
             </div>
-            <div class="stats-card" style="grid-column:span 2;">
-              <div style="font-size:9px; color:var(--dim); margin-bottom:10px; font-family:'JetBrains Mono';">TOP_RESOURCE_DRAIN</div>
+            <div class="stats-card" style="grid-column: span 2;">
+              <div style="font-size: 9px; color: var(--dim); margin-bottom: 10px;">TOP_RESOURCE_DRAIN</div>
               <div id="top-expenses-list"></div>
             </div>
           </div>
           <div class="stats-card">
-            <div style="font-size:9px; color:var(--dim); margin-bottom:15px; font-family:'JetBrains Mono';">CATEGORY_WEIGHT</div>
-            <div style="height:220px; position:relative;">
+            <div style="font-size: 9px; color: var(--dim); margin-bottom: 15px;">CATEGORY_WEIGHT</div>
+            <div style="height: 220px; position: relative;">
               <canvas id="categoryChart"></canvas>
             </div>
           </div>
-          <div id="analyst-stats-comment" class="stats-card full-width-card">
-            <div style="font-size:9px; color:var(--accent); margin-bottom:8px; font-family:'JetBrains Mono';">AUDIT_REPORT_V1</div>
-            <div id="stats-eval" style="font-size:0.9rem; color:var(--text-2); line-height:1.4; font-family:'Rajdhani';">INIZIALIZZAZIONE_ANALISTA...</div>
-            <button onclick="requestAnalystUpdate()" style="margin-top:12px; background:none; border:1px solid var(--accent-border); color:var(--accent); padding:5px 15px; font-size:11px; cursor:pointer; border-radius:4px; font-family:'Rajdhani'; letter-spacing:1px;">RUN_NEW_AUDIT</button>
+          <div id="analyst-stats-comment" class="stats-card full-width-card" style="background: rgba(0,243,255,0.03);">
+            <div style="font-size: 9px; color: var(--accent); margin-bottom: 8px;">AUDIT_REPORT_V1</div>
+            <div id="stats-eval" style="font-size: 0.9rem; color: #ccc; line-height: 1.4; font-family:'Rajdhani';">INIZIALIZZAZIONE_ANALISTA...</div>
+            <button onclick="requestAnalystUpdate()" style="margin-top: 12px; background: none; border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; font-size: 11px; cursor: pointer; border-radius: 4px; font-family:'Rajdhani';">RUN_NEW_AUDIT</button>
           </div>
         </div>
       </div>
 
-      <div id="finance-search-view" style="display:none; padding-bottom:100px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-          <h2 style="font-size:1.2rem; color:var(--accent); margin:0; font-family:'Rajdhani'; letter-spacing:2px;">DATABASE_QUERY</h2>
-          <div onclick="switchFinanceTab('home')" style="cursor:pointer; font-size:1rem; color:var(--dim); font-family:'JetBrains Mono';">[BACK]</div>
+      <div id="finance-search-view" style="display:none; padding-bottom: 100px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #333; padding-bottom:10px;">
+          <h2 style="font-size:1.2rem; color:var(--accent); margin:0;">DATABASE_QUERY</h2>
+          <div onclick="switchFinanceTab('home')" style="cursor:pointer; font-size:1rem; color:var(--dim);">[BACK]</div>
         </div>
-        <div id="credits-history-engine" style="margin-bottom:20px;">
-          <div style="position:relative; display:flex; align-items:center; gap:10px;">
-            <div style="position:relative; flex-grow:1;">
-              <input type="text" id="finance-search" placeholder="CERCA NEL LOG..." onkeyup="handleLogSearch(event)" style="width:100%; margin:0;">
-              <span id="search-clear" onclick="clearLogSearch()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--accent); display:none; font-size:1.2rem;">&times;</span>
+        <div id="credits-history-engine" style="margin-bottom: 20px;">
+          <div style="position: relative; display: flex; align-items: center; gap: 10px;">
+            <div style="position: relative; flex-grow: 1;">
+              <input type="text" id="finance-search" placeholder="CERCA NEL LOG..." onkeyup="handleLogSearch(event)" style="width: 100%;">
+              <span id="search-clear" onclick="clearLogSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--accent); display: none;">&times;</span>
             </div>
-            <div id="ai-search-toggle" onclick="toggleAISearch()" style="cursor:pointer; padding:8px 12px; border:1px solid var(--border-mid); border-radius:6px; font-size:0.7rem; color:var(--dim); font-family:'JetBrains Mono'; white-space:nowrap;">
-              AI: <span id="ai-status" style="color:var(--dim);">OFF</span>
+            <div id="ai-search-toggle" onclick="toggleAISearch()" style="cursor:pointer; padding: 5px; border: 1px solid #444; border-radius: 4px; font-size: 0.7rem; color: var(--dim);">
+              AI: <span id="ai-status" style="color:#666;">OFF</span>
             </div>
           </div>
           <div class="fin-categories-grid">
@@ -500,8 +600,8 @@
             <button onclick="quickFilter('ALTRO')" class="cat-btn"><i data-lucide="layers"></i> ALTRO</button>
             <button onclick="quickFilter('SET_BALANCE')" class="cat-btn"><i data-lucide="refresh-cw"></i> RESET</button>
           </div>
-          <div class="fin-time-filters" style="text-align:center; margin-bottom:20px;">
-            <input type="month" id="month-picker" onchange="filterByMonth(this.value)" style="position:absolute; opacity:0; pointer-events:none; width:0;">
+          <div class="fin-time-filters" style="text-align: center; margin-bottom: 20px;">
+            <input type="month" id="month-picker" onchange="filterByMonth(this.value)" style="position: absolute; opacity: 0; pointer-events: none; width: 0;">
             <button onclick="document.getElementById('month-picker').showPicker()" class="cat-btn time-btn">
               <i data-lucide="calendar"></i> RICERCA MESE / ANNO
             </button>
@@ -513,74 +613,74 @@
 
     <div class="bottom-nav">
       <div class="nav-item" id="nav-analyst" onclick="toggleAnalyst()">
-        <i data-lucide="cpu" style="width:22px;"></i>
-        <div>ANALYST</div>
+        <i data-lucide="cpu" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ANALYST</div>
       </div>
       <div class="nav-item" id="nav-log" onclick="switchFinanceTab('log')">
-        <i data-lucide="filter" style="width:22px;"></i>
-        <div>HISTORY</div>
+        <i data-lucide="filter" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>
       </div>
       <div class="nav-item nav-home" onclick="nav('home')">
         <div class="home-btn-circle">
-          <i data-lucide="home" style="width:22px; color:var(--accent);"></i>
+          <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
       </div>
       <div class="nav-item" id="nav-stats" onclick="switchFinanceTab('stats')">
-        <i data-lucide="bar-chart-3" style="width:22px;"></i>
-        <div>STATS</div>
+        <i data-lucide="bar-chart-3" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">STATS</div>
       </div>
       <div class="nav-item" id="nav-entry" onclick="toggleFinanceInput(true)">
-        <i data-lucide="plus-square" style="width:22px;"></i>
-        <div>ENTRY</div>
+        <i data-lucide="plus-square" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
       </div>
     </div>
 
-    <div id="analyst-bubble" class="side-bubble" style="bottom:85px; right:20px; width:calc(100% - 40px); left:20px;">
-      <p id="analyst-text" style="margin:0; color:var(--text-2);">AWAITING_DATA...</p>
+    <div id="analyst-bubble" class="side-bubble" style="bottom: 85px; right: 20px; width: calc(100% - 40px); left: 20px;">
+      <p id="analyst-text">AWAITING_DATA...</p>
     </div>
 
-    <div id="finance-input-zone" class="side-input-wrapper" style="display:none; transform:translateY(100%);">
-      <div style="display:flex; gap:6px; padding:8px 15px 0 15px; background:var(--bg-2);">
+    <div id="finance-input-zone" class="side-input-wrapper" style="display: none; transform: translateY(100%);">
+      <div style="display:flex;gap:6px;padding:8px 15px 0 15px;background:#0a0a0a;">
         <button class="wallet-btn" data-wallet="BANK" onmousedown="event.preventDefault()" onclick="setWallet('BANK')"
-          style="flex:1; padding:6px; background:transparent; border:1px solid var(--blue); color:var(--blue);
-                 font-family:'Rajdhani'; font-size:10px; cursor:pointer; border-radius:3px; letter-spacing:1px;">
+          style="flex:1;padding:6px;background:transparent;border:1px solid #00d4ff;color:#00d4ff;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           BANK
         </button>
         <button class="wallet-btn" data-wallet="TINABA" onmousedown="event.preventDefault()" onclick="setWallet('TINABA')"
-          style="flex:1; padding:6px; background:transparent; border:1px solid var(--border-mid); color:var(--dim);
-                 font-family:'Rajdhani'; font-size:10px; cursor:pointer; border-radius:3px; letter-spacing:1px;">
+          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           TINABA
         </button>
         <button class="wallet-btn" data-wallet="PAYPAL" onmousedown="event.preventDefault()" onclick="setWallet('PAYPAL')"
-          style="flex:1; padding:6px; background:transparent; border:1px solid var(--border-mid); color:var(--dim);
-                 font-family:'Rajdhani'; font-size:10px; cursor:pointer; border-radius:3px; letter-spacing:1px;">
+          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           PAYPAL
         </button>
         <button class="wallet-btn" data-wallet="CASH" onmousedown="event.preventDefault()" onclick="setWallet('CASH')"
-          style="flex:1; padding:6px; background:transparent; border:1px solid var(--border-mid); color:var(--dim);
-                 font-family:'Rajdhani'; font-size:10px; cursor:pointer; border-radius:3px; letter-spacing:1px;">
+          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
+                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           CASH
         </button>
       </div>
       <input type="text" id="finance-input" placeholder="> -20 PIZZA, +1500 STIPENDIO"
         autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"
-        onkeypress="handleFinanceSubmit(event)" style="margin:0;">
+        onkeypress="handleFinanceSubmit(event)">
     </div>
   </div>
 
   <!-- ============================================ -->
   <!-- PAGE: REVIEWS -->
   <!-- ============================================ -->
-  <div id="reviews" class="page" style="width:100vw !important; height:100vh !important;">
+  <div id="reviews" class="page" style="width: 100vw !important; height: 100vh !important;">
     <div class="header">
       <div class="header-left">
         <div class="status-indicator">
           <span class="blink-dot"></span>
-          <span>MEDIA_CRITIC // SYNC</span>
+          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">MEDIA_CRITIC // SYNC</span>
         </div>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <i data-lucide="videotape" class="brain-icon" style="color:var(--orange);"></i>
-          <h1 style="margin:0; font-family:'Rajdhani'; font-size:1.875rem; line-height:1; color:var(--text);">REVIEWS</h1>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i data-lucide="videotape" class="brain-icon"></i>
+          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">REVIEWS</h1>
         </div>
       </div>
       <div class="header-right">
@@ -588,11 +688,11 @@
       </div>
     </div>
 
-    <div class="search-container" style="padding:0 15px 15px 15px;">
-      <div style="position:relative; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; padding:0 10px;">
-        <i data-lucide="search" style="width:14px; color:var(--dim);"></i>
+    <div class="search-container" style="padding: 0 15px 15px 15px;">
+      <div style="position: relative; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 4px; display: flex; align-items: center; padding: 0 10px;">
+        <i data-lucide="search" style="width: 14px; color: #444;"></i>
         <input type="text" id="review-search" placeholder="SEARCH_DATABASE..."
-          style="background:transparent; border:none; color:var(--text); padding:10px; font-family:'JetBrains Mono'; font-size:11px; width:100%; outline:none; margin:0;"
+          style="background: transparent; border: none; color: #fff; padding: 10px; font-family: 'JetBrains Mono'; font-size: 11px; width: 100%; outline: none;"
           oninput="handleSearch(this.value)">
       </div>
     </div>
@@ -605,37 +705,37 @@
       <div class="filter-chip" onclick="filterByCategory('COMIC', this)"><i data-lucide="book-open"></i><span>COMIC</span></div>
     </div>
 
-    <div id="reviews-list" class="reviews-scroll-area" style="padding:20px; padding-bottom:100px; display:flex; flex-direction:column; gap:15px; overflow-y:auto; height:calc(100vh - 220px);">
-      <div style="text-align:center; opacity:0.3; padding:40px; font-family:'JetBrains Mono'; font-size:11px; letter-spacing:2px;">[ IN_ATTESA_DI_MEDIA ]</div>
+    <div id="reviews-list" class="reviews-scroll-area" style="padding: 20px; padding-bottom: 100px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; height: calc(100vh - 150px);">
+      <div style="text-align:center; opacity:0.3; padding:40px;">[ IN_ATTESA_DI_MEDIA ]</div>
     </div>
 
-    <div id="reviews-stats-container" style="display:none; padding:20px; overflow-y:auto; height:calc(100vh - 220px); background:var(--bg);"></div>
+    <div id="reviews-stats-container" style="display:none; padding: 20px; overflow-y: auto; height: calc(100vh - 150px); background: #050505;"></div>
 
     <div class="bottom-nav">
       <div class="nav-item" id="nav-critic" onclick="toggleCriticAI()">
-        <i data-lucide="sparkles" style="width:22px;"></i>
-        <div>CRITIC</div>
+        <i data-lucide="sparkles" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">CRITIC</div>
       </div>
       <div class="nav-item" id="nav-stats" onclick="toggleStats()">
-        <i data-lucide="bar-chart-2" style="width:22px;"></i>
-        <div>STATS</div>
+        <i data-lucide="bar-chart-2" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">STATS</div>
       </div>
       <div class="nav-item nav-home" onclick="nav('home')">
         <div class="home-btn-circle">
-          <i data-lucide="home" style="width:22px; color:var(--accent);"></i>
+          <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
       </div>
       <div class="nav-item" id="nav-wish" onclick="toggleWishlist()">
-        <i data-lucide="bookmark" style="width:22px;"></i>
-        <div>WISHLIST</div>
+        <i data-lucide="bookmark" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">WISHLIST</div>
       </div>
       <div class="nav-item" id="nav-review-entry" onclick="openReviewEntry()">
-        <i data-lucide="plus-square" style="width:22px;"></i>
-        <div>ENTRY</div>
+        <i data-lucide="plus-square" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
       </div>
     </div>
 
-    <div id="ai-side-bubble" class="side-bubble" style="display:none; position:fixed; right:20px; bottom:90px; width:250px;"></div>
+    <div id="ai-side-bubble" class="side-bubble" style="display:none; position: fixed; right: 20px; bottom: 90px; width: 250px; background: rgba(10,10,10,0.95); border: 1px solid var(--accent); color: #fff; padding: 15px; border-radius: 4px; z-index: 10000; backdrop-filter: blur(10px); font-family: 'JetBrains Mono'; font-size: 11px; line-height: 1.4;"></div>
   </div>
 
   <!-- ============================================ -->
@@ -649,7 +749,7 @@
       <div class="info" onclick="saveAndClose()">SALVA [X]</div>
     </div>
     <div class="modal-body">
-      <textarea id="detail-text" spellcheck="false" style="color:var(--text);"></textarea>
+      <textarea id="detail-text" spellcheck="false"></textarea>
       <div id="detail-extra-list" style="display:none;"></div>
     </div>
     <div class="note-toolbar">
@@ -671,46 +771,46 @@
   </div>
 
   <!-- MODAL: TODO -->
-  <div id="todo-modal" style="display:none; position:fixed; inset:0; background:var(--bg-2); z-index:10001; flex-direction:column;">
-    <div class="header" style="border-bottom:1px solid var(--border); padding:20px; display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="margin:0; color:var(--accent); font-family:'Rajdhani'; font-size:1.5rem; letter-spacing:1px;">NEW_TODO_LIST</h2>
+  <div id="todo-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
+    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">NEW_TODO_LIST</h2>
       <div class="esc-btn" onclick="closeTodoModal()">[esc X]</div>
     </div>
-    <div style="flex:1; padding:20px; overflow-y:auto;">
+    <div style="flex: 1; padding: 20px; overflow-y: auto;">
       <input type="text" id="todo-list-title" placeholder="NOME_LISTA (opzionale)..."
-        style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--border-mid);
-               padding:10px 0; color:var(--accent); font-family:'Rajdhani'; font-size:1.1rem;
-               font-weight:700; margin-bottom:20px; outline:none; letter-spacing:1px;">
-      <div id="todo-items-container" style="margin-bottom:20px;"></div>
+        style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #333; 
+               padding: 10px 0; color: #00ff41; font-family: 'Rajdhani'; font-size: 1.1rem; 
+               font-weight: 700; margin-bottom: 20px; outline: none; letter-spacing: 1px;">
+      <div id="todo-items-container" style="margin-bottom: 20px;"></div>
       <input type="text" id="new-todo-item" placeholder="TYPE_AND_PRESS_ENTER..."
-        style="width:100%; background:var(--bg-2); border:1px solid var(--accent-border); padding:15px; color:var(--text); font-family:'JetBrains Mono'; font-size:13px; border-radius:6px; margin:0;"
+        style="width: 100%; background: #0a0a0a; border: 1px solid var(--accent); padding: 15px; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 13px;"
         onkeypress="if(event.key==='Enter') addTodoItem()">
     </div>
-    <div style="padding:15px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
-      <button onclick="saveTodoList()" style="background:var(--accent); color:#000; border:none; padding:12px 30px; cursor:pointer; font-family:'Rajdhani'; font-weight:bold; font-size:14px; border-radius:6px; letter-spacing:1px;">SAVE_LIST</button>
+    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end;">
+      <button onclick="saveTodoList()" style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; font-size: 14px;">SAVE_LIST</button>
     </div>
   </div>
 
   <!-- MODAL: LINK -->
-  <div id="link-modal" style="display:none; position:fixed; inset:0; background:var(--bg-2); z-index:10001; flex-direction:column;">
-    <div class="header" style="border-bottom:1px solid var(--border); padding:20px; display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="margin:0; color:var(--accent); font-family:'Rajdhani'; font-size:1.5rem; letter-spacing:1px;">ADD_LINK</h2>
+  <div id="link-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
+    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">ADD_LINK</h2>
       <div class="esc-btn" onclick="closeLinkModal()">[esc X]</div>
     </div>
-    <div style="flex:1; padding:20px; overflow-y:auto;">
+    <div style="flex: 1; padding: 20px; overflow-y: auto;">
       <input type="url" id="link-url-input" placeholder="PASTE_URL_HERE..."
-        style="width:100%; background:var(--bg-2); border:1px solid var(--accent-border); padding:15px; color:var(--text); font-family:'JetBrains Mono'; font-size:13px; margin-bottom:20px; border-radius:6px;"
+        style="width: 100%; background: #0a0a0a; border: 1px solid var(--accent); padding: 15px; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 13px; margin-bottom: 20px;"
         onkeypress="if(event.key==='Enter') fetchLinkPreview()">
-      <div id="link-preview-container" style="display:none; background:rgba(255,255,255,0.02); padding:15px; border-radius:8px; border-left:3px solid var(--accent);">
-        <div id="link-preview-image" style="width:100%; height:200px; background-size:cover; background-position:center; border-radius:6px; margin-bottom:15px; background-color:var(--bg-2);"></div>
-        <h3 id="link-preview-title" style="font-family:'Rajdhani'; color:var(--accent); margin:0 0 10px 0;"></h3>
-        <p id="link-preview-description" style="font-family:'JetBrains Mono'; font-size:12px; color:var(--text-2); line-height:1.5;"></p>
-        <p id="link-preview-domain" style="font-size:10px; color:var(--dim); margin-top:10px; font-family:'JetBrains Mono';"></p>
+      <div id="link-preview-container" style="display: none; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 4px; border-left: 3px solid var(--accent);">
+        <div id="link-preview-image" style="width: 100%; height: 200px; background-size: cover; background-position: center; border-radius: 4px; margin-bottom: 15px; background-color: #111;"></div>
+        <h3 id="link-preview-title" style="font-family: 'Rajdhani'; color: var(--accent); margin: 0 0 10px 0;"></h3>
+        <p id="link-preview-description" style="font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; line-height: 1.5;"></p>
+        <p id="link-preview-domain" style="font-size: 10px; color: #666; margin-top: 10px;"></p>
       </div>
     </div>
-    <div style="padding:15px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
-      <button onclick="closeLinkModal()" style="background:transparent; color:var(--dim); border:1px solid var(--border-mid); padding:12px 20px; cursor:pointer; font-family:'Rajdhani'; border-radius:6px;">CANCEL</button>
-      <button id="save-link-btn" onclick="saveLinkNote()" disabled style="background:var(--accent); color:#000; border:none; padding:12px 30px; cursor:pointer; font-family:'Rajdhani'; font-weight:bold; opacity:0.5; border-radius:6px; letter-spacing:1px;">SAVE_LINK</button>
+    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px;">
+      <button onclick="closeLinkModal()" style="background: transparent; color: #666; border: 1px solid #333; padding: 12px 20px; cursor: pointer; font-family: 'Rajdhani';">CANCEL</button>
+      <button id="save-link-btn" onclick="saveLinkNote()" disabled style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; opacity: 0.5;">SAVE_LINK</button>
     </div>
   </div>
 
@@ -731,20 +831,20 @@
       <div class="review-modal-header">
         <h1 id="detail-review-title">TITOLO</h1>
         <div style="display:flex; gap:15px; align-items:center;">
-          <div onclick="editPosterLink()" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid var(--accent-border); padding:2px 5px; opacity:0.6; border-radius:3px; font-family:'JetBrains Mono';">EDIT_IMG</div>
-          <div class="review-close-btn" onclick="closeReviewDetail()" style="cursor:pointer; font-size:10px; color:var(--dim); font-family:'JetBrains Mono';">CHIUDI [X]</div>
+          <div onclick="editPosterLink()" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid; padding:2px 5px; opacity:0.6;">EDIT_IMG</div>
+          <div class="review-close-btn" onclick="closeReviewDetail()">CHIUDI [X]</div>
         </div>
       </div>
       <div class="review-modal-body">
         <div class="review-main-content">
           <div id="detail-review-poster" class="review-poster-frame"></div>
           <div class="review-info-side">
-            <div id="detail-review-stars" class="rating-stars" style="font-size:22px;"></div>
+            <div id="detail-review-stars" class="rating-stars" style="font-size: 22px;"></div>
             <div id="detail-review-meta" class="review-meta-text"></div>
           </div>
         </div>
         <div class="review-full-comment">
-          <label style="font-size:9px; color:var(--accent); font-family:'JetBrains Mono'; letter-spacing:1px;">RECENSIONE_INTEGRALE</label>
+          <label>RECENSIONE_INTEGRALE</label>
           <div id="detail-review-comment"></div>
         </div>
       </div>
@@ -753,43 +853,43 @@
 
   <!-- MODAL: REVIEW ENTRY -->
   <div id="review-entry-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
-    <div class="review-detail-card" style="border-left:3px solid var(--accent); padding:25px;">
-      <h2 style="font-family:'Rajdhani'; color:var(--text); margin-bottom:5px; letter-spacing:1px;">NEW_ENTRY</h2>
-      <p style="font-size:10px; color:var(--dim); margin-bottom:20px; font-family:'JetBrains Mono';">Scrivi titolo, voto (0-5) e commento. L'AI penserà al resto.</p>
+    <div class="review-detail-card" style="border-left: 4px solid #fff; padding:25px;">
+      <h2 style="font-family:'Rajdhani'; color:#fff; margin-bottom:5px;">NEW_ENTRY</h2>
+      <p style="font-size:10px; color:var(--dim); margin-bottom:20px;">Scrivi titolo, voto (0-5) e commento. L'AI penserà al resto.</p>
       <textarea id="ai-review-input" placeholder="Es: Ho visto Marty Supreme, 4 stelle. Regia pazzesca..."
-        style="width:100%; height:150px; background:var(--bg-2); border:1px solid var(--border-mid); color:var(--text); padding:15px; border-radius:8px; font-family:'JetBrains Mono'; font-size:13px; outline:none;"></textarea>
-      <div id="ai-process-status" style="display:none; margin-top:10px; font-size:11px; color:var(--accent); font-family:'JetBrains Mono';">
+        style="width:100%; height:150px; background:#111; border:1px solid #333; color:#fff; padding:15px; border-radius:8px; font-family:inherit;"></textarea>
+      <div id="ai-process-status" style="display:none; margin-top:10px; font-size:11px; color:var(--accent);">
         <span class="blink-dot"></span> ANALISI_NEURALE_IN_CORSO...
       </div>
       <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
         <button class="esc-btn" onclick="closeReviewEntry()">ANNULLA</button>
         <button id="btn-save-review" onclick="processReviewWithAI()"
-          style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:6px; font-weight:700; font-family:'Rajdhani'; letter-spacing:1px; cursor:pointer;">PUBBLICA</button>
+          style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:4px; font-weight:700;">PUBBLICA</button>
       </div>
     </div>
   </div>
 
   <!-- GHOST MODAL -->
-  <div id="ghost-modal" style="display:none; position:fixed; inset:0; background:var(--bg-2); z-index:10001; flex-direction:column;">
-    <div class="header" style="border-bottom:1px solid var(--border); padding:20px; display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="margin:0; color:var(--accent); font-family:'Rajdhani'; font-size:1.5rem; letter-spacing:1px;">👻 GHOST_WRITER</h2>
+  <div id="ghost-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
+    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">👻 GHOST_WRITER</h2>
       <div class="esc-btn" onclick="closeGhostModal()">[esc X]</div>
     </div>
-    <div style="flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:20px;">
+    <div style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
       <div>
-        <label style="font-size:10px; color:var(--dim); margin-bottom:5px; display:block; font-family:'JetBrains Mono'; letter-spacing:1px;">TESTO_GREZZO</label>
+        <label style="font-size: 10px; color: #666; margin-bottom: 5px; display: block;">TESTO_GREZZO</label>
         <textarea id="ghost-input" placeholder="Scrivi qui il testo da sistemare..."
-          style="width:100%; min-height:200px; background:var(--bg-2); border:1px solid var(--border-mid); padding:15px; color:var(--text); font-family:'JetBrains Mono'; font-size:13px; resize:vertical; border-radius:8px; outline:none;"></textarea>
+          style="width: 100%; min-height: 200px; background: #0a0a0a; border: 1px solid #333; padding: 15px; color: #fff; font-family: 'JetBrains Mono'; font-size: 13px; resize: vertical;"></textarea>
       </div>
-      <div id="ghost-output-container" style="display:none;">
-        <label style="font-size:10px; color:var(--accent); margin-bottom:5px; display:block; font-family:'JetBrains Mono'; letter-spacing:1px;">✨ TESTO_SISTEMATO</label>
+      <div id="ghost-output-container" style="display: none;">
+        <label style="font-size: 10px; color: var(--accent); margin-bottom: 5px; display: block;">✨ TESTO_SISTEMATO</label>
         <div id="ghost-output"
-          style="background:var(--accent-glow); border:1px solid var(--accent-border); padding:15px; border-radius:8px; font-family:'JetBrains Mono'; font-size:13px; line-height:1.6; color:var(--text); white-space:pre-wrap;"></div>
+          style="background: rgba(0,255,65,0.05); border: 1px solid var(--accent); padding: 15px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 13px; line-height: 1.6; color: #eee; white-space: pre-wrap;"></div>
       </div>
     </div>
-    <div style="padding:15px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
-      <button onclick="closeGhostModal()" style="background:transparent; color:var(--dim); border:1px solid var(--border-mid); padding:12px 20px; cursor:pointer; font-family:'Rajdhani'; border-radius:6px;">CANCEL</button>
-      <button id="ghost-save-btn" onclick="saveGhostNote()" style="background:var(--dim); color:#000; border:none; padding:12px 30px; cursor:pointer; font-family:'Rajdhani'; font-weight:bold; opacity:0.5; border-radius:6px; letter-spacing:1px;">SALVA</button>
+    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px;">
+      <button onclick="closeGhostModal()" style="background: transparent; color: #666; border: 1px solid #333; padding: 12px 20px; cursor: pointer; font-family: 'Rajdhani';">CANCEL</button>
+      <button id="ghost-save-btn" onclick="saveGhostNote()" style="background: #666; color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; opacity: 0.5;">SALVA</button>
     </div>
   </div>
 
@@ -798,14 +898,14 @@
   <!-- ============================================ -->
   <script>
     lucide.createIcons();
-    (function(w,d,s,id) {
+    (function(w,d, s, id) {
       if(typeof(w.webpushr)!=='undefined') return;
       w.webpushr=w.webpushr||function(){(w.webpushr.q=w.webpushr.q||[]).push(arguments)};
       var js, fjs = d.getElementsByTagName(s)[0];
       js = d.createElement(s); js.id = id;
       js.src = "https://cdn.webpushr.com/app.min.js";
       fjs.parentNode.appendChild(js);
-    }(window,document,'script','webpushr-jssdk-alternative'));
+    }(window,document, 'script', 'webpushr-jssdk-alternative'));
     webpushr('init','BA232ZX5Zislw9HMnqgm1ZEyTaz-98EZSrfobgjTbXX3ql4fZ07Y5f91ciO-708ZjGD4iKoquI9IWp35CjUsyoE','https://misterperry69.github.io/LifeOS/webpushr-sw.js','/LifeOS/');
   </script>
 </body>
