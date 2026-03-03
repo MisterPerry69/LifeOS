@@ -1255,12 +1255,16 @@ input:focus {
 
 .review-card {
     display: flex;
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    height: 130px;
-    transition: all 0.2s;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 0;
+    max-height: 120px;
     overflow: hidden;
+    background: var(--glass);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    cursor: pointer;
     backdrop-filter: var(--blur);
 }
 
@@ -1270,13 +1274,14 @@ input:focus {
 }
 
 .poster-mini {
-    width: 90px;
-    height: 100%;
+    width: 80px;
+    min-width: 80px;
+    flex-shrink: 0;
     background-size: cover;
     background-position: center;
     background-color: var(--card);
-    flex-shrink: 0;
-    border-radius: 14px 0 0 14px;
+    border-radius: 12px 0 0 12px;
+    align-self: stretch;
 }
 
 .review-info {
@@ -1528,8 +1533,9 @@ input:focus {
 
     .detail-poster-zone { width: 160px; }
 
-    .review-card { height: auto !important; min-height: auto; align-items: flex-start; }
-    .poster-mini { width: 90px; height: auto !important; min-height: 120px; align-self: stretch; border-radius: 14px 0 0 14px; }
+    .review-card { max-height: 110px; }
+    .poster-mini { width: 75px; min-width: 75px; border-radius: 12px 0 0 12px; }
+
 
     .review-info { padding: 10px !important; }
     .review-top { flex-direction: column !important; align-items: flex-start !important; gap: 3px; }
