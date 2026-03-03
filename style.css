@@ -1419,6 +1419,97 @@ input:focus {
     border-radius: 16px !important;
 }
 
+.review-modal-container {
+    background: var(--card);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.review-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--card);
+    z-index: 1;
+}
+
+.review-modal-header h1 {
+    font-family: 'Space Grotesk';
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+}
+
+.review-close-btn {
+    font-family: 'JetBrains Mono';
+    font-size: 11px;
+    color: var(--dim);
+    cursor: pointer;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.review-modal-body {
+    padding: 20px 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.review-poster-frame {
+    width: 120px;
+    min-width: 120px;
+    height: 180px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--glass);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.review-info-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.review-meta-text {
+    font-family: 'JetBrains Mono';
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--dim);
+}
+
+.review-full-comment {
+    border-top: 1px solid var(--border);
+    padding-top: 15px;
+}
+
+.review-full-comment label {
+    font-size: 9px;
+    color: var(--dim-2);
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+
+
 /* --- 17. BODY --- */
 #body.page {
     height: 100vh;
