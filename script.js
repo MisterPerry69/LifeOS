@@ -1927,7 +1927,7 @@ function openReviewDetail(id) {
 
     modal.innerHTML = `
         <div class="review-detail-card" style="border-top: 3px solid ${color}">
-            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
+            <i data-lucide="circle-x" style="position: absolute; top: 20px; right: 20px; width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="CloseReviewDetail()"></i>        <button id="btn-save-review" onclick="processReviewWithAI()"
             <div style="margin-bottom: 5px; text-align: left;">
                 <h1 style="font-family:'Space Grotesk'; font-size: 2rem; margin: 0; color: ${color}; text-transform: uppercase; line-height:1.1; font-weight:700; letter-spacing:-0.5px;">
                     ${item.titolo}

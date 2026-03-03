@@ -1273,6 +1273,8 @@ input:focus {
     border-color: var(--border-strong);
 }
 
+.detail-poster-zone img { width: 200px; }
+
 .poster-mini {
     width: 80px;
     min-width: 80px;
