@@ -1257,8 +1257,7 @@ input:focus {
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    min-height: 0;
-    max-height: 120px;
+    height:250px;
     overflow: hidden;
     background: var(--glass);
     border-radius: 12px;
@@ -1274,8 +1273,7 @@ input:focus {
 }
 
 .poster-mini {
-    width: 80px;
-    min-width: 80px;
+    width: 130px;
     flex-shrink: 0;
     background-size: cover;
     background-position: center;
