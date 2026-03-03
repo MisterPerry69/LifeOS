@@ -1273,8 +1273,6 @@ input:focus {
     border-color: var(--border-strong);
 }
 
-.detail-poster-zone img { width: 200px; }
-
 .poster-mini {
     width: 80px;
     min-width: 80px;
@@ -1340,85 +1338,7 @@ input:focus {
     letter-spacing: 1px;
 }
 
-#review-detail-modal {
-    position: fixed !important;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.85) !important;
-    backdrop-filter: blur(16px);
-    z-index: 99999 !important;
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-
-.review-detail-card {
-    background: var(--card) !important;
-    border: 1px solid var(--border-strong) !important;
-    padding: 28px !important;
-    width: 90%;
-    max-width: 800px;
-    border-radius: 20px !important;
-    position: relative;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: block;
-}
-
-.review-main-content {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 24px;
-    margin-top: 20px;
-}
-
-.review-text-zone {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: var(--dim);
-}
-
-.review-detail-card::-webkit-scrollbar { width: 4px; }
-.review-detail-card::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 2px;
-}
-
-#reviews .side-bubble::before {
-    content: "CRITIC";
-    background: var(--accent);
-    color: #fff;
-    border-radius: 6px;
-}
-
-#reviews.page {
-    height: 100vh;
-    padding: 0;
-    overflow: hidden;
-}
-
-#reviews-stats-container {
-    scrollbar-width: none;
-}
-#reviews-stats-container::-webkit-scrollbar { display: none; }
-
-@keyframes growBar {
-    from { width: 0; }
-    to { width: var(--target-width); }
-}
-
-.stats-bar-fill { animation: growBar 1s ease-out forwards; }
-
-#reviews .side-bubble {
-    position: fixed;
-    right: 20px;
-    bottom: 85px;
-    width: 260px;
-    left: auto !important;
-    border-radius: 16px !important;
-}
-
+/* REVIEW DETAIL MODAL */
 .review-modal-container {
     background: var(--card);
     border-radius: 16px;
@@ -1428,6 +1348,12 @@ input:focus {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+}
+
+.review-modal-container::-webkit-scrollbar { width: 4px; }
+.review-modal-container::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 2px;
 }
 
 .review-modal-header {
@@ -1459,6 +1385,7 @@ input:focus {
     padding: 4px 8px;
     border: 1px solid var(--border);
     border-radius: 4px;
+    white-space: nowrap;
 }
 
 .review-modal-body {
@@ -1466,6 +1393,13 @@ input:focus {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.review-main-content {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start;
 }
 
 .review-poster-frame {
@@ -1506,6 +1440,71 @@ input:focus {
     display: block;
     margin-bottom: 10px;
     text-transform: uppercase;
+}
+
+/* REVIEW ENTRY MODAL */
+.review-detail-card {
+    background: var(--card);
+    border: 1px solid var(--border-strong);
+    padding: 25px;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#reviews .side-bubble::before {
+    content: "CRITIC";
+    background: var(--accent);
+    color: #fff;
+    border-radius: 6px;
+}
+
+#reviews.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+}
+
+#reviews-stats-container { scrollbar-width: none; }
+#reviews-stats-container::-webkit-scrollbar { display: none; }
+
+@keyframes growBar {
+    from { width: 0; }
+    to { width: var(--target-width); }
+}
+
+.stats-bar-fill { animation: growBar 1s ease-out forwards; }
+
+#reviews .side-bubble {
+    position: fixed;
+    right: 20px;
+    bottom: 85px;
+    width: 260px;
+    left: auto !important;
+    border-radius: 16px !important;
+}
+
+/* ---  MOBILE RESPONSIVE (reviews) --- */
+@media (max-width: 600px) {
+    .review-modal-container { width: 95%; max-height: 90vh; }
+    .review-modal-header { padding: 15px 20px; }
+    .review-modal-header h1 { font-size: 1.1rem; }
+    .review-modal-body { padding: 15px 20px; }
+    .review-poster-frame { width: 90px; min-width: 90px; height: 135px; }
+    .review-main-content { gap: 15px; }
+
+    .review-detail-card { padding: 20px; }
+
+    .review-card { max-height: 110px; }
+    .poster-mini { width: 75px; min-width: 75px; border-radius: 12px 0 0 12px; }
+    .review-info { padding: 10px; }
+    .review-top { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .review-title { white-space: normal; font-size: 13px; -webkit-line-clamp: 2; }
+    .review-comment { font-size: 11px; -webkit-line-clamp: 3; }
+    .review-meta { font-size: 9px; }
 }
 
 
@@ -1611,28 +1610,3 @@ input:focus {
 
 .habit-chip.active { color: #000; border-color: transparent; }
 
-/* --- 20. MOBILE RESPONSIVE --- */
-@media (max-width: 600px) {
-    .review-detail-card {
-        padding: 40px 20px 20px !important;
-    }
-
-    .review-main-content {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        align-items: center;
-    }
-
-    .detail-poster-zone { width: 160px; }
-
-    .review-card { max-height: 110px; }
-    .poster-mini { width: 75px; min-width: 75px; border-radius: 12px 0 0 12px; }
-
-
-    .review-info { padding: 10px !important; }
-    .review-top { flex-direction: column !important; align-items: flex-start !important; gap: 3px; }
-    .review-title { white-space: normal !important; font-size: 13px !important; -webkit-line-clamp: 2; }
-    .review-comment { font-size: 11px !important; -webkit-line-clamp: 3 !important; }
-    .review-meta { font-size: 9px !important; }
-}
