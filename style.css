@@ -88,6 +88,8 @@ body {
     border-radius: 2px;
     overflow: hidden;
     margin-top: 8px;
+    position: relative; /* ← aggiunge questo */
+
 }
 
 .boot-spinner::after {
