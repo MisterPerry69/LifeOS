@@ -985,7 +985,7 @@ async function handleFinanceSubmit(event) {
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     
-    text.innerText = "NEURAL_PROCESSING_IN_PROGRESS...";
+    text.innerText = "STEP 1: SENDING...";
     bubble.classList.add('active');
     input.value = '';
 
@@ -997,11 +997,20 @@ async function handleFinanceSubmit(event) {
         else if (textLower.includes('*pay') || textLower.includes('paypal')) targetWallet = "PAYPAL";
         else if (textLower.includes('*bank') || textLower.includes('banca')) targetWallet = "BANK";
         
+        text.innerText = "STEP 2: FETCHING → wallet: " + targetWallet;
+        
         const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ service: "finance_smart_entry", text: rawText, wallet: targetWallet })
         });
+        
+        text.innerText = "STEP 3: GOT RESPONSE → status: " + response.status;
+        
         const responseData = await response.text();
+        
+        text.innerText = "STEP 4: RAW → " + responseData.substring(0, 150);
+        
+        await new Promise(r => setTimeout(r, 3000)); // pausa per leggere
         
         try {
             const result = JSON.parse(responseData);
@@ -1012,13 +1021,13 @@ async function handleFinanceSubmit(event) {
                 text.innerText = "DANGER: " + (result.message || "SYNC_ERROR");
             }
         } catch (e) {
-            text.innerText = "CRITICAL_ERROR: APPS_SCRIPT_CRASHED";
+            text.innerText = "PARSE_ERROR: " + responseData.substring(0, 200);
         }
     } catch (err) {
-    text.innerText = "RAW: " + responseData.substring(0, 200);
+        text.innerText = "CATCH: " + err.message + " | " + err.name;
     }
     
-    setTimeout(() => bubble.classList.remove('active'), 6000);
+    setTimeout(() => bubble.classList.remove('active'), 8000);
 }
 
 function toggleAnalyst() {
