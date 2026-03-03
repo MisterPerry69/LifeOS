@@ -813,33 +813,6 @@
     </div>
   </div>
 
-  <!-- MODAL: REVIEW DETAIL -->
-  <div id="review-detail-modal" class="note-overlay" style="display:none;" onclick="if(event.target === this) closeReviewDetail()">
-    <div class="review-modal-container">
-      <div class="review-modal-header">
-        <h1 id="detail-review-title">TITOLO</h1>
-        <div style="display:flex; gap:15px; align-items:center;">
-          <div onclick="editPosterLink()" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid; padding:2px 5px; opacity:0.6;">EDIT_IMG</div>
-          <i data-lucide="circle-x" style="position: absolute; top: 20px; right: 20px; width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeReviewDetail()"></i>
-
-        </div>
-      </div>
-      <div class="review-modal-body">
-        <div class="review-main-content">
-          <div id="detail-review-poster" class="review-poster-frame"></div>
-          <div class="review-info-side">
-            <div id="detail-review-stars" class="rating-stars" style="font-size: 22px;"></div>
-            <div id="detail-review-meta" class="review-meta-text"></div>
-          </div>
-        </div>
-        <div class="review-full-comment">
-          <label>RECENSIONE_INTEGRALE</label>
-          <div id="detail-review-comment"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL: REVIEW ENTRY -->
   <div id="review-entry-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
     <div class="review-detail-card" style="border-left: 4px solid #fff; padding:25px;">
