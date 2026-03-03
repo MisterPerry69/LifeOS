@@ -1257,7 +1257,7 @@ input:focus {
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    height:250px;
+    height:130px;
     overflow: hidden;
     background: var(--glass);
     border-radius: 12px;
