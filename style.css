@@ -43,7 +43,11 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+    background-image: 
+    radial-gradient(ellipse at 20% 20%, rgba(59,130,246,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(59,130,246,0.05) 0%, transparent 50%);
 }
+
 
 /* --- 2. BOOT SCREEN --- */
 #boot-screen {
