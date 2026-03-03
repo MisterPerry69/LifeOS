@@ -1014,7 +1014,7 @@ async function handleFinanceSubmit(event) {
             text.innerText = "CRITICAL_ERROR: APPS_SCRIPT_CRASHED";
         }
     } catch (err) {
-        text.innerText = "CONNECTION_LOST: SYNC_FAILED";
+    text.innerText = "RAW: " + responseData.substring(0, 200);
     }
     
     setTimeout(() => bubble.classList.remove('active'), 6000);
