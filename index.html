@@ -161,7 +161,7 @@
       </div>
 
       <div class="home-module-btn" data-module="body" onclick="nav('body')">
-        <i data-lucide="activity" class="module-icon"></i>
+        <i data-lucide="dumbbell" class="module-icon"></i>
         <div class="module-label">Body</div>
         <div class="module-value"><span id="widget-weight">--</span> KG</div>
       </div>
@@ -182,9 +182,9 @@
   <div id="braindump" class="page">
 <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 20px 12px;">
   <div style="display: flex; flex-direction: column; gap: 6px;">
-    <div style="display: flex; align-items: center; gap: 6px;">
+    <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
       <span class="blink-dot"></span>
-      <span style="font-size: 10px; color: var(--dim-2); letter-spacing: 1px;">Note & Liste</span>
+      <span style="font-size: 12px; color: var(--dim-2); letter-spacing: 1px;">Note & Liste</span>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
       <i data-lucide="brain" style="width: 24px; height: 24px; color: var(--text); opacity: 0.6; cursor: pointer;" onclick="toggleSidebar()"></i>
@@ -263,21 +263,22 @@
   <!-- PAGE: BODY -->
   <!-- ============================================ -->
   <div id="body" class="page">
-    <div class="header">
-      <div class="header-left">
-        <div class="status-indicator">
-          <span class="blink-dot" style="background-color: #00ff41; box-shadow: 0 0 8px #00ff41;"></span>
-          <span style="font-size: 10px; letter-spacing: 2px; color: #00ff41; font-weight: 700;">BODY_SYNC // ACTIVE</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="activity" style="color: #00ff41; width: 28px; height: 28px;"></i>
-          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff;">BODY</h1>
-        </div>
-      </div>
-      <div class="header-right">
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-      </div>
+
+    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 20px 12px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
+      <span class="blink-dot"></span>
+      <span style="font-size: 12px; color: var(--dim-2); letter-spacing: 1px;">Allenamento & Peso</span>
     </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <i data-lucide="dumbbell" style="width: 24px; height: 24px; color: var(--text); opacity: 0.6; cursor: pointer;"></i>
+      <h1 style="margin: 0; font-family: 'Space Grotesk'; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1;">Training</h1>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 4px;">
+    <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="nav('home')"></i>
+  </div>
+</div>
 
     <main id="body-main" style="padding: 0 20px; flex: 1; overflow-y: auto; padding-bottom: 120px;">
 
@@ -479,21 +480,21 @@
   <!-- PAGE: FINANCE -->
   <!-- ============================================ -->
   <div id="finance" class="page">
-    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 20px 20px 10px 20px; box-sizing: border-box;">
-      <div class="header-left" style="display: flex; flex-direction: column; gap: 8px;">
-        <div class="status-indicator" style="display: flex; align-items: center; gap: 8px;">
-          <span class="blink-dot" style="background-color: #00d4ff;"></span>
-          <span style="font-size: 10px; letter-spacing: 2px; color: #00d4ff; font-weight: 700; text-transform: uppercase;">ECON_SYNC // ACTIVE</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="wallet" style="color: var(--accent); width: 28px; height: 28px;"></i>
-          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; color: #fff; text-transform: uppercase; line-height: 1;">CREDITS</h1>
-        </div>
-      </div>
-      <div class="header-right">
-        <div class="esc-btn" onclick="nav('home')" style="cursor: pointer; opacity: 0.7;">[esc X]</div>
-      </div>
+<div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 20px 12px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
+      <span class="blink-dot"></span>
+      <span style="font-size: 12px; color: var(--dim-2); letter-spacing: 1px;">Gestione Fondi</span>
     </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <i data-lucide="wallet" style="width: 24px; height: 24px; color: var(--text); opacity: 0.6;"></i>
+      <h1 style="margin: 0; font-family: 'Space Grotesk'; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1;">Finance</h1>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 4px;">
+    <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="nav('home')"></i>
+  </div>
+</div>
 
     <main style="padding: 0 15px; max-width: 100%;">
       <div id="finance-home-view">
@@ -669,21 +670,21 @@
   <!-- PAGE: REVIEWS -->
   <!-- ============================================ -->
   <div id="reviews" class="page" style="width: 100vw !important; height: 100vh !important;">
-    <div class="header">
-      <div class="header-left">
-        <div class="status-indicator">
-          <span class="blink-dot"></span>
-          <span style="font-size: 10px; letter-spacing: 2px; color: var(--accent); font-weight: 700;">MEDIA_CRITIC // SYNC</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <i data-lucide="videotape" class="brain-icon"></i>
-          <h1 style="margin: 0; font-family: 'Rajdhani'; font-size: 1.875rem; line-height: 1;">REVIEWS</h1>
-        </div>
-      </div>
-      <div class="header-right">
-        <div class="esc-btn" onclick="nav('home')">[esc X]</div>
-      </div>
+<div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 20px 12px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
+      <span class="blink-dot"></span>
+      <span style="font-size: 12px; color: var(--dim-2); letter-spacing: 1px;">Film · Serie · Giochi · Comics</span>
     </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <i data-lucide="cassette-tape" style="width: 24px; height: 24px; color: var(--text); opacity: 0.6; cursor: pointer;"></i>
+      <h1 style="margin: 0; font-family: 'Space Grotesk'; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1;">Watchlists</h1>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 4px;">
+    <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="nav('home')"></i>
+  </div>
+</div>
 
     <div class="search-container" style="padding: 0 15px 15px 15px;">
       <div style="position: relative; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 4px; display: flex; align-items: center; padding: 0 10px;">
