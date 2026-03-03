@@ -790,7 +790,7 @@
       onkeypress="if(event.key==='Enter') addTodoItem()">
 
     <div style="display:flex; justify-content:flex-end; gap:10px;">
-      <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeTodoModal()"></i>
+      <i class="esc-btn" data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeTodoModal()"></i>
       <button onclick="saveTodoList()"
         style="background:var(--accent); color:#fff; border:none; padding:10px 20px; 
                border-radius:4px; font-weight:700; font-family:'Space Grotesk'; cursor:pointer;">SALVA_LISTA</button>
@@ -799,28 +799,7 @@
   </div>
 </div>
 
-  <!-- MODAL: LINK -->
-  <div id="link-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
-    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">ADD_LINK</h2>
-      <div class="esc-btn" onclick="closeLinkModal()">[esc X]</div>
-    </div>
-    <div style="flex: 1; padding: 20px; overflow-y: auto;">
-      <input type="url" id="link-url-input" placeholder="PASTE_URL_HERE..."
-        style="width: 100%; background: #0a0a0a; border: 1px solid var(--accent); padding: 15px; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 13px; margin-bottom: 20px;"
-        onkeypress="if(event.key==='Enter') fetchLinkPreview()">
-      <div id="link-preview-container" style="display: none; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 4px; border-left: 3px solid var(--accent);">
-        <div id="link-preview-image" style="width: 100%; height: 200px; background-size: cover; background-position: center; border-radius: 4px; margin-bottom: 15px; background-color: #111;"></div>
-        <h3 id="link-preview-title" style="font-family: 'Rajdhani'; color: var(--accent); margin: 0 0 10px 0;"></h3>
-        <p id="link-preview-description" style="font-family: 'JetBrains Mono'; font-size: 12px; color: #aaa; line-height: 1.5;"></p>
-        <p id="link-preview-domain" style="font-size: 10px; color: #666; margin-top: 10px;"></p>
-      </div>
-    </div>
-    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px;">
-      <button onclick="closeLinkModal()" style="background: transparent; color: #666; border: 1px solid #333; padding: 12px 20px; cursor: pointer; font-family: 'Rajdhani';">CANCEL</button>
-      <button id="save-link-btn" onclick="saveLinkNote()" disabled style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; opacity: 0.5;">SAVE_LINK</button>
-    </div>
-  </div>
+
 
   <!-- MODAL: DELETE CONFIRMATION -->
   <div id="delete-modal">
@@ -840,7 +819,7 @@
         <h1 id="detail-review-title">TITOLO</h1>
         <div style="display:flex; gap:15px; align-items:center;">
           <div onclick="editPosterLink()" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid; padding:2px 5px; opacity:0.6;">EDIT_IMG</div>
-          <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeReviewDetail()"></i>
+          <i class="esc-btn" data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeReviewDetail()"></i>
 
         </div>
       </div>
@@ -871,8 +850,7 @@
         <span class="blink-dot"></span> ANALISI_NEURALE_IN_CORSO...
       </div>
       <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-        <button class="esc-btn" onclick="closeReviewEntry()">ANNULLA</button>
-        <button id="btn-save-review" onclick="processReviewWithAI()"
+            <i class="esc-btn" data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="nav('home')"></i>        <button id="btn-save-review" onclick="processReviewWithAI()"
           style="background:var(--accent); color:#000; border:none; padding:10px 20px; border-radius:4px; font-weight:700;">PUBBLICA</button>
       </div>
     </div>
@@ -889,7 +867,7 @@
       style="width:100%; height:150px; background:#111; border:1px solid #333; color:#fff; padding:15px; border-radius:8px; font-family:'JetBrains Mono'; font-size:13px; resize:vertical; box-sizing:border-box;"></textarea>
 
     <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
-      <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeGhostModal()"></i>
+      <i class="esc-btn" data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeGhostModal()"></i>
       <button id="ghost-save-btn" onclick="saveGhostNote()"
         style="background:var(--accent); color:#fff; border:none; padding:10px 20px; border-radius:4px; font-weight:700; font-family:'Space Grotesk'; cursor:pointer;">SALVA</button>
     </div>
