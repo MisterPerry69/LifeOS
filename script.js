@@ -195,6 +195,7 @@ async function loadStats() {
 
         cacheData(data);
         renderWithData(data);
+        return data; // ← AGGIUNTA questa riga
         
     } catch (err) {
         console.error("ERRORE_CRITICO_SYNC:", err);
