@@ -1933,7 +1933,7 @@ function openReviewDetail(id) {
                 </h1>
                 <div style="display:flex; gap:10px; align-items:center; flex-shrink:0; margin-left:15px;">
                     <div onclick="editPosterLink('${item.id}')" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid var(--accent); padding:3px 7px; border-radius:4px; opacity:0.6; white-space:nowrap;">EDIT_IMG</div>
-                    <div onclick="closeReviewDetail()" style="cursor:pointer; font-size:10px; color:var(--dim); border:1px solid var(--border); padding:3px 7px; border-radius:4px; white-space:nowrap;">ESC [X]</div>
+                    <i  data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeReviewDetail()"></i>
                 </div>
             </div>
             <p style="font-family:'JetBrains Mono'; font-size:11px; color:var(--dim-2); margin:8px 0 20px 0; letter-spacing:0.5px;">
