@@ -1923,50 +1923,42 @@ function openReviewDetail(id) {
         const d = item.data.split('-');
         const mesi = ["GEN", "FEB", "MAR", "APR", "MAG", "GIU", "LUGL", "AGO", "SET", "OTT", "NOV", "DIC"];
         fullDate = `${d[2]} ${mesi[parseInt(d[1])-1]} ${d[0]}`;
-    } 
+    }
 
-    modal.innerHTML = `
-        <div class="review-detail-card" style="border-top: 3px solid ${color}">
-            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
-            <div style="margin-bottom: 5px; text-align: left;">
-                <h1 style="font-family:'Space Grotesk'; font-size: 2rem; margin: 0; color: ${color}; text-transform: uppercase; line-height:1.1; font-weight:700; letter-spacing:-0.5px;">
-                    ${item.titolo}
-                </h1>
-                <p style="font-family:'JetBrains Mono'; font-size: 11px; color: var(--dim-2); margin: 8px 0 0 0; letter-spacing:0.5px;">
-                    <span style="color:var(--dim)">${fullDate}</span> · 
-                    <span style="color:${color}">${item.categoria}</span><br/> 
-                    ${item.metadata || 'NO_INFO'}
-                </p>
-            </div>
-            <div class="review-main-content">
-                <div class="detail-poster-zone">
-                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 8px;">
-                    <div style="margin-top: 15px; background: var(--glass); padding: 12px; border: 1px solid var(--border); text-align: center; border-radius: 8px; backdrop-filter: var(--blur);">
-                        ${itemIsWish ? `
-                            <div style="color:${color}; font-family:'Space Grotesk'; font-size: 0.85rem; font-weight:600; letter-spacing:1px;">
-                                <i data-lucide="clock" style="width:14px; margin-bottom:4px;"></i><br>IN WISHLIST
-                            </div>
-                        ` : `
-                            <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">${renderStars(item.rating, color)}</div>
-                            <div style="font-family:'Space Grotesk'; font-size: 1.3rem; color:${color}; font-weight:700;">${item.rating} / 5</div>
-                        `}
-                    </div>
-                </div>
-                <div class="review-text-zone" style="color: var(--dim); font-family: 'JetBrains Mono'; font-size: 13px; line-height: 1.7;">
-                    ${(item.commento_full || item.commento || 'Nessun testo.').trim()}
-                    ${itemIsWish ? `
-                        <div style="margin-top:30px; border-top: 1px solid var(--border); padding-top:20px;">
-                            <button onclick="promoteToReview('${item.id}')" 
-                                style="width:100%; background:var(--accent); color:#fff; border:none; padding:12px; font-family:'Space Grotesk'; font-weight:600; cursor:pointer; border-radius:8px;">
-                                CONVERTI IN RECENSIONE
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        </div>
+    // Popola i campi esistenti invece di sovrascrivere tutto
+    modal.style.borderTop = `3px solid ${color}`;
+
+    document.getElementById('detail-review-title').innerText = item.titolo;
+    document.getElementById('detail-review-title').style.color = color;
+
+    const poster = document.getElementById('detail-review-poster');
+    poster.style.backgroundImage = item.image_url ? `url('${item.image_url}')` : '';
+    poster.onclick = () => window.open(item.image_url, '_blank');
+
+    document.getElementById('detail-review-stars').innerHTML = itemIsWish
+        ? `<div style="color:${color}; font-size:0.85rem; font-weight:600;">⏳ IN WISHLIST</div>`
+        : `${renderStars(item.rating, color)}<div style="font-size:1.2rem; color:${color}; font-weight:700; margin-top:8px;">${item.rating} / 5</div>`;
+
+    document.getElementById('detail-review-meta').innerHTML = `
+        <span style="color:var(--dim)">${fullDate}</span> · 
+        <span style="color:${color}">${item.categoria}</span><br>
+        <span style="color:var(--dim-2); font-size:10px;">${item.metadata || 'NO_INFO'}</span>
     `;
-    
+
+    document.getElementById('detail-review-comment').innerHTML = `
+        <div style="color:var(--dim); font-family:'JetBrains Mono'; font-size:13px; line-height:1.7;">
+            ${(item.commento_full || item.commento || 'Nessun testo.').trim()}
+        </div>
+        ${itemIsWish ? `
+            <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">
+                <button onclick="promoteToReview('${item.id}')"
+                    style="width:100%; background:var(--accent); color:#fff; border:none; padding:12px; font-family:'Space Grotesk'; font-weight:600; cursor:pointer; border-radius:8px;">
+                    CONVERTI IN RECENSIONE
+                </button>
+            </div>
+        ` : ''}
+    `;
+
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
     if(window.lucide) lucide.createIcons();
