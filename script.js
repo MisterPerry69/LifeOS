@@ -1932,7 +1932,6 @@ function openReviewDetail(id) {
                     ${item.titolo}
                 </h1>
                 <div style="display:flex; gap:10px; align-items:center; flex-shrink:0; margin-left:15px;">
-                    <div onclick="editPosterLink('${item.id}')" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid var(--accent); padding:3px 7px; border-radius:4px; opacity:0.6; white-space:nowrap;">EDIT_IMG</div>
                     <i  data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeReviewDetail()"></i>
                 </div>
             </div>
