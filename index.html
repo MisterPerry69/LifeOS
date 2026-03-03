@@ -211,12 +211,11 @@
 
     </div>
 
-    <div id="brain-search-overlay" style="position: fixed; bottom: 75px; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid var(--accent);
-      padding: 15px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 8000; display: none;">
+    <div id="brain-search-overlay" style="position: fixed; bottom: 75px; left: 0; right: 0;padding: 15px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 8000; display: none;">
       <div style="position: relative;">
         <i data-lucide="search" style="position: absolute; left: 10px; top: 34%; transform: translateY(-50%); width: 14px; color: #444;"></i>
         <input type="text" id="brain-search-input" placeholder="SEARCH_NOTES..." style="width: 100%; background: transparent;
-          border: 1px solid #333; padding: 10px 10px 10px 35px; color: var(--accent); font-family: 'JetBrains Mono';
+              border: 1px solid var(--accent); padding: 10px 10px 10px 35px; color: var(--accent); font-family: 'JetBrains Mono';
           font-size: 11px; outline: none;" oninput="filterNotes(this.value)"/>
       </div>
     </div>
@@ -745,7 +744,8 @@
   <div id="note-detail" class="note-overlay">
     <div class="header">
       <h1 id="detail-type">NOTA</h1>
-      <div class="info" onclick="saveAndClose()">SALVA [X]</div>
+      <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="saveAndClose()"></i>
+
     </div>
     <div class="modal-body">
       <textarea id="detail-text" spellcheck="false"></textarea>
@@ -770,25 +770,34 @@
   </div>
 
   <!-- MODAL: TODO -->
-  <div id="todo-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
-    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">NEW_TODO_LIST</h2>
-      <div class="esc-btn" onclick="closeTodoModal()">[esc X]</div>
+  <div id="todo-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
+  <div class="review-detail-card" style="border-left: 4px solid var(--accent); padding:25px; max-height: 80vh; display:flex; flex-direction:column;">
+    
+    <h2 style="font-family:'Space Grotesk'; color:var(--accent); margin-bottom:5px; font-weight:700;">📋 NEW_TODO_LIST</h2>
+    <p style="font-size:10px; color:var(--dim); margin-bottom:20px;">Crea la tua lista. Premi Enter per aggiungere ogni elemento.</p>
+
+    <input type="text" id="todo-list-title" placeholder="Nome lista (opzionale)..."
+      style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--border); 
+             padding:8px 0; color:var(--accent); font-family:'Space Grotesk'; font-size:1rem; 
+             font-weight:700; margin-bottom:20px; outline:none; box-sizing:border-box;">
+
+    <div id="todo-items-container" style="flex:1; overflow-y:auto; margin-bottom:15px; min-height:60px;"></div>
+
+    <input type="text" id="new-todo-item" placeholder="Scrivi e premi Enter..."
+      style="width:100%; background:#111; border:1px solid var(--border); padding:12px 15px; 
+             color:var(--text); font-family:'JetBrains Mono'; font-size:13px; border-radius:8px; 
+             outline:none; box-sizing:border-box; margin-bottom:20px;"
+      onkeypress="if(event.key==='Enter') addTodoItem()">
+
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeTodoModal()"></i>
+      <button onclick="saveTodoList()"
+        style="background:var(--accent); color:#fff; border:none; padding:10px 20px; 
+               border-radius:4px; font-weight:700; font-family:'Space Grotesk'; cursor:pointer;">SALVA_LISTA</button>
     </div>
-    <div style="flex: 1; padding: 20px; overflow-y: auto;">
-      <input type="text" id="todo-list-title" placeholder="NOME_LISTA (opzionale)..."
-        style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #333; 
-               padding: 10px 0; color: #00ff41; font-family: 'Rajdhani'; font-size: 1.1rem; 
-               font-weight: 700; margin-bottom: 20px; outline: none; letter-spacing: 1px;">
-      <div id="todo-items-container" style="margin-bottom: 20px;"></div>
-      <input type="text" id="new-todo-item" placeholder="TYPE_AND_PRESS_ENTER..."
-        style="width: 100%; background: #0a0a0a; border: 1px solid var(--accent); padding: 15px; color: var(--accent); font-family: 'JetBrains Mono'; font-size: 13px;"
-        onkeypress="if(event.key==='Enter') addTodoItem()">
-    </div>
-    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end;">
-      <button onclick="saveTodoList()" style="background: var(--accent); color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; font-size: 14px;">SAVE_LIST</button>
-    </div>
+
   </div>
+</div>
 
   <!-- MODAL: LINK -->
   <div id="link-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
@@ -831,7 +840,8 @@
         <h1 id="detail-review-title">TITOLO</h1>
         <div style="display:flex; gap:15px; align-items:center;">
           <div onclick="editPosterLink()" style="cursor:pointer; font-size:10px; color:var(--accent); border:1px solid; padding:2px 5px; opacity:0.6;">EDIT_IMG</div>
-          <div class="review-close-btn" onclick="closeReviewDetail()">CHIUDI [X]</div>
+          <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeReviewDetail()"></i>
+
         </div>
       </div>
       <div class="review-modal-body">
@@ -869,28 +879,23 @@
   </div>
 
   <!-- GHOST MODAL -->
-  <div id="ghost-modal" style="display: none; position: fixed; inset: 0; background: var(--card); z-index: 10001; flex-direction: column;">
-    <div class="header" style="border-bottom: 1px solid #333; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin: 0; color: var(--accent); font-family: 'Rajdhani'; font-size: 1.5rem;">👻 GHOST_WRITER</h2>
-      <div class="esc-btn" onclick="closeGhostModal()">[esc X]</div>
+<div id="ghost-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
+  <div class="review-detail-card" style="border-left: 4px solid var(--accent); padding:25px;">
+    
+    <h2 style="font-family:'Space Grotesk'; color:var(--accent); margin-bottom:5px; font-weight:700;">👻 GHOST WRITER</h2>
+    <p style="font-size:10px; color:var(--dim); margin-bottom:20px;">Scrivi il testo grezzo. L'AI lo riscriverà e salverà direttamente.</p>
+    
+    <textarea id="ghost-input" placeholder="Es: ieri ho mangiato pizza con luca poi siamo andati al cinema e il film era bello ma un po lungo..."
+      style="width:100%; height:150px; background:#111; border:1px solid #333; color:#fff; padding:15px; border-radius:8px; font-family:'JetBrains Mono'; font-size:13px; resize:vertical; box-sizing:border-box;"></textarea>
+
+    <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+      <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeGhostModal()"></i>
+      <button id="ghost-save-btn" onclick="saveGhostNote()"
+        style="background:var(--accent); color:#fff; border:none; padding:10px 20px; border-radius:4px; font-weight:700; font-family:'Space Grotesk'; cursor:pointer;">SALVA</button>
     </div>
-    <div style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
-      <div>
-        <label style="font-size: 10px; color: #666; margin-bottom: 5px; display: block;">TESTO_GREZZO</label>
-        <textarea id="ghost-input" placeholder="Scrivi qui il testo da sistemare..."
-          style="width: 100%; min-height: 200px; background: #0a0a0a; border: 1px solid #333; padding: 15px; color: #fff; font-family: 'JetBrains Mono'; font-size: 13px; resize: vertical;"></textarea>
-      </div>
-      <div id="ghost-output-container" style="display: none;">
-        <label style="font-size: 10px; color: var(--accent); margin-bottom: 5px; display: block;">✨ TESTO_SISTEMATO</label>
-        <div id="ghost-output"
-          style="background: rgba(0,255,65,0.05); border: 1px solid var(--accent); padding: 15px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 13px; line-height: 1.6; color: #eee; white-space: pre-wrap;"></div>
-      </div>
-    </div>
-    <div style="padding: 15px; border-top: 1px solid #333; display: flex; justify-content: flex-end; gap: 10px;">
-      <button onclick="closeGhostModal()" style="background: transparent; color: #666; border: 1px solid #333; padding: 12px 20px; cursor: pointer; font-family: 'Rajdhani';">CANCEL</button>
-      <button id="ghost-save-btn" onclick="saveGhostNote()" style="background: #666; color: #000; border: none; padding: 12px 30px; cursor: pointer; font-family: 'Rajdhani'; font-weight: bold; opacity: 0.5;">SALVA</button>
-    </div>
+
   </div>
+</div>
 
   <!-- ============================================ -->
   <!-- LUCIDE INIT -->

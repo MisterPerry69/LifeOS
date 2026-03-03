@@ -2943,17 +2943,65 @@ async function generateGhostText() {
 async function saveGhostNote() {
     const input = document.getElementById('ghost-input').value.trim();
     if (!input) { showCustomAlert("SCRIVI_QUALCOSA_PRIMA"); return; }
+    
     const saveBtn = document.getElementById('ghost-save-btn');
     saveBtn.innerHTML = '<span class="blink">AI_PROCESSING...</span>';
     saveBtn.disabled = true;
+    
+    // Optimistic UI — card provvisoria
+    const fakeId = 'temp_' + Date.now();
+    const fakeNote = {
+        id: fakeId,
+        date: new Date(),
+        type: 'GHOST',
+        content: input,
+        color: 'default',
+        title: '👻 ' + input.substring(0, 25) + '...'
+    };
+    loadedNotesData.unshift(fakeNote);
+    lastStatsData.notes = loadedNotesData;
+    renderGrid(lastStatsData);
+    
     closeGhostModal();
+    
+    // Trova la card provvisoria e mettila in stato loading
+    const tempCard = document.getElementById(`card-${fakeId}`);
+    if (tempCard) {
+        tempCard.style.opacity = '0.5';
+        tempCard.querySelector('.title-row').innerHTML = '<span class="blink">👻 AI_RISCRITTURA...</span>';
+    }
+    
     try {
-        const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'ghost_rewrite', text: input }) });
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'ghost_rewrite', text: input })
+        });
+        
         const rewrittenText = await response.text();
-        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ service: "note", text: `[GHOST]\n${rewrittenText}` }) });
+        
+        // Aggiorna la card provvisoria col testo riscritto
+        if (tempCard) {
+            tempCard.style.opacity = '1';
+            tempCard.querySelector('.title-row').innerHTML = '👻 ' + rewrittenText.substring(0, 25) + '...';
+            tempCard.querySelector('.content-preview').innerText = rewrittenText.substring(0, 100);
+        }
+        
+        // Salva sul server
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ service: "note", text: `[GHOST]\n${rewrittenText}` })
+        });
+        
         showCustomAlert("NOTA_AI_SALVATA", true);
         setTimeout(() => loadStats(), 2000);
+        
     } catch(e) {
+        console.error("Errore Ghost:", e);
+        // Rimuovi la card provvisoria in caso di errore
+        const fakeCard = document.getElementById(`card-${fakeId}`);
+        if (fakeCard) fakeCard.remove();
+        loadedNotesData = loadedNotesData.filter(n => n.id !== fakeId);
         showCustomAlert("ERRORE_GHOST");
     }
 }

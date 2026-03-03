@@ -682,15 +682,23 @@ input:focus {
 
 /* --- 12. TOOLBAR & COLOR PICKER --- */
 .note-toolbar {
-    height: 60px;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    width: auto;
+    max-width: 400px;
+    height: 65px;
+    margin: 0 auto;
+    background: rgba(20, 20, 20, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: 28px;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 15px;
-    border-top: 1px solid var(--border);
-    background: var(--card);
-    min-height: 60px;
-    flex-shrink: 0;
+    padding: 0 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
 }
 
 .tool-icon {
