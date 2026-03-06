@@ -1064,13 +1064,21 @@ function renderFinanceLog(transactions) {
         const hasNote = t.note && t.note !== "";
         const color = t.amt < 0 ? "#ff4d6d" : "#4ade80";
 
+        // ← FIX: Escape stringhe per evitare rotture con apostrofi/virgolette
+        const safeNote = (t.note || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        const safeDesc = (t.desc || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        const safeAdvice = (t.advice || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+
         return `
         <div class="trans-row" style="display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border);">
             <span style="font-size: 10px; color: var(--dim-2); min-width: 35px;">${t.date}</span>
             <i data-lucide="${iconName}" style="width: 16px; color: var(--text); opacity: 0.6;"></i>
             <div style="flex: 1; display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 11px; font-weight: 500; color: var(--text); text-transform: uppercase;">${t.desc}</span>
-                ${hasNote ? `<i data-lucide="info" onclick="showTransactionNote('${t.note}', '${t.desc}', '${t.advice}')" style="width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; cursor: pointer; margin-left: 5px;"></i>` : ''}
+                ${hasNote ? `<i data-lucide="info" 
+                   onclick="showTransactionNote('${safeNote}', '${safeDesc}', '${safeAdvice}')" 
+                   style="width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; cursor: pointer; margin-left: 5px;">
+                </i>` : ''}
             </div>
             <span style="color: ${color}; font-family: 'Space Grotesk'; font-weight: 700; font-size: 13px;">
                 ${t.amt > 0 ? '+' : ''}${parseFloat(t.amt).toFixed(2)}€
@@ -1085,20 +1093,28 @@ async function showTransactionNote(noteText, description, advice) {
     const bubble = document.getElementById('analyst-bubble');
     const text = document.getElementById('analyst-text');
     if (!bubble || !text) return;
+    
     bubble.classList.remove('active');
     void bubble.offsetWidth; 
     bubble.classList.add('active');
+    
+    // ← FIX: Rimuovi gli escape (backslash) prima di mostrare il testo
+    const cleanNote = (noteText || 'NESSUNA NOTA').replace(/\\'/g, "'").replace(/\\"/g, '"');
+    const cleanDesc = (description || 'TRANSACTION').replace(/\\'/g, "'").replace(/\\"/g, '"');
+    const cleanAdvice = (advice || 'NESSUN COMMENTO ARCHIVIATO').replace(/\\'/g, "'").replace(/\\"/g, '"');
+    
     text.innerHTML = `
         <div style="font-size: 0.7rem; color: var(--dim-2); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase;">Nota su</div>
-        <div style="color: var(--accent); font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">${(description || 'TRANSACTION').toUpperCase()}</div>
+        <div style="color: var(--accent); font-size: 0.9rem; font-weight: 700; margin-bottom: 4px;">${cleanDesc.toUpperCase()}</div>
         <div style="color: var(--text); font-style: italic; margin-bottom: 12px; border-left: 2px solid var(--border); padding-left: 8px; font-size: 0.85rem;">
-            "${(noteText || 'NESSUNA NOTA').toUpperCase()}"
+            "${cleanNote.toUpperCase()}"
         </div>
         <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px;">
             <span style="font-size: 0.7rem; color: var(--dim-2); text-transform: uppercase; letter-spacing: 1px;">Analisi precedente:</span><br>
-            <span style="color: var(--accent); font-weight: 700;">"${(advice || 'NESSUN COMMENTO ARCHIVIATO').toUpperCase()}"</span>
+            <span style="color: var(--accent); font-weight: 700;">"${cleanAdvice.toUpperCase()}"</span>
         </div>
     `;
+    
     setTimeout(() => bubble.classList.remove('active'), 8000);
 }
 
