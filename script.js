@@ -27,8 +27,6 @@ let currentReviews = [];
 let ghostGeneratedText = '';
 let balanceHidden = true;
 let cachedFinanceStats = null;
-let isWishlistView = false;
-let isStatsView = false;
 let isProgressView = false;
 
 // Wallet attivo per Finance input
