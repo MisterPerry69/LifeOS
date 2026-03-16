@@ -27,6 +27,9 @@ let currentReviews = [];
 let ghostGeneratedText = '';
 let balanceHidden = true;
 let cachedFinanceStats = null;
+let isWishlistView = false;
+let isStatsView = false;
+let isProgressView = false;
 
 // Wallet attivo per Finance input
 window.activeWallet = "BANK";
@@ -1745,10 +1748,16 @@ function isWish(r) {
     return r.categoria.toUpperCase().includes("WISH");
 }
 
+function isProgress(r) {
+    if (!r || !r.categoria) return false;
+    return r.categoria.toUpperCase().includes("IN_PROGRESS");
+}
+
 function getCleanCat(r) {
     if (!r || !r.categoria) return "VARIE";
     const parts = r.categoria.split(",").map(p => p.trim().toUpperCase());
-    return parts.find(p => p !== "WISH") || "VARIE";
+    // Rimuovi sia WISH che IN_PROGRESS per ottenere categoria base
+    return parts.find(p => p !== "WISH" && p !== "IN_PROGRESS") || "VARIE";
 }
 
 function renderStars(rating, color) {
@@ -1798,46 +1807,78 @@ function loadReviews() {
 function renderReviews(data, showOnlyWish = false) {
     const list = document.getElementById('reviews-list');
     if (!list) return;
-    const filteredData = showOnlyWish ? data.filter(item => isWish(item)) : data;
-    if (!filteredData || filteredData.length === 0) {
+
+    if (!data || data.length === 0) {
         list.innerHTML = `<div style="text-align:center; opacity:0.1; padding:40px; letter-spacing:2px;">[ NESSUN_DATO_RILEVATO ]</div>`;
         return;
     }
 
-    const catColors = { 'FILM': '#3b82f6', 'SERIE': '#8b5cf6', 'GAME': '#10b981', 'COMIC': '#f59e0b', 'WISH': '#6b7280' };
+    const catColors = {
+        'FILM': '#00d4ff',
+        'SERIE': '#ff0055',
+        'GAME': '#00ff44',
+        'COMIC': '#ffcc00',
+        'WISH': '#888888',
+        'IN_PROGRESS': '#ff9500' // ← ARANCIONE
+    };
 
-    list.innerHTML = filteredData.map(item => {
-        const color = catColors[getCleanCat(item)] || 'var(--accent)';
-        const dateStr = formatItalianDate(item.data);
-        const itemIsWish = isWish(item);
-        const starsHtml = itemIsWish 
-            ? `<div style="display:flex; align-items:center; gap:5px; color:var(--dim); font-size:10px;"><i data-lucide="bookmark" style="width:12px; height:12px;"></i> WISHLIST</div>`
-            : renderStars(item.rating, color);
+   list.innerHTML = data.map(item => {
+    const itemIsWish = isWish(item);
+    const itemIsProgress = isProgress(item);
+    const cleanCat = getCleanCat(item);
+    
+    // ← Se è IN_PROGRESS, usa colore arancione, altrimenti categoria base
+    const color = itemIsProgress ? '#ff9500' : (catColors[cleanCat] || 'var(--accent)');
+    const dateStr = formatItalianDate(item.data);
+    
+    const starsHtml = itemIsWish 
+        ? `<div style="display:flex; align-items:center; gap:5px; color:#666; font-size:10px;">
+            <i data-lucide="bookmark" style="width:12px; height:12px;"></i> WISHLIST
+           </div>`
+        : itemIsProgress
+        ? `<div style="display:flex; align-items:center; gap:5px; color:#ff9500; font-size:10px;">
+            <i data-lucide="play-circle" style="width:12px; height:12px;"></i> IN CORSO
+           </div>`
+        : renderStars(item.rating, color);
 
-        return `
-        <div class="review-card" data-review-id="${item.id}" style="border-left: 3px solid ${color}; cursor:pointer;">
-            <div class="poster-mini" style="background-image: url('${item.image_url || ''}'); background-color: var(--bg);">
-                ${!item.image_url ? `<span style="font-size:8px; color:var(--dim-2);">NO_IMG</span>` : ''}
+    return `
+        <div class="review-card" 
+             data-review-id="${item.id}"
+             style="border-left: 3px solid ${color}; cursor:pointer;">
+            
+            <div class="poster-mini" 
+                 style="background-image: url('${item.image_url || ''}'); background-color: #050505;">
+                 ${!item.image_url ? `<span style="font-size:8px; color:#333;">NO_IMG</span>` : ''}
             </div>
+
             <div class="review-info">
                 <div class="review-top">
-                    <span class="review-title" style="color:${color}; font-family:'Space Grotesk';">${item.titolo}</span>
-                    <div class="rating-stars" style="display:flex; gap:2px;">${starsHtml}</div>
+                    <span class="review-title" style="color:${color}; font-family:'Rajdhani';">${item.titolo}</span>
+                    <div class="rating-stars" style="display:flex; gap:2px;">
+                        ${starsHtml}
+                    </div>
                 </div>
-                <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:var(--dim);">
+                
+                <div class="review-comment" style="font-family:'JetBrains Mono'; font-style: normal; color:#aaa;">
                     ${item.commento_breve || item.riassunto_ai || ''}
                 </div>
+                
                 <div class="review-meta" style="font-family:'JetBrains Mono';">
-                    <span style="color:var(--dim-2)">${item.categoria}</span>
-                    <span style="color:var(--dim-2)">${dateStr}</span>
+                    <span style="opacity:0.7">${item.categoria}</span>
+                    <span>${dateStr}</span>
                 </div>
             </div>
-        </div>`;
-    }).join('');
+        </div>
+    `;
+}).join('');
 
     list.querySelectorAll('.review-card').forEach(card => {
-        card.onclick = () => { const id = card.getAttribute('data-review-id'); if (id) openReviewDetail(id); };
+        card.onclick = () => {
+            const id = card.getAttribute('data-review-id');
+            if (id) openReviewDetail(id);
+        };
     });
+
     if(window.lucide) lucide.createIcons();
 }
 
@@ -1907,30 +1948,75 @@ async function processReviewWithAI() {
     }
 }
 
-function toggleWishlist() {
-    if (isStatsView) toggleStats(); 
-    isWishlistView = !isWishlistView;
-    const wishBtn = document.getElementById('nav-wish');
+function toggleProgress() {
+    if (isStatsView) toggleStats();
+    if (isWishlistView) toggleWishlist();
+    
+    isProgressView = !isProgressView;
+    
+    const progBtn = document.getElementById('nav-progress');
     const headerTitle = document.querySelector('#reviews .header h1');
-    if (headerTitle) headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
-    if (wishBtn) {
-        wishBtn.style.color = isWishlistView ? "var(--accent)" : "var(--dim)";
-        const icon = wishBtn.querySelector('i');
-        if (icon) icon.setAttribute('data-lucide', isWishlistView ? 'bookmark-check' : 'bookmark-plus');
+    
+    if (headerTitle) {
+        headerTitle.innerText = isProgressView ? 'IN PROGRESS' : 'REVIEWS';
     }
+
+    if (progBtn) {
+        progBtn.style.color = isProgressView ? "#ff9500" : "var(--dim)";
+        const icon = progBtn.querySelector('i');
+        if (icon) icon.setAttribute('data-lucide', isProgressView ? 'play-circle' : 'play-circle');
+    }
+
     const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
     filterByCategory('ALL', allChip);
+
+    if(window.lucide) lucide.createIcons();
+}
+
+function toggleProgress() {
+    if (isStatsView) toggleStats();
+    if (isWishlistView) toggleWishlist();
+    
+    isProgressView = !isProgressView;
+    
+    const progBtn = document.getElementById('nav-progress');
+    const headerTitle = document.querySelector('#reviews .header h1');
+    
+    if (headerTitle) {
+        headerTitle.innerText = isProgressView ? 'IN PROGRESS' : 'REVIEWS';
+    }
+
+    if (progBtn) {
+        progBtn.style.color = isProgressView ? "#ff9500" : "var(--dim)";
+        const icon = progBtn.querySelector('i');
+        if (icon) icon.setAttribute('data-lucide', isProgressView ? 'play-circle' : 'play-circle');
+    }
+
+    const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
+    filterByCategory('ALL', allChip);
+
     if(window.lucide) lucide.createIcons();
 }
 
 function openReviewDetail(id) {
     if (!allReviews || allReviews.length === 0) return;
+    
     const item = allReviews.find(r => String(r.id) === String(id));
     if (!item) return;
+
     const itemIsWish = isWish(item);
+    const itemIsProgress = isProgress(item);
     const cleanCat = getCleanCat(item);
-    const catColors = { 'FILM': '#3b82f6', 'SERIE': '#8b5cf6', 'GAME': '#10b981', 'COMIC': '#f59e0b', 'WISH': '#6b7280' };
-    const color = catColors[cleanCat] || 'var(--accent)';
+    const catColors = { 
+        'FILM': '#00d4ff', 
+        'SERIE': '#ff0055', 
+        'GAME': '#00ff44', 
+        'COMIC': '#ffcc00', 
+        'WISH': '#888888',
+        'IN_PROGRESS': '#ff9500'
+    };
+    const color = itemIsProgress ? '#ff9500' : (catColors[cleanCat] || 'var(--accent)');
+    
     const modal = document.getElementById('review-detail-modal');
     if (!modal) return;
 
@@ -1941,52 +2027,117 @@ function openReviewDetail(id) {
         fullDate = `${d[2]} ${mesi[parseInt(d[1])-1]} ${d[0]}`;
     }
 
+    // ← Parse PRO/CONTRO (potrebbero essere stringhe JSON o array)
+    let pros = [];
+    let cons = [];
+    
+    try {
+        if (item.pros) {
+            pros = typeof item.pros === 'string' ? JSON.parse(item.pros) : item.pros;
+        }
+    } catch(e) { console.warn("Errore parse pros:", e); }
+    
+    try {
+        if (item.cons) {
+            cons = typeof item.cons === 'string' ? JSON.parse(item.cons) : item.cons;
+        }
+    } catch(e) { console.warn("Errore parse cons:", e); }
+
     modal.innerHTML = `
         <div class="review-detail-card" style="border-top: 3px solid ${color}">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
-                <h1 style="font-family:'Space Grotesk'; font-size:2rem; margin:0; color:${color}; text-transform:uppercase; line-height:1.1; font-weight:700; letter-spacing:-0.5px;">
+            <button class="esc-btn" onclick="closeReviewDetail()">ESC</button>
+
+            <div style="margin-bottom: 5px; text-align: left;">
+                <h1 style="font-family:'Rajdhani'; font-size: 2.2rem; margin: 0; color: ${color}; text-transform: uppercase; line-height:1.1;">
                     ${item.titolo}
                 </h1>
-                <div style="display:flex; gap:10px; align-items:center; flex-shrink:0; margin-left:15px;">
-                    <i  data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="closeReviewDetail()"></i>
-                </div>
+                <p style="font-family:'JetBrains Mono'; font-size: 11px; color: #555; margin: 8px 0 0 0; letter-spacing:0.5px;">
+                    <span style="color:#888">${fullDate}</span> • 
+                    <span style="color:${color}">${item.categoria}</span> <br/> 
+                    ${item.metadata || 'NO_INFO'}
+                </p>
             </div>
-            <p style="font-family:'JetBrains Mono'; font-size:11px; color:var(--dim-2); margin:8px 0 20px 0; letter-spacing:0.5px;">
-                <span style="color:var(--dim)">${fullDate}</span> · 
-                <span style="color:${color}">${item.categoria}</span><br/>
-                ${item.metadata || 'NO_INFO'}
-            </p>
+
             <div class="review-main-content">
+                
                 <div class="detail-poster-zone">
-                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')" style="width:100%; box-shadow:0 10px 30px rgba(0,0,0,0.5); border-radius:8px; cursor:pointer;">
-                    <div style="margin-top:15px; background:var(--glass); padding:12px; border:1px solid var(--border); text-align:center; border-radius:8px;">
+                    <img src="${item.image_url}" onclick="window.open('${item.image_url}', '_blank')" 
+                         style="box-shadow: 0 10px 20px rgba(0,0,0,0.5); cursor: pointer;">
+                    
+                    <div style="margin-top: 15px; background: #080808; padding: 12px; border: 1px solid #111; text-align: center; border-radius:2px;">
                         ${itemIsWish ? `
-                            <div style="color:${color}; font-family:'Space Grotesk'; font-size:0.85rem; font-weight:600; letter-spacing:1px;">
-                                ⏳<br>IN WISHLIST
+                            <div style="color:${color}; font-family:'Rajdhani'; font-size: 0.9rem; letter-spacing:1px;">
+                                <i data-lucide="clock" style="width:14px; margin-bottom:4px;"></i><br>IN_WISHLIST
+                            </div>
+                        ` : itemIsProgress ? `
+                            <div style="color:#ff9500; font-family:'Rajdhani'; font-size: 0.9rem; letter-spacing:1px;">
+                                <i data-lucide="play-circle" style="width:14px; margin-bottom:4px;"></i><br>IN_CORSO
                             </div>
                         ` : `
-                            <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">${renderStars(item.rating, color)}</div>
-                            <div style="font-family:'Space Grotesk'; font-size:1.3rem; color:${color}; font-weight:700;">${item.rating} / 5</div>
+                            <div style="display:flex; justify-content:center; gap:3px; margin-bottom:5px;">
+                                ${renderStars(item.rating, color)}
+                            </div>
+                            <div style="font-family:'Rajdhani'; font-size: 1.3rem; color:${color}; font-weight:bold;">${item.rating} / 5</div>
                         `}
                     </div>
+
+                    ${!itemIsWish && !itemIsProgress && (pros.length > 0 || cons.length > 0) ? `
+                        <div style="margin-top: 15px; background: #080808; padding: 15px; border: 1px solid #111; border-radius: 4px;">
+                            ${pros.length > 0 ? `
+                                <div style="margin-bottom: ${cons.length > 0 ? '15px' : '0'};">
+                                    <div style="font-family:'Rajdhani'; font-size: 0.7rem; color: #00ff41; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase;">
+                                        <i data-lucide="thumbs-up" style="width:12px; height:12px;"></i> PRO
+                                    </div>
+                                    ${pros.map(p => `
+                                        <div style="font-size: 0.75rem; color: #aaa; margin-bottom: 4px; padding-left: 8px; border-left: 2px solid #00ff41;">
+                                            ${p}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            
+                            ${cons.length > 0 ? `
+                                <div>
+                                    <div style="font-family:'Rajdhani'; font-size: 0.7rem; color: #ff4d4d; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase;">
+                                        <i data-lucide="thumbs-down" style="width:12px; height:12px;"></i> CONTRO
+                                    </div>
+                                    ${cons.map(c => `
+                                        <div style="font-size: 0.75rem; color: #aaa; margin-bottom: 4px; padding-left: 8px; border-left: 2px solid #ff4d4d;">
+                                            ${c}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </div>
-                <div class="review-text-zone">
-                    ${(item.commento_full || item.commento || 'Nessun testo.').trim()}
+
+                <div class="review-text-zone">${(item.commento_full || item.commento || 'Nessun testo.').trim()}
+                    
                     ${itemIsWish ? `
-                        <div style="margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
-                            <button onclick="promoteToReview('${item.id}')"
-                                style="width:100%; background:var(--accent); color:#fff; border:none; padding:12px; font-family:'Space Grotesk'; font-weight:600; cursor:pointer; border-radius:8px;">
+                        <div style="margin-top:30px; border-top: 1px solid #222; padding-top:20px;">
+                            <button onclick="promoteToReview('${item.id}')" 
+                                    style="width:100%; background:${color}; color:#000; border:none; padding:12px; font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:4px;">
                                 CONVERTI IN RECENSIONE
+                            </button>
+                        </div>
+                    ` : itemIsProgress ? `
+                        <div style="margin-top:30px; border-top: 1px solid #222; padding-top:20px;">
+                            <button onclick="promoteToReview('${item.id}')" 
+                                    style="width:100%; background:#ff9500; color:#000; border:none; padding:12px; font-family:'Rajdhani'; font-weight:bold; cursor:pointer; border-radius:4px;">
+                                SEGNA COME COMPLETATO
                             </button>
                         </div>
                     ` : ''}
                 </div>
+
             </div>
         </div>
     `;
-
+    
     modal.style.display = 'flex';
     document.getElementById('modal-backdrop').style.display = 'block';
+    
     if(window.lucide) lucide.createIcons();
 }
 
@@ -2000,31 +2151,54 @@ function promoteToReview(id) {
 
 function toggleStats() {
     isStatsView = !isStatsView;
+    
     const statsBtn = document.getElementById('nav-stats');
     const wishBtn = document.getElementById('nav-wish');
+    const progBtn = document.getElementById('nav-progress'); // ← AGGIUNGI
     const list = document.getElementById('reviews-list');
     const statsCont = document.getElementById('reviews-stats-container');
     const headerTitle = document.querySelector('#reviews .header h1');
 
     if (isStatsView) {
-        isWishlistView = false; 
+        isWishlistView = false;
+        isProgressView = false; // ← RESET
+        
         if (headerTitle) headerTitle.innerText = 'DATA_INTELLIGENCE';
-        if (statsBtn) { statsBtn.style.setProperty('color', 'var(--accent)', 'important'); statsBtn.style.opacity = "1"; }
-        if (wishBtn) { wishBtn.style.setProperty('color', 'var(--dim)', 'important'); wishBtn.style.opacity = "0.5"; }
+        
+        if (statsBtn) {
+            statsBtn.style.setProperty('color', 'var(--accent)', 'important');
+            statsBtn.style.opacity = "1";
+        }
+        if (wishBtn) {
+            wishBtn.style.setProperty('color', 'var(--dim)', 'important');
+            wishBtn.style.opacity = "0.5";
+        }
+        if (progBtn) { // ← RESET IN_PROGRESS
+            progBtn.style.setProperty('color', 'var(--dim)', 'important');
+            progBtn.style.opacity = "0.5";
+        }
+        
         list.style.display = 'none';
         statsCont.style.display = 'block';
+        
         const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
         document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
         if (allChip) allChip.classList.add('active');
+        
         generateStatsHTML('6M', 'ALL'); 
     } else {
         if (headerTitle) headerTitle.innerText = 'REVIEWS';
-        if (statsBtn) { statsBtn.style.setProperty('color', 'var(--dim)', 'important'); statsBtn.style.opacity = "0.5"; }
+        if (statsBtn) {
+            statsBtn.style.setProperty('color', 'var(--dim)', 'important');
+            statsBtn.style.opacity = "0.5";
+        }
         list.style.display = 'flex';
         statsCont.style.display = 'none';
+        
         const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
         filterByCategory('ALL', allChip);
     }
+    
     if(window.lucide) lucide.createIcons();
 }
 
@@ -2150,17 +2324,30 @@ function generateStatsHTML(period = '6M', filterCat = 'ALL') {
 
 function filterByCategory(cat, element) {
     document.querySelectorAll('.filter-chip').forEach(el => el.classList.remove('active'));
-    if (element) element.classList.add('active');
+    element.classList.add('active');
+
     if (isStatsView) {
         generateStatsHTML('6M', cat);
     } else {
         const filtered = allReviews.filter(r => {
             const itemIsWish = isWish(r);
+            const itemIsProgress = isProgress(r);
             const cleanCat = getCleanCat(r);
-            const matchView = isWishlistView ? itemIsWish : !itemIsWish;
+            
+            // ← LOGICA A TRE VIE
+            let matchView;
+            if (isProgressView) {
+                matchView = itemIsProgress; // Mostra SOLO in progress
+            } else if (isWishlistView) {
+                matchView = itemIsWish; // Mostra SOLO wishlist
+            } else {
+                matchView = !itemIsWish && !itemIsProgress; // Mostra SOLO recensioni complete
+            }
+            
             const matchCat = (cat === 'ALL') ? true : (cleanCat === cat);
             return matchView && matchCat;
         });
+
         renderReviews(filtered, false);
     }
     if(window.lucide) lucide.createIcons();
