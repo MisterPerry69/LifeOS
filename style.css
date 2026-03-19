@@ -917,7 +917,7 @@ input:focus {
     max-height: 380px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 20px;
+    padding-bottom: 200px;
     margin: 20px;
     scrollbar-width: thin;
     scrollbar-color: var(--border-strong) transparent;
