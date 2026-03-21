@@ -914,20 +914,7 @@ input:focus {
 
 /* Finance log */
 #finance-log {
-    max-height: 380px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 200px;
-    margin: 20px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
-}
-
-#finance-log::-webkit-scrollbar { width: 4px; }
-#finance-log::-webkit-scrollbar-track { background: transparent; }
-#finance-log::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: 2px;
+padding-bottom: 70px;
 }
 
 #finance.page {
@@ -973,7 +960,7 @@ input:focus {
 
 #finance-stats-view {
     display: none;
-    padding: 20px 15px 170px 15px;
+    padding: 20px 15px 90px 15px;
     width: 100%;
     box-sizing: border-box;
     overflow-y: auto !important;
