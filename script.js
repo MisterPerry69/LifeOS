@@ -1016,7 +1016,7 @@ async function handleFinanceSubmit(event) {
         try {
             const result = JSON.parse(responseData);
             if (result.status === "SUCCESS") {
-                text.innerText = result.advice.toUpperCase();
+                showCustomAlert("TRANSAZIONE_SALVATA", true); // ← Feedback pulito
                 if (typeof loadStats === "function") await loadStats();
             } else {
                 text.innerText = "DANGER: " + (result.message || "SYNC_ERROR");
@@ -1321,53 +1321,213 @@ function toggleStats() {
     listView.style.display = 'none';
 }
 
+let currentStatsPeriod = 'CURRENT_MONTH'; // CURRENT_MONTH | YEAR | ALL_TIME
+let statsMonthOffset = 0; // 0 = mese corrente, -1 = mese scorso, etc.
+
 function renderFinanceStatsView(stats) {
     const container = document.getElementById('finance-stats-view');
+    
+    // Calcola periodo corrente
+    const now = new Date();
+    const viewDate = new Date(now.getFullYear(), now.getMonth() + statsMonthOffset, 1);
+    const monthNames = ["GENNAIO", "FEBBRAIO", "MARZO", "APRILE", "MAGGIO", "GIUGNO", "LUGLIO", "AGOSTO", "SETTEMBRE", "OTTOBRE", "NOVEMBRE", "DICEMBRE"];
+    const periodLabel = currentStatsPeriod === 'CURRENT_MONTH' 
+        ? monthNames[viewDate.getMonth()] + ' ' + viewDate.getFullYear()
+        : currentStatsPeriod === 'YEAR'
+        ? viewDate.getFullYear()
+        : 'TOTALE';
+    
     container.innerHTML = `
+        <!-- Toggle Periodo -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a;">
+            ${currentStatsPeriod === 'CURRENT_MONTH' ? `
+                <i data-lucide="chevron-left" onclick="changeStatsMonth(-1)" style="cursor: pointer; color: var(--accent);"></i>
+            ` : '<div></div>'}
+            
+            <div style="display: flex; gap: 15px; font-family: 'Rajdhani'; font-size: 0.9rem;">
+                <span onclick="setStatsPeriod('CURRENT_MONTH')" style="cursor: pointer; color: ${currentStatsPeriod === 'CURRENT_MONTH' ? 'var(--accent)' : 'var(--dim)'}; font-weight: ${currentStatsPeriod === 'CURRENT_MONTH' ? 'bold' : 'normal'};">MESE</span>
+                <span onclick="setStatsPeriod('YEAR')" style="cursor: pointer; color: ${currentStatsPeriod === 'YEAR' ? 'var(--accent)' : 'var(--dim)'}; font-weight: ${currentStatsPeriod === 'YEAR' ? 'bold' : 'normal'};">ANNO</span>
+                <span onclick="setStatsPeriod('ALL_TIME')" style="cursor: pointer; color: ${currentStatsPeriod === 'ALL_TIME' ? 'var(--accent)' : 'var(--dim)'}; font-weight: ${currentStatsPeriod === 'ALL_TIME' ? 'bold' : 'normal'};">TOTALE</span>
+            </div>
+            
+            ${currentStatsPeriod === 'CURRENT_MONTH' ? `
+                <i data-lucide="chevron-right" onclick="changeStatsMonth(1)" style="cursor: pointer; color: ${statsMonthOffset === 0 ? 'var(--dim)' : 'var(--accent)'}; opacity: ${statsMonthOffset === 0 ? '0.3' : '1'};"></i>
+            ` : '<div></div>'}
+        </div>
+
+        <div style="text-align: center; padding: 10px; font-family: 'Rajdhani'; font-size: 1.2rem; color: var(--accent);">
+            ${periodLabel}
+        </div>
+
+        <!-- Grid Stats + Benzina -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
             
-            <div style="background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: #ff4d6d; font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">SPESO</h3>
-                <div style="font-size: 1.5rem; color: #ff4d6d; font-family: 'Space Grotesk'; font-weight: 700;">${stats.spent.toFixed(2)}€</div>
+            <!-- Speso -->
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
+                <h3 style="color: #ff0055; font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💸 SPESO</h3>
+                <div style="font-size: 1.5rem; color: #ff0055; font-family: 'JetBrains Mono';">${stats.spent.toFixed(2)}€</div>
             </div>
             
-            <div style="background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">ENTRATE</h3>
-                <div style="font-size: 1.5rem; color: var(--accent); font-family: 'Space Grotesk'; font-weight: 700;">${stats.income.toFixed(2)}€</div>
+            <!-- Entrate -->
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
+                <h3 style="color: var(--accent); font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">💰 ENTRATE</h3>
+                <div style="font-size: 1.5rem; color: var(--accent); font-family: 'JetBrains Mono';">${stats.income.toFixed(2)}€</div>
             </div>
+
+            <!-- Burn Rate -->
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
+                <h3 style="color: #ff9500; font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">🔥 BURN RATE</h3>
+                <div style="font-size: 1.5rem; color: #ff9500; font-family: 'JetBrains Mono';">${stats.burnRate}%</div>
+            </div>
+
+            <!-- Benzina (se presente) -->
+            ${stats.gasSpent > 0 ? `
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; border-radius: 4px;">
+                <h3 style="color: #ffcc00; font-family: 'Rajdhani'; font-size: 0.9rem; margin-bottom: 10px;">⛽ BENZINA</h3>
+                <div style="font-size: 1.2rem; color: #ffcc00; font-family: 'JetBrains Mono';">${stats.gasSpent.toFixed(2)}€</div>
+                <div style="font-size: 0.7rem; color: var(--dim); margin-top: 4px;">${stats.gasLiters}L • ${stats.gasAvgPrice}€/L</div>
+            </div>
+            ` : ''}
             
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">AUTONOMIA</h3>
-                <div style="font-size: 0.85rem; color: var(--dim); margin-bottom: 8px;">
-                    Saldo: ${stats.total.toFixed(2)}€ · Spesa media: ${stats.spent.toFixed(2)}€
+        </div>
+
+        <!-- Grafico Categorie + Top 3 (resto uguale) -->
+        ...
+    `;
+}
+
+function setStatsPeriod(period) {
+    currentStatsPeriod = period;
+    statsMonthOffset = 0; // Reset quando cambi periodo
+    loadFinanceStatsForPeriod();
+}
+
+function changeStatsMonth(delta) {
+    const newOffset = statsMonthOffset + delta;
+    if (newOffset > 0) return; // Non andare nel futuro
+    statsMonthOffset = newOffset;
+    loadFinanceStatsForPeriod();
+}
+
+async function loadFinanceStatsForPeriod() {
+    // Chiama backend con periodo specifico
+    const res = await fetch(`${SCRIPT_URL}?action=get_finance_stats&period=${currentStatsPeriod}&offset=${statsMonthOffset}`);
+    const stats = await res.json();
+    renderFinanceStatsView(stats);
+}
+
+// Backend - Calcolo Budget
+function calculateBudget() {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    
+    // 1. BUDGET MENSILE: Media ultimi 3 mesi
+    const last3Months = [];
+    for (let i = 1; i <= 3; i++) {
+        const targetDate = new Date(thisYear, thisMonth - i, 1);
+        const stats = getFinanceStats('CURRENT_MONTH', -i);
+        last3Months.push(stats.spent);
+    }
+    const avgMonthlySpent = last3Months.reduce((a,b) => a+b, 0) / 3;
+    
+    // 2. BUDGET ANNUALE: Se hai dati di almeno 6 mesi, usa media annuale
+    //    Altrimenti: avgMonthlySpent * 12
+    const monthsOfData = countMonthsWithData();
+    let annualBudget;
+    
+    if (monthsOfData >= 6) {
+        const yearStats = getFinanceStats('YEAR', 0);
+        annualBudget = (yearStats.spent / monthsOfData) * 12;
+    } else {
+        annualBudget = avgMonthlySpent * 12;
+    }
+    
+    // 3. SPESA CORRENTE MESE
+    const currentMonthStats = getFinanceStats('CURRENT_MONTH', 0);
+    const currentSpent = currentMonthStats.spent;
+    
+    // 4. PROIEZIONE FINE MESE
+    const dayOfMonth = now.getDate();
+    const daysInMonth = new Date(thisYear, thisMonth + 1, 0).getDate();
+    const projectedMonthlySpent = (currentSpent / dayOfMonth) * daysInMonth;
+    
+    return {
+        monthlyBudget: avgMonthlySpent.toFixed(2),
+        annualBudget: annualBudget.toFixed(2),
+        currentSpent: currentSpent.toFixed(2),
+        projectedSpent: projectedMonthlySpent.toFixed(2),
+        budgetRemaining: (avgMonthlySpent - currentSpent).toFixed(2),
+        isOverBudget: currentSpent > avgMonthlySpent,
+        daysLeftInMonth: daysInMonth - dayOfMonth,
+        avgDailySpend: (currentSpent / dayOfMonth).toFixed(2),
+        suggestedDailySpend: ((avgMonthlySpent - currentSpent) / (daysInMonth - dayOfMonth)).toFixed(2)
+    };
+}
+
+function renderBudgetView(budget) {
+    const container = document.getElementById('budget-view');
+    
+    container.innerHTML = `
+        <div style="padding: 15px;">
+            
+            <!-- Budget Mensile -->
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <h3 style="font-family: 'Rajdhani'; font-size: 1rem; color: var(--accent); margin-bottom: 15px;">💰 BUDGET MENSILE</h3>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--dim); font-size: 0.85rem;">Budget previsto</span>
+                    <span style="font-family: 'JetBrains Mono'; color: #fff;">${budget.monthlyBudget}€</span>
                 </div>
-                <div style="font-size: 2rem; color: ${stats.isNegative ? '#ff4d6d' : 'var(--accent)'}; font-family: 'Space Grotesk'; font-weight: 700;">
-                    ${stats.isNegative ? '⚠ ' : ''}${stats.survivalMonths} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--dim); font-size: 0.85rem;">Speso finora</span>
+                    <span style="font-family: 'JetBrains Mono'; color: ${budget.isOverBudget ? '#ff0055' : 'var(--accent)'};">${budget.currentSpent}€</span>
                 </div>
-                <div style="width: 100%; height: 6px; background: var(--border); border-radius: 4px; margin-top: 10px; overflow: hidden;">
-                    <div style="width: ${stats.isNegative ? '100%' : Math.min(100, parseFloat(stats.survivalMonths) * 10) + '%'}; height: 100%; background: ${stats.isNegative ? '#ff4d6d' : 'var(--accent)'}; border-radius: 4px; transition: width 0.6s ease;"></div>
+                
+                <!-- Progress Bar -->
+                <div style="width: 100%; height: 8px; background: #111; border-radius: 4px; margin: 15px 0; overflow: hidden;">
+                    <div style="width: ${Math.min((budget.currentSpent / budget.monthlyBudget) * 100, 100)}%; height: 100%; background: ${budget.isOverBudget ? '#ff0055' : 'var(--accent)'};"></div>
                 </div>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">CATEGORIE</h3>
-                <canvas id="categoryChart" style="max-height: 180px;"></canvas>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">TOP 3</h3>
-                ${stats.topCategories.map((cat, idx) => `
-                    <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: var(--glass); margin-bottom: 6px; border-radius: 8px; border-left: 3px solid ${['#ff4d6d', '#fb923c', '#facc15'][idx]};">
-                        <span style="font-size: 0.9rem; color: var(--text);">${idx + 1}. ${cat[0]}</span>
-                        <span style="color: ${['#ff4d6d', '#fb923c', '#facc15'][idx]}; font-family: 'Space Grotesk'; font-weight: 700;">${cat[1].toFixed(2)}€</span>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--dim); font-size: 0.85rem;">Rimanente</span>
+                    <span style="font-family: 'JetBrains Mono'; color: ${budget.budgetRemaining < 0 ? '#ff0055' : '#00ff41'};">${budget.budgetRemaining}€</span>
+                </div>
+                
+                <!-- Proiezione -->
+                <div style="border-top: 1px solid #222; padding-top: 10px; margin-top: 10px;">
+                    <div style="font-size: 0.75rem; color: var(--dim); margin-bottom: 5px;">PROIEZIONE FINE MESE</div>
+                    <div style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: ${budget.projectedSpent > budget.monthlyBudget ? '#ff0055' : 'var(--accent)'};">
+                        ${budget.projectedSpent}€
                     </div>
-                `).join('')}
+                </div>
+                
+                <!-- Consiglio Spesa Giornaliera -->
+                <div style="background: rgba(0,212,255,0.1); border: 1px solid var(--accent); padding: 10px; border-radius: 4px; margin-top: 15px;">
+                    <div style="font-size: 0.75rem; color: var(--dim); margin-bottom: 5px;">PER RESTARE NEL BUDGET</div>
+                    <div style="font-family: 'Rajdhani'; font-size: 0.9rem; color: var(--accent);">
+                        Spendi max ${budget.suggestedDailySpend}€/giorno per i prossimi ${budget.daysLeftInMonth} giorni
+                    </div>
+                </div>
             </div>
+            
+            <!-- Budget Annuale -->
+            <div style="background: #0a0a0a; border: 1px solid #1a1a1a; padding: 15px; border-radius: 8px;">
+                <h3 style="font-family: 'Rajdhani'; font-size: 1rem; color: #ff9500; margin-bottom: 15px;">📅 BUDGET ANNUALE</h3>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="color: var(--dim); font-size: 0.85rem;">Budget previsto anno</span>
+                    <span style="font-family: 'JetBrains Mono'; color: #fff;">${budget.annualBudget}€</span>
+                </div>
+                
+                <div style="font-size: 0.7rem; color: var(--dim); margin-top: 10px; font-style: italic;">
+                    * Calcolato su media ${monthsOfData >= 6 ? 'ultimi 6 mesi' : 'ultimi 3 mesi (si affinerà con più dati)'}
+                </div>
+            </div>
+            
         </div>
     `;
-    setTimeout(() => {
-        if (stats.categories && Object.keys(stats.categories).length > 0) renderCategoryChart(stats.categories);
-    }, 100);
 }
 
 let financeChart = null;
@@ -1946,23 +2106,23 @@ async function processReviewWithAI() {
     }
 }
 
-function toggleProgress() {
+function toggleWishlist() {
     if (isStatsView) toggleStats();
-    if (isWishlistView) toggleWishlist();
+    if (isProgressView) toggleProgress(); // ← AGGIUNGI QUESTO
     
-    isProgressView = !isProgressView;
+    isWishlistView = !isWishlistView;
     
-    const progBtn = document.getElementById('nav-progress');
+    const wishBtn = document.getElementById('nav-wish');
     const headerTitle = document.querySelector('#reviews .header h1');
     
     if (headerTitle) {
-        headerTitle.innerText = isProgressView ? 'IN PROGRESS' : 'REVIEWS';
+        headerTitle.innerText = isWishlistView ? 'WISHLIST' : 'REVIEWS';
     }
 
-    if (progBtn) {
-        progBtn.style.color = isProgressView ? "#ff9500" : "var(--dim)";
-        const icon = progBtn.querySelector('i');
-        if (icon) icon.setAttribute('data-lucide', isProgressView ? 'play-circle' : 'play-circle');
+    if (wishBtn) {
+        wishBtn.style.color = isWishlistView ? "var(--accent)" : "var(--dim)";
+        const icon = wishBtn.querySelector('i');
+        if (icon) icon.setAttribute('data-lucide', isWishlistView ? 'bookmark-check' : 'bookmark-plus');
     }
 
     const allChip = Array.from(document.querySelectorAll('.filter-chip')).find(el => el.innerText.includes('ALL'));
