@@ -1022,7 +1022,7 @@ async function handleFinanceSubmit(event) {
                 text.innerText = "DANGER: " + (result.message || "SYNC_ERROR");
             }
         } catch (e) {
-            text.innerText = "PARSE_ERROR: " + responseData.substring(0, 200);
+            text.innerText = "PARSE_ERROR: " + responseData.substring(0, 500);
         }
     } catch (err) {
         text.innerText = "CATCH: " + err.message + " | " + err.name;
