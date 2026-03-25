@@ -28,6 +28,8 @@ let ghostGeneratedText = '';
 let balanceHidden = true;
 let cachedFinanceStats = null;
 let isProgressView = false;
+let currentStatsPeriod = 'CURRENT_MONTH';
+let cachedPeriodStats = null;
 
 // Wallet attivo per Finance input
 window.activeWallet = "BANK";
@@ -1289,12 +1291,138 @@ function switchFinanceTab(target) {
         searchView.style.display = 'block';
     } else if (target === 'stats') {
         statsView.style.display = 'block';
-        if (cachedFinanceStats) renderFinanceStatsView(cachedFinanceStats);
-        else showCustomAlert("DATI_NON_DISPONIBILI");
+        // Carica prima con dati cached del mese corrente, poi aggiorna con period fetch
+        if (cachedFinanceStats) renderFinancePeriodStats(cachedFinanceStats, null);
+        setStatsPeriod(currentStatsPeriod);
     } else {
         dashboard.style.display = 'block';
     }
     if (window.lucide) lucide.createIcons();
+}
+
+async function setStatsPeriod(period) {
+    currentStatsPeriod = period;
+    // Aggiorna bottoni
+    ['month','year','all'].forEach(p => {
+        const map = { month:'CURRENT_MONTH', year:'YEAR', all:'ALL_TIME' };
+        const btn = document.getElementById(`period-btn-${p}`);
+        if (btn) btn.classList.toggle('active-period', map[p] === period);
+    });
+    // Fetch nuovi dati
+    const label = document.getElementById('stats-period-label');
+    if (label) label.textContent = 'LOADING...';
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=get_finance_period&period=${period}&t=${Date.now()}`);
+        const data = await res.json();
+        cachedPeriodStats = data;
+        renderFinancePeriodStats(data.current, data.previous);
+    } catch(e) {
+        if (label) label.textContent = 'ERROR';
+    }
+}
+
+function renderFinancePeriodStats(stats, prevStats) {
+    if (!stats) return;
+    const label = document.getElementById('stats-period-label');
+    if (label) label.textContent = stats.periodLabel || '';
+
+    // Aggiorna card speso/entrate esistenti
+    const spentEl = document.getElementById('stat-total-spent');
+    const incEl = document.getElementById('stat-total-income');
+    if (spentEl) spentEl.textContent = parseFloat(stats.spent).toFixed(2) + '€';
+    if (incEl) incEl.textContent = parseFloat(stats.income).toFixed(2) + '€';
+
+    // Aggiorna benzina
+    const gasSpentEl = document.getElementById('gas-spent');
+    const gasLitEl = document.getElementById('gas-liters');
+    const gasAvgEl = document.getElementById('gas-avg-price');
+    if (gasSpentEl) gasSpentEl.textContent = parseFloat(stats.gasSpent || 0).toFixed(2) + '€';
+    if (gasLitEl) gasLitEl.textContent = (stats.gasLiters || '0.0') + 'L';
+    if (gasAvgEl) gasAvgEl.textContent = stats.gasAvgPrice > 0 ? stats.gasAvgPrice + '€/L' : '—';
+
+    // Aggiorna grafico categorie
+    if (stats.categories && Object.keys(stats.categories).length > 0) {
+        setTimeout(() => renderCategoryChart(stats.categories), 100);
+    }
+
+    // Aggiorna top expenses
+    const topEl = document.getElementById('top-expenses-list');
+    if (topEl && stats.topCategories) {
+        topEl.innerHTML = stats.topCategories.map((cat, i) => `
+            <div style="display:flex; justify-content:space-between; padding:8px 10px; background:#0d0d0d; margin-bottom:5px; border-radius:6px; border-left:3px solid ${['#ff4d4d','#fb923c','#facc15'][i]};">
+                <span style="font-size:0.85rem;">${i+1}. ${cat[0]}</span>
+                <span style="color:${['#ff4d4d','#fb923c','#facc15'][i]}; font-family:'JetBrains Mono';">${cat[1].toFixed(2)}€</span>
+            </div>`).join('');
+    }
+
+    // Budget intel
+    renderBudgetIntel(stats, prevStats);
+}
+
+function renderBudgetIntel(stats, prevStats) {
+    const el = document.getElementById('budget-content');
+    if (!el) return;
+
+    const spent = parseFloat(stats.spent) || 0;
+    const income = parseFloat(stats.income) || 0;
+    const prevSpent = prevStats ? parseFloat(prevStats.spent) || 0 : 0;
+
+    let html = '';
+
+    if (stats.period === 'CURRENT_MONTH' || !stats.period) {
+        // Budget mensile basato sul mese precedente
+        const budgetRef = prevSpent > 0 ? prevSpent : spent;
+        const delta = spent - budgetRef;
+        const pct = budgetRef > 0 ? ((spent / budgetRef) * 100).toFixed(0) : 100;
+        const color = delta > 0 ? '#ff4d4d' : '#00ff41';
+        const sign = delta > 0 ? '+' : '';
+        html = `
+            <div style="margin-bottom:12px;">
+                <div style="font-size:8px; color:#555; margin-bottom:4px;">BUDGET_REF (mese prec.)</div>
+                <div style="font-family:'JetBrains Mono'; font-size:1.1rem; color:#aaa;">${budgetRef.toFixed(2)}€</div>
+            </div>
+            <div style="margin-bottom:12px;">
+                <div style="font-size:8px; color:#555; margin-bottom:4px;">SPESO_ATTUALE</div>
+                <div style="font-family:'JetBrains Mono'; font-size:1.4rem; color:${color};">${spent.toFixed(2)}€ <span style="font-size:0.75rem;">(${sign}${delta.toFixed(2)}€ / ${pct}%)</span></div>
+            </div>
+            <div style="width:100%; height:5px; background:#1a1a1a; border-radius:3px; overflow:hidden; margin-bottom:10px;">
+                <div style="width:${Math.min(100,pct)}%; height:100%; background:${parseInt(pct)>100?'#ff4d4d':'#00d4ff'}; transition:width 0.6s;"></div>
+            </div>
+            ${prevSpent === 0 ? '<div style="font-size:9px; color:#444; font-style:italic;">Nessun dato mese precedente — il budget si affinerà col tempo.</div>' : ''}
+            ${income > 0 ? `<div style="font-size:9px; color:#555; margin-top:8px;">SAVINGS_RATE: <span style="color:${income-spent>0?'#00ff41':'#ff4d4d'}">${((income-spent)/income*100).toFixed(0)}%</span></div>` : ''}
+        `;
+    } else if (stats.period === 'YEAR') {
+        const monthsElapsed = new Date().getMonth() + 1;
+        const avgPerMonth = spent / monthsElapsed;
+        const projectedYear = avgPerMonth * 12;
+        html = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <div style="background:#0d0d0d; padding:10px; border-radius:6px;">
+                    <div style="font-size:8px; color:#555; margin-bottom:4px;">MEDIA_MENSILE</div>
+                    <div style="font-family:'Rajdhani'; font-size:1.1rem; color:#00d4ff;">${avgPerMonth.toFixed(0)}€</div>
+                </div>
+                <div style="background:#0d0d0d; padding:10px; border-radius:6px;">
+                    <div style="font-size:8px; color:#555; margin-bottom:4px;">PROIEZIONE_ANNO</div>
+                    <div style="font-family:'Rajdhani'; font-size:1.1rem; color:#fb923c;">${projectedYear.toFixed(0)}€</div>
+                </div>
+            </div>
+            <div style="font-size:9px; color:#444; margin-top:10px;">Basato su ${monthsElapsed} mesi di dati disponibili.</div>
+        `;
+    } else {
+        // ALL_TIME
+        const months = Math.max(1, Math.round(spent / (cachedFinanceStats?.spent || spent)));
+        html = `
+            <div style="background:#0d0d0d; padding:12px; border-radius:6px;">
+                <div style="font-size:8px; color:#555; margin-bottom:4px;">TOTALE_SPESO</div>
+                <div style="font-family:'Rajdhani'; font-size:1.4rem; color:#ff4d4d;">${spent.toFixed(2)}€</div>
+            </div>
+            <div style="background:#0d0d0d; padding:12px; border-radius:6px; margin-top:8px;">
+                <div style="font-size:8px; color:#555; margin-bottom:4px;">TOTALE_ENTRATE</div>
+                <div style="font-family:'Rajdhani'; font-size:1.4rem; color:#00ff41;">${income.toFixed(2)}€</div>
+            </div>
+        `;
+    }
+    el.innerHTML = html;
 }
 
 function renderFinanceStats(financeData) {

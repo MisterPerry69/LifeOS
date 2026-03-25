@@ -535,9 +535,16 @@
         <div id="finance-log" style="margin-top: 20px;"></div>
       </div>
 
-      <div id="finance-stats-view" style="display:none;">
+<div id="finance-stats-view" style="display:none;">
         <div class="stats-grid-container">
           <h2 style="grid-column: 1 / -1; font-size: 1.1rem; color: var(--accent); font-family:'Rajdhani'; letter-spacing: 2px;">DIAGNOSTICS_V1.0</h2>
+          <!-- TOGGLE PERIODO -->
+          <div style="grid-column: 1 / -1; display: flex; gap: 6px; margin-bottom: 4px;">
+            <button onclick="setStatsPeriod('CURRENT_MONTH')" id="period-btn-month" class="period-toggle-btn active-period">MESE</button>
+            <button onclick="setStatsPeriod('YEAR')" id="period-btn-year" class="period-toggle-btn">ANNO</button>
+            <button onclick="setStatsPeriod('ALL_TIME')" id="period-btn-all" class="period-toggle-btn">TOTALE</button>
+            <span id="stats-period-label" style="margin-left:auto; font-size:9px; color:var(--dim); font-family:'JetBrains Mono'; align-self:center;"></span>
+          </div>
           <div class="stats-card full-width-card">
             <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--dim);">
               <span>SURVIVAL_INDEX</span>
@@ -559,17 +566,37 @@
               <div id="top-expenses-list"></div>
             </div>
           </div>
-          <div class="stats-card">
+<div class="stats-card">
             <div style="font-size: 9px; color: var(--dim); margin-bottom: 15px;">CATEGORY_WEIGHT</div>
             <div style="height: 220px; position: relative;">
               <canvas id="categoryChart"></canvas>
             </div>
           </div>
-          <div id="analyst-stats-comment" class="stats-card full-width-card" style="background: rgba(0,243,255,0.03);">
-            <div style="font-size: 9px; color: var(--accent); margin-bottom: 8px;">AUDIT_REPORT_V1</div>
-            <div id="stats-eval" style="font-size: 0.9rem; color: #ccc; line-height: 1.4; font-family:'Rajdhani';">INIZIALIZZAZIONE_ANALISTA...</div>
-            <button onclick="requestAnalystUpdate()" style="margin-top: 12px; background: none; border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; font-size: 11px; cursor: pointer; border-radius: 4px; font-family:'Rajdhani';">RUN_NEW_AUDIT</button>
+          
+          <!-- CARD BENZINA -->
+          <div class="stats-card" id="gas-stats-card">
+            <div style="font-size: 9px; color: var(--dim); margin-bottom: 12px; letter-spacing:1px;">⛽ FUEL_STATS</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="background:#0d0d0d; padding:10px; border-radius:6px; border:1px solid #1a1a1a;">
+                <div style="font-size:8px; color:#555; margin-bottom:4px;">SPESO</div>
+                <div id="gas-spent" style="font-family:'Rajdhani'; font-size:1.1rem; color:#ff9500; font-weight:700;">0.00€</div>
+              </div>
+              <div style="background:#0d0d0d; padding:10px; border-radius:6px; border:1px solid #1a1a1a;">
+                <div style="font-size:8px; color:#555; margin-bottom:4px;">LITRI</div>
+                <div id="gas-liters" style="font-family:'Rajdhani'; font-size:1.1rem; color:#00d4ff; font-weight:700;">0.0L</div>
+              </div>
+              <div style="background:#0d0d0d; padding:10px; border-radius:6px; border:1px solid #1a1a1a; grid-column: span 2;">
+                <div style="font-size:8px; color:#555; margin-bottom:4px;">PREZZO_MEDIO/L</div>
+                <div id="gas-avg-price" style="font-family:'Rajdhani'; font-size:1.3rem; color:#fff; font-weight:700;">—</div>
+              </div>
+            </div>
           </div>
+          
+          <div id="budget-stats-card" class="stats-card full-width-card" style="background: rgba(0,212,255,0.02);">
+            <div style="font-size: 9px; color: #00d4ff; margin-bottom: 12px; letter-spacing:1px;">📊 BUDGET_INTEL</div>
+            <div id="budget-content" style="font-size:0.85rem; color:#ccc; line-height:1.5; font-family:'Rajdhani';">CALCOLO_IN_CORSO...</div>
+          </div>
+        
         </div>
       </div>
 

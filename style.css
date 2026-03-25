@@ -1496,3 +1496,24 @@ padding-bottom: 70px;
 
 .habit-chip.active { color: #000; border-color: transparent; }
 
+/* ===== FINANCE STATS PERIOD TOGGLE ===== */
+
+.period-toggle-btn {
+  flex: 1;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #555;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.period-toggle-btn.active-period {
+  border-color: #00d4ff;
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.08);
+}
