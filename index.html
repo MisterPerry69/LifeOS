@@ -535,14 +535,9 @@
         <div id="finance-log" style="margin-top: 20px;"></div>
       </div>
 
-<div id="finance-stats-view" style="display:none;">
+      <div id="finance-stats-view" style="display:none;">
         <div class="stats-grid-container">
           <h2 style="grid-column: 1 / -1; font-size: 1.1rem; color: var(--accent); font-family:'Rajdhani'; letter-spacing: 2px;">DIAGNOSTICS_V1.0</h2>
-          <div style="grid-column: 1 / -1; display:flex; gap:6px; margin-bottom:2px;">
-            <button onclick="setStatsPeriod('month')" id="pbtn-month" style="flex:1; padding:6px; background:rgba(0,212,255,0.1); border:1px solid #00d4ff; color:#00d4ff; font-family:'Rajdhani'; font-size:10px; font-weight:700; letter-spacing:1px; cursor:pointer; border-radius:4px;">MESE</button>
-            <button onclick="setStatsPeriod('year')"  id="pbtn-year"  style="flex:1; padding:6px; background:transparent; border:1px solid #333; color:#555; font-family:'Rajdhani'; font-size:10px; font-weight:700; letter-spacing:1px; cursor:pointer; border-radius:4px;">ANNO</button>
-            <button onclick="setStatsPeriod('all')"   id="pbtn-all"   style="flex:1; padding:6px; background:transparent; border:1px solid #333; color:#555; font-family:'Rajdhani'; font-size:10px; font-weight:700; letter-spacing:1px; cursor:pointer; border-radius:4px;">TOTALE</button>
-          </div>
           <div class="stats-card full-width-card">
             <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--dim);">
               <span>SURVIVAL_INDEX</span>
@@ -570,30 +565,64 @@
               <canvas id="categoryChart"></canvas>
             </div>
           </div>
-          <div class="stats-card">
-            <div style="font-size: 9px; color: var(--dim); margin-bottom: 12px; letter-spacing:1px;">⛽ FUEL_STATS</div>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-              <div style="background:#0d0d0d; padding:10px; border-radius:6px; border:1px solid #1a1a1a;">
-                <div style="font-size:8px; color:#555; margin-bottom:3px;">SPESO</div>
-                <div id="gas-spent" style="font-family:'Rajdhani'; font-size:1.1rem; color:#ff9500; font-weight:700;">—</div>
-              </div>
-              <div style="background:#0d0d0d; padding:10px; border-radius:6px; border:1px solid #1a1a1a;">
-                <div style="font-size:8px; color:#555; margin-bottom:3px;">LITRI</div>
-                <div id="gas-liters" style="font-family:'Rajdhani'; font-size:1.1rem; color:#00d4ff; font-weight:700;">—</div>
-              </div>
-              <div style="background:#0d0d0d; padding:10px; border-radius:6px; border:1px solid #1a1a1a;">
-                <div style="font-size:8px; color:#555; margin-bottom:3px;">PREZZO_MEDIO/L</div>
-                <div id="gas-avg-price" style="font-family:'Rajdhani'; font-size:1.2rem; color:#fff; font-weight:700;">—</div>
-              </div>
+          <div id="analyst-stats-comment" class="stats-card full-width-card" style="background: rgba(0,243,255,0.03);">
+            <div style="font-size: 9px; color: var(--accent); margin-bottom: 8px;">AUDIT_REPORT_V1</div>
+            <div id="stats-eval" style="font-size: 0.9rem; color: #ccc; line-height: 1.4; font-family:'Rajdhani';">INIZIALIZZAZIONE_ANALISTA...</div>
+            <button onclick="requestAnalystUpdate()" style="margin-top: 12px; background: none; border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; font-size: 11px; cursor: pointer; border-radius: 4px; font-family:'Rajdhani';">RUN_NEW_AUDIT</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="finance-budget-view" style="display:none; padding-bottom: 100px;">
+        <!-- Toggle mensile/annuale -->
+        <div style="display:flex; gap:0; margin:10px 0 16px 0; border:1px solid #222; border-radius:6px; overflow:hidden;">
+          <button id="budget-tab-month" onclick="switchBudgetTab('month')"
+            style="flex:1; padding:8px; background:#00d4ff11; border:none; border-right:1px solid #222; color:#00d4ff; font-family:'Rajdhani'; font-size:11px; font-weight:700; letter-spacing:2px; cursor:pointer;">
+            MENSILE
+          </button>
+          <button id="budget-tab-year" onclick="switchBudgetTab('year')"
+            style="flex:1; padding:8px; background:transparent; border:none; color:#444; font-family:'Rajdhani'; font-size:11px; font-weight:700; letter-spacing:2px; cursor:pointer;">
+            ANNUALE
+          </button>
+        </div>
+
+        <!-- Vista mensile -->
+        <div id="budget-monthly-view">
+          <div class="stats-card full-width-card" style="margin-bottom:10px; text-align:center;">
+            <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:6px;">BUDGET_RESIDUO</div>
+            <div id="budget-remaining" style="font-size:2rem; font-family:'Rajdhani'; font-weight:700; color:var(--accent);">—</div>
+            <div id="budget-subtitle" style="font-size:10px; color:#444; margin-top:4px;">su un budget di <span id="budget-total-monthly" style="color:#aaa;">—</span></div>
+            <div style="margin-top:10px; width:100%; height:6px; background:#1a1a1a; border-radius:3px; overflow:hidden;">
+              <div id="budget-main-bar" style="height:100%; width:0%; background:var(--accent); border-radius:3px; transition:width 0.8s;"></div>
             </div>
           </div>
-          
-          <div id="analyst-stats-comment" class="stats-card full-width-card"          
-          <div id="budget-stats-card" class="stats-card full-width-card" style="background: rgba(0,212,255,0.02);">
-            <div style="font-size: 9px; color: #00d4ff; margin-bottom: 12px; letter-spacing:1px;">📊 BUDGET_INTEL</div>
-            <div id="budget-content" style="font-size:0.85rem; color:#ccc; line-height:1.5; font-family:'Rajdhani';">CALCOLO_IN_CORSO...</div>
+          <div class="stats-card full-width-card" style="margin-bottom:10px;">
+            <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:14px;">BUDGET_CATEGORIE</div>
+            <div id="budget-categories-list"></div>
           </div>
-        
+          <div class="stats-card full-width-card" style="background:rgba(0,212,255,0.03);">
+            <div style="font-size:9px; color:#00d4ff; letter-spacing:1px; margin-bottom:8px;">AI_INSIGHT // MENSILE</div>
+            <div id="budget-ai-comment" style="font-size:0.85rem; color:#ccc; line-height:1.5; font-family:'Rajdhani';">ANALISI_IN_ATTESA...</div>
+            <button onclick="requestBudgetAI('month')" style="margin-top:10px; background:none; border:1px solid #00d4ff; color:#00d4ff; padding:5px 14px; font-size:10px; cursor:pointer; border-radius:4px; font-family:'Rajdhani'; letter-spacing:1px;">AGGIORNA_ANALISI</button>
+          </div>
+        </div>
+
+        <!-- Vista annuale -->
+        <div id="budget-yearly-view" style="display:none;">
+          <div class="stats-card full-width-card" style="margin-bottom:10px; text-align:center;">
+            <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:6px;">PROIEZIONE_ANNO</div>
+            <div id="budget-year-projection" style="font-size:2rem; font-family:'Rajdhani'; font-weight:700; color:#ff9500;">—</div>
+            <div style="font-size:10px; color:#444; margin-top:4px;">spesa stimata su <span id="budget-year-income" style="color:#aaa;">—</span> entrate annue</div>
+          </div>
+          <div class="stats-card full-width-card" style="margin-bottom:10px;">
+            <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:14px;">ANDAMENTO_MENSILE</div>
+            <div id="budget-months-breakdown"></div>
+          </div>
+          <div class="stats-card full-width-card" style="background:rgba(255,149,0,0.03);">
+            <div style="font-size:9px; color:#ff9500; letter-spacing:1px; margin-bottom:8px;">AI_INSIGHT // ANNUALE</div>
+            <div id="budget-ai-comment-year" style="font-size:0.85rem; color:#ccc; line-height:1.5; font-family:'Rajdhani';">ANALISI_IN_ATTESA...</div>
+            <button onclick="requestBudgetAI('year')" style="margin-top:10px; background:none; border:1px solid #ff9500; color:#ff9500; padding:5px 14px; font-size:10px; cursor:pointer; border-radius:4px; font-family:'Rajdhani'; letter-spacing:1px;">AGGIORNA_ANALISI</button>
+          </div>
         </div>
       </div>
 
@@ -635,10 +664,11 @@
     </main>
 
     <div class="bottom-nav">
-      <div class="nav-item" id="nav-analyst" onclick="calculateBudget()">
+      <div class="nav-item" id="nav-budget" onclick="switchFinanceTab('budget')">
         <i data-lucide="cpu" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">BUDGET</div>
       </div>
+      
       <div class="nav-item" id="nav-log" onclick="switchFinanceTab('log')">
         <i data-lucide="filter" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">HISTORY</div>

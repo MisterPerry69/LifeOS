@@ -28,8 +28,6 @@ let ghostGeneratedText = '';
 let balanceHidden = true;
 let cachedFinanceStats = null;
 let isProgressView = false;
-let currentStatsPeriod = 'CURRENT_MONTH';
-let cachedPeriodStats = null;
 
 // Wallet attivo per Finance input
 window.activeWallet = "BANK";
@@ -1271,166 +1269,34 @@ function switchFinanceTab(target) {
     const dashboard = document.getElementById('finance-home-view');
     const searchView = document.getElementById('finance-search-view');
     const statsView = document.getElementById('finance-stats-view');
+    const budgetView = document.getElementById('finance-budget-view');
+    const allViews = [dashboard, searchView, statsView, budgetView];
 
-    if (target === 'stats' && statsView && statsView.style.display === 'block') {
-        [searchView, statsView].forEach(v => { if(v) v.style.display = 'none'; });
-        if(dashboard) dashboard.style.display = 'block';
-        if (window.lucide) lucide.createIcons();
-        return;
-    }
-    if (target === 'log' && searchView && searchView.style.display === 'block') {
-        [searchView, statsView].forEach(v => { if(v) v.style.display = 'none'; });
+    // Toggle: se già aperta, torna alla home
+    const current = { stats: statsView, log: searchView, budget: budgetView }[target];
+    if (current && current.style.display === 'block') {
+        allViews.forEach(v => { if(v) v.style.display = 'none'; });
         if(dashboard) dashboard.style.display = 'block';
         if (window.lucide) lucide.createIcons();
         return;
     }
 
-    [dashboard, searchView, statsView].forEach(v => { if(v) v.style.display = 'none' });
+    allViews.forEach(v => { if(v) v.style.display = 'none'; });
 
     if (target === 'log') {
         searchView.style.display = 'block';
+        if (lastStatsData) renderFilteredItems(lastStatsData.finance.transactions);
     } else if (target === 'stats') {
         statsView.style.display = 'block';
-        // Carica prima con dati cached del mese corrente, poi aggiorna con period fetch
-        if (cachedFinanceStats) renderFinancePeriodStats(cachedFinanceStats, null);
-        setStatsPeriod(currentStatsPeriod);
+        if (cachedFinanceStats) renderFinanceStatsView(cachedFinanceStats);
+        else showCustomAlert("DATI_NON_DISPONIBILI");
+    } else if (target === 'budget') {
+        budgetView.style.display = 'block';
+        loadBudgetView();
     } else {
         dashboard.style.display = 'block';
     }
     if (window.lucide) lucide.createIcons();
-}
-
-function setStatsPeriod(period) {
-    ['month','year','all'].forEach(p => {
-        const btn = document.getElementById('pbtn-' + p);
-        if (!btn) return;
-        const active = p === period;
-        btn.style.background = active ? 'rgba(0,212,255,0.1)' : 'transparent';
-        btn.style.borderColor = active ? '#00d4ff' : '#333';
-        btn.style.color = active ? '#00d4ff' : '#555';
-    });
-    const map = { month: 'CURRENT_MONTH', year: 'YEAR', all: 'ALL_TIME' };
-    fetch(`${SCRIPT_URL}?action=get_finance_period&period=${map[period]}&t=${Date.now()}`)
-        .then(r => r.json())
-        .then(data => {
-            if (data.current) renderFinanceStatsView(calculateFinanceStatsFromPeriod(data.current));
-        })
-        .catch(() => {});
-}
-
-function renderFinancePeriodStats(stats, prevStats) {
-    if (!stats) return;
-    const label = document.getElementById('stats-period-label');
-    if (label) label.textContent = stats.periodLabel || '';
-
-    // Aggiorna card speso/entrate esistenti
-    const spentEl = document.getElementById('stat-total-spent');
-    const incEl = document.getElementById('stat-total-income');
-    if (spentEl) spentEl.textContent = parseFloat(stats.spent).toFixed(2) + '€';
-    if (incEl) incEl.textContent = parseFloat(stats.income).toFixed(2) + '€';
-
-    // Aggiorna benzina
-    const gasSpentEl = document.getElementById('gas-spent');
-    const gasLitEl = document.getElementById('gas-liters');
-    const gasAvgEl = document.getElementById('gas-avg-price');
-    if (gasSpentEl) gasSpentEl.textContent = parseFloat(stats.gasSpent || 0).toFixed(2) + '€';
-    if (gasLitEl) gasLitEl.textContent = (stats.gasLiters || '0.0') + 'L';
-    if (gasAvgEl) gasAvgEl.textContent = stats.gasAvgPrice > 0 ? stats.gasAvgPrice + '€/L' : '—';
-
-    // Aggiorna grafico categorie
-    if (stats.categories && Object.keys(stats.categories).length > 0) {
-        setTimeout(() => renderCategoryChart(stats.categories), 100);
-    }
-
-    // Aggiorna top expenses
-    const topEl = document.getElementById('top-expenses-list');
-    if (topEl && stats.topCategories) {
-        topEl.innerHTML = stats.topCategories.map((cat, i) => `
-            <div style="display:flex; justify-content:space-between; padding:8px 10px; background:#0d0d0d; margin-bottom:5px; border-radius:6px; border-left:3px solid ${['#ff4d4d','#fb923c','#facc15'][i]};">
-                <span style="font-size:0.85rem;">${i+1}. ${cat[0]}</span>
-                <span style="color:${['#ff4d4d','#fb923c','#facc15'][i]}; font-family:'JetBrains Mono';">${cat[1].toFixed(2)}€</span>
-            </div>`).join('');
-    }
-
-    // Budget intel
-    renderBudgetIntel(stats, prevStats);
-}
-
-function calculateFinanceStatsFromPeriod(d) {
-    const inc = parseFloat(d.income) || 0;
-    const out = parseFloat(d.spent) || 0;
-    const total = parseFloat(cachedFinanceStats?.total || 0);
-    let survivalMonths = '∞', isNegative = false;
-    if (out > 0) { survivalMonths = (total / out).toFixed(1); isNegative = parseFloat(survivalMonths) < 0; }
-    const sortedCats = Object.entries(d.categories || {}).sort((a,b) => b[1]-a[1]).slice(0,3);
-    return { income: inc, spent: out, categories: d.categories || {}, survivalMonths, isNegative, topCategories: sortedCats, total,
-             gasSpent: d.gasSpent, gasLiters: d.gasLiters, gasAvgPrice: d.gasAvgPrice };
-}
-
-function renderBudgetIntel(stats, prevStats) {
-    const el = document.getElementById('budget-content');
-    if (!el) return;
-
-    const spent = parseFloat(stats.spent) || 0;
-    const income = parseFloat(stats.income) || 0;
-    const prevSpent = prevStats ? parseFloat(prevStats.spent) || 0 : 0;
-
-    let html = '';
-
-    if (stats.period === 'CURRENT_MONTH' || !stats.period) {
-        // Budget mensile basato sul mese precedente
-        const budgetRef = prevSpent > 0 ? prevSpent : spent;
-        const delta = spent - budgetRef;
-        const pct = budgetRef > 0 ? ((spent / budgetRef) * 100).toFixed(0) : 100;
-        const color = delta > 0 ? '#ff4d4d' : '#00ff41';
-        const sign = delta > 0 ? '+' : '';
-        html = `
-            <div style="margin-bottom:12px;">
-                <div style="font-size:8px; color:#555; margin-bottom:4px;">BUDGET_REF (mese prec.)</div>
-                <div style="font-family:'JetBrains Mono'; font-size:1.1rem; color:#aaa;">${budgetRef.toFixed(2)}€</div>
-            </div>
-            <div style="margin-bottom:12px;">
-                <div style="font-size:8px; color:#555; margin-bottom:4px;">SPESO_ATTUALE</div>
-                <div style="font-family:'JetBrains Mono'; font-size:1.4rem; color:${color};">${spent.toFixed(2)}€ <span style="font-size:0.75rem;">(${sign}${delta.toFixed(2)}€ / ${pct}%)</span></div>
-            </div>
-            <div style="width:100%; height:5px; background:#1a1a1a; border-radius:3px; overflow:hidden; margin-bottom:10px;">
-                <div style="width:${Math.min(100,pct)}%; height:100%; background:${parseInt(pct)>100?'#ff4d4d':'#00d4ff'}; transition:width 0.6s;"></div>
-            </div>
-            ${prevSpent === 0 ? '<div style="font-size:9px; color:#444; font-style:italic;">Nessun dato mese precedente — il budget si affinerà col tempo.</div>' : ''}
-            ${income > 0 ? `<div style="font-size:9px; color:#555; margin-top:8px;">SAVINGS_RATE: <span style="color:${income-spent>0?'#00ff41':'#ff4d4d'}">${((income-spent)/income*100).toFixed(0)}%</span></div>` : ''}
-        `;
-    } else if (stats.period === 'YEAR') {
-        const monthsElapsed = new Date().getMonth() + 1;
-        const avgPerMonth = spent / monthsElapsed;
-        const projectedYear = avgPerMonth * 12;
-        html = `
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                <div style="background:#0d0d0d; padding:10px; border-radius:6px;">
-                    <div style="font-size:8px; color:#555; margin-bottom:4px;">MEDIA_MENSILE</div>
-                    <div style="font-family:'Rajdhani'; font-size:1.1rem; color:#00d4ff;">${avgPerMonth.toFixed(0)}€</div>
-                </div>
-                <div style="background:#0d0d0d; padding:10px; border-radius:6px;">
-                    <div style="font-size:8px; color:#555; margin-bottom:4px;">PROIEZIONE_ANNO</div>
-                    <div style="font-family:'Rajdhani'; font-size:1.1rem; color:#fb923c;">${projectedYear.toFixed(0)}€</div>
-                </div>
-            </div>
-            <div style="font-size:9px; color:#444; margin-top:10px;">Basato su ${monthsElapsed} mesi di dati disponibili.</div>
-        `;
-    } else {
-        // ALL_TIME
-        const months = Math.max(1, Math.round(spent / (cachedFinanceStats?.spent || spent)));
-        html = `
-            <div style="background:#0d0d0d; padding:12px; border-radius:6px;">
-                <div style="font-size:8px; color:#555; margin-bottom:4px;">TOTALE_SPESO</div>
-                <div style="font-family:'Rajdhani'; font-size:1.4rem; color:#ff4d4d;">${spent.toFixed(2)}€</div>
-            </div>
-            <div style="background:#0d0d0d; padding:12px; border-radius:6px; margin-top:8px;">
-                <div style="font-size:8px; color:#555; margin-bottom:4px;">TOTALE_ENTRATE</div>
-                <div style="font-family:'Rajdhani'; font-size:1.4rem; color:#00ff41;">${income.toFixed(2)}€</div>
-            </div>
-        `;
-    }
-    el.innerHTML = html;
 }
 
 function renderFinanceStats(financeData) {
@@ -1458,36 +1324,49 @@ function toggleStats() {
 }
 
 function renderFinanceStatsView(stats) {
-    // Survival index
-    const survPct = document.getElementById('survival-percentage');
-    const survFill = document.getElementById('survival-bar-fill');
-    const pct = stats.isNegative ? 0 : Math.min(100, parseFloat(stats.survivalMonths) * 10);
-    if (survPct) survPct.textContent = stats.survivalMonths + (stats.survivalMonths === '∞' ? '' : ' MESI');
-    if (survFill) { survFill.style.width = pct + '%'; survFill.style.background = stats.isNegative ? '#ff4d4d' : 'var(--accent)'; }
-
-    // Speso / entrate
-    const spentEl = document.getElementById('stat-total-spent');
-    const incEl = document.getElementById('stat-total-income');
-    if (spentEl) spentEl.textContent = stats.spent.toFixed(2) + '€';
-    if (incEl) incEl.textContent = stats.income.toFixed(2) + '€';
-
-    // Top expenses
-    const topEl = document.getElementById('top-expenses-list');
-    if (topEl) topEl.innerHTML = stats.topCategories.map((cat, i) => `
-        <div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--glass); margin-bottom:5px; border-radius:8px; border-left:3px solid ${['#ff4d4d','#fb923c','#facc15'][i]};">
-            <span style="font-size:0.85rem;">${i+1}. ${cat[0]}</span>
-            <span style="color:${['#ff4d4d','#fb923c','#facc15'][i]}; font-family:'Rajdhani'; font-weight:700;">${cat[1].toFixed(2)}€</span>
-        </div>`).join('');
-
-    // Benzina
-    const gasSpentEl = document.getElementById('gas-spent');
-    const gasLitEl = document.getElementById('gas-liters');
-    const gasAvgEl = document.getElementById('gas-avg-price');
-    if (gasSpentEl) gasSpentEl.textContent = parseFloat(stats.gasSpent || 0).toFixed(2) + '€';
-    if (gasLitEl) gasLitEl.textContent = (stats.gasLiters || '0.0') + 'L';
-    if (gasAvgEl) gasAvgEl.textContent = stats.gasAvgPrice > 0 ? stats.gasAvgPrice + ' €/L' : '—';
-
-    // Grafico categorie
+    const container = document.getElementById('finance-stats-view');
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
+            
+            <div style="background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; backdrop-filter: var(--blur);">
+                <h3 style="color: #ff4d6d; font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">SPESO</h3>
+                <div style="font-size: 1.5rem; color: #ff4d6d; font-family: 'Space Grotesk'; font-weight: 700;">${stats.spent.toFixed(2)}€</div>
+            </div>
+            
+            <div style="background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; backdrop-filter: var(--blur);">
+                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">ENTRATE</h3>
+                <div style="font-size: 1.5rem; color: var(--accent); font-family: 'Space Grotesk'; font-weight: 700;">${stats.income.toFixed(2)}€</div>
+            </div>
+            
+            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
+                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">AUTONOMIA</h3>
+                <div style="font-size: 0.85rem; color: var(--dim); margin-bottom: 8px;">
+                    Saldo: ${stats.total.toFixed(2)}€ · Spesa media: ${stats.spent.toFixed(2)}€
+                </div>
+                <div style="font-size: 2rem; color: ${stats.isNegative ? '#ff4d6d' : 'var(--accent)'}; font-family: 'Space Grotesk'; font-weight: 700;">
+                    ${stats.isNegative ? '⚠ ' : ''}${stats.survivalMonths} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
+                </div>
+                <div style="width: 100%; height: 6px; background: var(--border); border-radius: 4px; margin-top: 10px; overflow: hidden;">
+                    <div style="width: ${stats.isNegative ? '100%' : Math.min(100, parseFloat(stats.survivalMonths) * 10) + '%'}; height: 100%; background: ${stats.isNegative ? '#ff4d6d' : 'var(--accent)'}; border-radius: 4px; transition: width 0.6s ease;"></div>
+                </div>
+            </div>
+            
+            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
+                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">CATEGORIE</h3>
+                <canvas id="categoryChart" style="max-height: 180px;"></canvas>
+            </div>
+            
+            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
+                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">TOP 3</h3>
+                ${stats.topCategories.map((cat, idx) => `
+                    <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: var(--glass); margin-bottom: 6px; border-radius: 8px; border-left: 3px solid ${['#ff4d6d', '#fb923c', '#facc15'][idx]};">
+                        <span style="font-size: 0.9rem; color: var(--text);">${idx + 1}. ${cat[0]}</span>
+                        <span style="color: ${['#ff4d6d', '#fb923c', '#facc15'][idx]}; font-family: 'Space Grotesk'; font-weight: 700;">${cat[1].toFixed(2)}€</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
     setTimeout(() => {
         if (stats.categories && Object.keys(stats.categories).length > 0) renderCategoryChart(stats.categories);
     }, 100);
@@ -3410,3 +3289,131 @@ async function toggleCriticAI() {
         bubble.innerHTML = `<div style="color:#ff4d6d; font-size:9px;">ERRORE_LINK_NEURALE: VERIFICA_PUBBLICAZIONE_WEBAPP</div>`;
     }
 }
+
+// ============================================
+// BUDGET MODULE
+// ============================================
+
+const BUDGET_CATS = ['CIBO', 'CASA', 'TRASPORTI', 'SVAGO', 'SALUTE', 'TECH', 'ALTRO'];
+const CAT_COLORS = { CIBO:'#f59e0b', CASA:'#3b82f6', TRASPORTI:'#06b6d4', SVAGO:'#a855f7', SALUTE:'#10b981', TECH:'#00d4ff', ALTRO:'#888' };
+
+async function loadBudgetView() {
+    const el = document.getElementById('budget-remaining');
+    if (el) el.textContent = '...';
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=get_budget_data&t=${Date.now()}`);
+        const data = await res.json();
+        renderBudgetMonthly(data);
+        window._budgetData = data;
+    } catch(e) {
+        const el = document.getElementById('budget-remaining');
+        if (el) el.textContent = 'ERRORE';
+    }
+}
+
+function switchBudgetTab(tab) {
+    const monthView = document.getElementById('budget-monthly-view');
+    const yearView = document.getElementById('budget-yearly-view');
+    const btnM = document.getElementById('budget-tab-month');
+    const btnY = document.getElementById('budget-tab-year');
+    if (tab === 'month') {
+        monthView.style.display = 'block'; yearView.style.display = 'none';
+        btnM.style.background = '#00d4ff11'; btnM.style.color = '#00d4ff';
+        btnY.style.background = 'transparent'; btnY.style.color = '#444';
+    } else {
+        monthView.style.display = 'none'; yearView.style.display = 'block';
+        btnY.style.background = '#ff950011'; btnY.style.color = '#ff9500';
+        btnM.style.background = 'transparent'; btnM.style.color = '#444';
+        if (window._budgetData) renderBudgetYearly(window._budgetData);
+    }
+}
+
+function renderBudgetMonthly(data) {
+    const { currentMonth, prevMonths, aiComment } = data;
+    // Budget = media ultimi 3 mesi precedenti per categoria
+    const budgetPerCat = {};
+    BUDGET_CATS.forEach(cat => {
+        const vals = prevMonths.map(m => m.categories[cat] || 0);
+        budgetPerCat[cat] = vals.length > 0 ? vals.reduce((a,b)=>a+b,0) / vals.length : 0;
+    });
+    const totalBudget = Object.values(budgetPerCat).reduce((a,b)=>a+b,0);
+    const totalSpent = Object.values(currentMonth.categories).reduce((a,b)=>a+b,0);
+    const remaining = totalBudget - totalSpent;
+    const pct = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
+    const color = remaining < 0 ? '#ff4d4d' : pct > 75 ? '#ff9500' : 'var(--accent)';
+
+    document.getElementById('budget-remaining').style.color = color;
+    document.getElementById('budget-remaining').textContent = (remaining < 0 ? '-' : '') + Math.abs(remaining).toFixed(0) + '€';
+    document.getElementById('budget-total-monthly').textContent = totalBudget.toFixed(0) + '€';
+    const bar = document.getElementById('budget-main-bar');
+    bar.style.width = pct + '%';
+    bar.style.background = color;
+
+    // Categorie con progress bar
+    const listEl = document.getElementById('budget-categories-list');
+    listEl.innerHTML = BUDGET_CATS.map(cat => {
+        const budgeted = budgetPerCat[cat];
+        const spent = currentMonth.categories[cat] || 0;
+        if (budgeted < 1 && spent < 1) return ''; // Salta categorie vuote
+        const catPct = budgeted > 0 ? Math.min(100, (spent / budgeted) * 100) : (spent > 0 ? 100 : 0);
+        const catColor = catPct > 100 ? '#ff4d4d' : catPct > 80 ? '#ff9500' : CAT_COLORS[cat] || '#888';
+        return `
+        <div style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <span style="font-size:9px; color:#aaa; letter-spacing:1px;">${cat}</span>
+            <span style="font-size:9px; font-family:'JetBrains Mono'; color:${catColor};">${spent.toFixed(0)}€ / ${budgeted > 0 ? budgeted.toFixed(0) + '€' : '—'}</span>
+          </div>
+          <div style="width:100%; height:4px; background:#1a1a1a; border-radius:2px; overflow:hidden;">
+            <div style="width:${catPct}%; height:100%; background:${catColor}; border-radius:2px; transition:width 0.6s;"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // AI comment
+    const commentEl = document.getElementById('budget-ai-comment');
+    if (commentEl) commentEl.textContent = aiComment || 'Premi AGGIORNA_ANALISI per generare un insight.';
+}
+
+function renderBudgetYearly(data) {
+    const { allMonths, yearIncome } = data;
+    // Proiezione: media mesi con dati * 12
+    const monthsWithData = allMonths.filter(m => m.spent > 0);
+    const avgSpent = monthsWithData.length > 0 ? monthsWithData.reduce((a,m)=>a+m.spent,0) / monthsWithData.length : 0;
+    const projection = avgSpent * 12;
+    const color = projection > yearIncome ? '#ff4d4d' : '#ff9500';
+
+    document.getElementById('budget-year-projection').textContent = projection.toFixed(0) + '€';
+    document.getElementById('budget-year-projection').style.color = color;
+    document.getElementById('budget-year-income').textContent = yearIncome.toFixed(0) + '€';
+
+    // Breakdown mesi
+    const breakdownEl = document.getElementById('budget-months-breakdown');
+    const maxSpent = Math.max(...allMonths.map(m => m.spent), 1);
+    breakdownEl.innerHTML = allMonths.map(m => {
+        const barW = Math.round((m.spent / maxSpent) * 100);
+        return `
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span style="font-size:8px; color:#555; font-family:'JetBrains Mono'; width:40px; flex-shrink:0;">${m.label}</span>
+          <div style="flex:1; height:5px; background:#1a1a1a; border-radius:2px; overflow:hidden;">
+            <div style="width:${barW}%; height:100%; background:#ff9500; border-radius:2px;"></div>
+          </div>
+          <span style="font-size:8px; color:#aaa; font-family:'JetBrains Mono'; width:48px; text-align:right;">${m.spent > 0 ? m.spent.toFixed(0)+'€' : '—'}</span>
+        </div>`;
+    }).join('');
+
+    const commentEl = document.getElementById('budget-ai-comment-year');
+    if (data.aiCommentYear && commentEl) commentEl.textContent = data.aiCommentYear;
+}
+
+async function requestBudgetAI(type) {
+    const el = document.getElementById(type === 'month' ? 'budget-ai-comment' : 'budget-ai-comment-year');
+    if (!el) return;
+    el.textContent = 'ELABORAZIONE_NEURALE...';
+    try {
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'budget_ai_insight', type }) });
+        const text = await res.text();
+        el.textContent = text;
+    } catch(e) { el.textContent = 'ERRORE_CONNESSIONE'; }
+}
+
+function calculateBudget() { switchFinanceTab('budget'); }
