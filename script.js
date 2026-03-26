@@ -1367,6 +1367,14 @@ function renderFinanceStatsView(stats) {
             </div>
         </div>
     `;
+// Benzina
+    const gSpent = document.getElementById('gas-spent');
+    const gLit = document.getElementById('gas-liters');
+    const gAvg = document.getElementById('gas-avg-price');
+    if (gSpent) gSpent.textContent = parseFloat(stats.gasSpent || 0) > 0 ? parseFloat(stats.gasSpent).toFixed(2) + '€' : '—';
+    if (gLit) gLit.textContent = parseFloat(stats.gasLiters || 0) > 0 ? stats.gasLiters + 'L' : '—';
+    if (gAvg) gAvg.textContent = parseFloat(stats.gasAvgPrice || 0) > 0 ? stats.gasAvgPrice + ' €/L' : '—';
+
     setTimeout(() => {
         if (stats.categories && Object.keys(stats.categories).length > 0) renderCategoryChart(stats.categories);
     }, 100);
@@ -3003,8 +3011,9 @@ function calculateFinanceStats(financeData) {
         isNegative = true;
     }
     const sortedCats = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    return { income: inc, spent: out, categories, survivalMonths, isNegative, topCategories: sortedCats, total };
-}
+    return { income: inc, spent: out, categories, survivalMonths, isNegative, topCategories: sortedCats, total,
+             gasSpent: financeData.gasSpent || "0", gasLiters: financeData.gasLiters || "0", gasAvgPrice: financeData.gasAvgPrice || "0" };
+            }
 
 function toggleBalanceVisibility() {
     balanceHidden = !balanceHidden;
