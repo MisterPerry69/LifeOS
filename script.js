@@ -1324,50 +1324,31 @@ function toggleStats() {
 }
 
 function renderFinanceStatsView(stats) {
-    const container = document.getElementById('finance-stats-view');
-    container.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
-            
-            <div style="background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: #ff4d6d; font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">SPESO</h3>
-                <div style="font-size: 1.5rem; color: #ff4d6d; font-family: 'Space Grotesk'; font-weight: 700;">${stats.spent.toFixed(2)}€</div>
-            </div>
-            
-            <div style="background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">ENTRATE</h3>
-                <div style="font-size: 1.5rem; color: var(--accent); font-family: 'Space Grotesk'; font-weight: 700;">${stats.income.toFixed(2)}€</div>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">AUTONOMIA</h3>
-                <div style="font-size: 0.85rem; color: var(--dim); margin-bottom: 8px;">
-                    Saldo: ${stats.total.toFixed(2)}€ · Spesa media: ${stats.spent.toFixed(2)}€
-                </div>
-                <div style="font-size: 2rem; color: ${stats.isNegative ? '#ff4d6d' : 'var(--accent)'}; font-family: 'Space Grotesk'; font-weight: 700;">
-                    ${stats.isNegative ? '⚠ ' : ''}${stats.survivalMonths} ${stats.survivalMonths === '∞' ? '' : 'MESI'}
-                </div>
-                <div style="width: 100%; height: 6px; background: var(--border); border-radius: 4px; margin-top: 10px; overflow: hidden;">
-                    <div style="width: ${stats.isNegative ? '100%' : Math.min(100, parseFloat(stats.survivalMonths) * 10) + '%'}; height: 100%; background: ${stats.isNegative ? '#ff4d6d' : 'var(--accent)'}; border-radius: 4px; transition: width 0.6s ease;"></div>
-                </div>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">CATEGORIE</h3>
-                <canvas id="categoryChart" style="max-height: 180px;"></canvas>
-            </div>
-            
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
-                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">TOP 3</h3>
-                ${stats.topCategories.map((cat, idx) => `
-                    <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: var(--glass); margin-bottom: 6px; border-radius: 8px; border-left: 3px solid ${['#ff4d6d', '#fb923c', '#facc15'][idx]};">
-                        <span style="font-size: 0.9rem; color: var(--text);">${idx + 1}. ${cat[0]}</span>
-                        <span style="color: ${['#ff4d6d', '#fb923c', '#facc15'][idx]}; font-family: 'Space Grotesk'; font-weight: 700;">${cat[1].toFixed(2)}€</span>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-// Benzina
+    // Survival index
+    const survEl = document.getElementById('survival-percentage');
+    const survFill = document.getElementById('survival-bar-fill');
+    if (survEl) survEl.textContent = stats.survivalMonths + (stats.survivalMonths === '∞' ? '' : ' mesi');
+    if (survFill) {
+        const pct = stats.isNegative ? 100 : Math.min(100, parseFloat(stats.survivalMonths) * 10);
+        survFill.style.width = pct + '%';
+        survFill.style.background = stats.isNegative ? '#ff4d4d' : 'var(--accent)';
+    }
+
+    // Speso / entrate
+    const spentEl = document.getElementById('stat-total-spent');
+    const incEl = document.getElementById('stat-total-income');
+    if (spentEl) spentEl.textContent = stats.spent.toFixed(2) + '€';
+    if (incEl) incEl.textContent = stats.income.toFixed(2) + '€';
+
+    // Top resource drain
+    const topEl = document.getElementById('top-expenses-list');
+    if (topEl) topEl.innerHTML = stats.topCategories.map((cat, i) => `
+        <div style="display:flex; justify-content:space-between; padding:8px 10px; background:var(--glass); margin-bottom:5px; border-radius:8px; border-left:3px solid ${['#ff4d4d','#fb923c','#facc15'][i]};">
+            <span style="font-size:0.85rem;">${i + 1}. ${cat[0]}</span>
+            <span style="color:${['#ff4d4d','#fb923c','#facc15'][i]}; font-family:'Rajdhani'; font-weight:700;">${cat[1].toFixed(2)}€</span>
+        </div>`).join('');
+
+    // Benzina
     const gSpent = document.getElementById('gas-spent');
     const gLit = document.getElementById('gas-liters');
     const gAvg = document.getElementById('gas-avg-price');
@@ -1375,6 +1356,7 @@ function renderFinanceStatsView(stats) {
     if (gLit) gLit.textContent = parseFloat(stats.gasLiters || 0) > 0 ? stats.gasLiters + 'L' : '—';
     if (gAvg) gAvg.textContent = parseFloat(stats.gasAvgPrice || 0) > 0 ? stats.gasAvgPrice + ' €/L' : '—';
 
+    // Grafico categorie
     setTimeout(() => {
         if (stats.categories && Object.keys(stats.categories).length > 0) renderCategoryChart(stats.categories);
     }, 100);
