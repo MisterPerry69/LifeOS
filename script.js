@@ -1351,12 +1351,29 @@ function renderFinanceStatsView(stats) {
                 </div>
             </div>
             
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
+            <div style="background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
                 <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">CATEGORIE</h3>
                 <canvas id="categoryChart" style="max-height: 180px;"></canvas>
             </div>
-            
-            <div style="grid-column: 1 / -1; background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
+            <div style="background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
+                <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 12px; letter-spacing: 0.5px;">⛽ FUEL_LOG</h3>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:#0d0d0d; border:1px solid #1a1a1a; padding:10px; border-radius:6px;">
+                        <div style="font-size:8px; color:#444; letter-spacing:1px; margin-bottom:4px;">SPESO_MESE</div>
+                        <div id="gas-spent" style="font-family:'Rajdhani'; font-size:1.2rem; font-weight:700; color:#ff9500;">—</div>
+                    </div>
+                    <div style="background:#0d0d0d; border:1px solid #1a1a1a; padding:10px; border-radius:6px;">
+                        <div style="font-size:8px; color:#444; letter-spacing:1px; margin-bottom:4px;">LITRI_MESE</div>
+                        <div id="gas-liters" style="font-family:'Rajdhani'; font-size:1.2rem; font-weight:700; color:#00d4ff;">—</div>
+                    </div>
+                    <div style="background:#0d0d0d; border:1px solid #1a1a1a; padding:10px; border-radius:6px;">
+                        <div style="font-size:8px; color:#444; letter-spacing:1px; margin-bottom:4px;">PREZZO_MEDIO/L</div>
+                        <div id="gas-avg-price" style="font-family:'Rajdhani'; font-size:1.2rem; font-weight:700; color:#fff;">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 12px; backdrop-filter: var(--blur);">
                 <h3 style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px;">TOP 3</h3>
                 ${stats.topCategories.map((cat, idx) => `
                     <div style="display: flex; justify-content: space-between; padding: 10px 12px; background: var(--glass); margin-bottom: 6px; border-radius: 8px; border-left: 3px solid ${['#ff4d6d', '#fb923c', '#facc15'][idx]};">
@@ -1367,13 +1384,6 @@ function renderFinanceStatsView(stats) {
             </div>
         </div>
     `;
-// Benzina
-    const gSpent = document.getElementById('gas-spent');
-    const gLit = document.getElementById('gas-liters');
-    const gAvg = document.getElementById('gas-avg-price');
-    if (gSpent) gSpent.textContent = parseFloat(stats.gasSpent || 0) > 0 ? parseFloat(stats.gasSpent).toFixed(2) + '€' : '—';
-    if (gLit) gLit.textContent = parseFloat(stats.gasLiters || 0) > 0 ? stats.gasLiters + 'L' : '—';
-    if (gAvg) gAvg.textContent = parseFloat(stats.gasAvgPrice || 0) > 0 ? stats.gasAvgPrice + ' €/L' : '—';
 
     setTimeout(() => {
         if (stats.categories && Object.keys(stats.categories).length > 0) renderCategoryChart(stats.categories);
