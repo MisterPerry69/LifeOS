@@ -808,31 +808,6 @@ input:focus {
     border-radius: 2px;
 }
 
-/* Finance input zone */
-#finance-input-zone {
-    background: var(--card) !important;
-    border-top: 1px solid var(--border-strong) !important;
-    padding: 12px 16px 16px !important;
-}
-
-#finance-input {
-    width: 100%;
-    background: var(--glass);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1rem;
-    outline: none;
-    transition: all 0.2s;
-    margin-bottom: 0;
-}
-
-#finance-input:focus {
-    border-color: var(--accent-border);
-    background: var(--accent-dim);
-}
 
 /* Wallet buttons */
 .wallet-btn {
@@ -882,10 +857,9 @@ input:focus {
 
 .side-input-wrapper {
     position: fixed !important;
-    bottom: 70px !important;
+    bottom: 80px !important;
     left: 0 !important; right: 0 !important;
     width: 100% !important;
-    background: var(--card) !important;
     border-top: 1px solid var(--border-strong) !important;
     padding: 16px !important;
     transform: translateY(150%) !important;
@@ -961,12 +935,9 @@ padding-bottom: 70px;
 
 #finance-stats-view {
     display: none;
-    padding: 20px 15px 90px 15px;
+    padding: 0 0 20px 0;
     width: 100%;
     box-sizing: border-box;
-    overflow-y: auto !important;
-    max-height: 100vh;
-    height: 100%;
 }
 
 #finance-search-view {

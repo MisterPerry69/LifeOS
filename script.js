@@ -1326,8 +1326,8 @@ function toggleStats() {
 function renderFinanceStatsView(stats) {
     const container = document.getElementById('finance-stats-view');
     container.innerHTML = `
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px;">
-            
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 0; box-sizing: border-box; width: 100%;">
+
             <div style="background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; backdrop-filter: var(--blur);">
                 <h3 style="color: #ff4d6d; font-family: 'Space Grotesk'; font-size: 0.8rem; font-weight: 600; margin-bottom: 10px; letter-spacing: 0.5px;">SPESO</h3>
                 <div style="font-size: 1.5rem; color: #ff4d6d; font-family: 'Space Grotesk'; font-weight: 700;">${stats.spent.toFixed(2)}€</div>
@@ -3011,9 +3011,13 @@ function calculateFinanceStats(financeData) {
         isNegative = true;
     }
     const sortedCats = Object.entries(categories).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    return { income: inc, spent: out, categories, survivalMonths, isNegative, topCategories: sortedCats, total,
-             gasSpent: financeData.gasSpent || "0", gasLiters: financeData.gasLiters || "0", gasAvgPrice: financeData.gasAvgPrice || "0" };
-            }
+    return {
+        income: inc, spent: out, categories, survivalMonths, isNegative, topCategories: sortedCats, total,
+        gasSpent: financeData.gasSpent || "0",
+        gasLiters: financeData.gasLiters || "0",
+        gasAvgPrice: financeData.gasAvgPrice || "0"
+    };
+}
 
 function toggleBalanceVisibility() {
     balanceHidden = !balanceHidden;

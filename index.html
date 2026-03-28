@@ -713,33 +713,32 @@
     </div>
 
     <div id="finance-input-zone" class="side-input-wrapper" style="display: none; transform: translateY(100%);">
-      <div style="display:flex;gap:6px;padding:8px 15px 0 15px;background:#0a0a0a;">
+      <div style="display:flex; gap:5px; margin-bottom:10px;">
         <button class="wallet-btn" data-wallet="BANK" onmousedown="event.preventDefault()" onclick="setWallet('BANK')"
-          style="flex:1;padding:6px;background:transparent;border:1px solid #00d4ff;color:#00d4ff;
-                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          style="flex:1;padding:5px 0;background:transparent;border:1px solid #00d4ff;color:#00d4ff;font-family:'JetBrains Mono';font-size:9px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           BANK
         </button>
         <button class="wallet-btn" data-wallet="TINABA" onmousedown="event.preventDefault()" onclick="setWallet('TINABA')"
-          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
-                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          style="flex:1;padding:5px 0;background:transparent;border:1px solid #222;color:#444;font-family:'JetBrains Mono';font-size:9px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           TINABA
         </button>
         <button class="wallet-btn" data-wallet="PAYPAL" onmousedown="event.preventDefault()" onclick="setWallet('PAYPAL')"
-          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
-                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          style="flex:1;padding:5px 0;background:transparent;border:1px solid #222;color:#444;font-family:'JetBrains Mono';font-size:9px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           PAYPAL
         </button>
         <button class="wallet-btn" data-wallet="CASH" onmousedown="event.preventDefault()" onclick="setWallet('CASH')"
-          style="flex:1;padding:6px;background:transparent;border:1px solid #333;color:#666;
-                 font-family:'Rajdhani';font-size:10px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
+          style="flex:1;padding:5px 0;background:transparent;border:1px solid #222;color:#444;font-family:'JetBrains Mono';font-size:9px;cursor:pointer;border-radius:3px;letter-spacing:1px;">
           CASH
         </button>
       </div>
-      <input type="text" id="finance-input" placeholder="> -20 PIZZA, +1500 STIPENDIO"
-        autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"
-        onkeypress="handleFinanceSubmit(event)">
+      <div style="position:relative;">
+        <i data-lucide="terminal" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:13px; color:#444;"></i>
+        <input type="text" id="finance-input" placeholder="-20 pizza, +1500 stipendio..."
+          autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false"
+          onkeypress="handleFinanceSubmit(event)"
+          style="width:100%; background:transparent; border:1px solid var(--accent); padding:10px 10px 10px 32px; color:var(--accent); font-family:'JetBrains Mono'; font-size:11px; outline:none; box-sizing:border-box;">
+      </div>
     </div>
-  </div>
 
   <!-- ============================================ -->
   <!-- PAGE: REVIEWS -->
