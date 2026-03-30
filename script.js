@@ -218,6 +218,8 @@ function renderGrid(data) {
     const widgetWeight = document.getElementById('widget-weight');
 
     if (widgetNotes) widgetNotes.innerText = (loadedNotesData.length + 1);
+    const widgetExtraHours = document.getElementById('widget-extra-hours');
+    if (widgetExtraHours && data.extraTotal) widgetExtraHours.innerText = data.extraTotal;
 
     if (widgetWeight && data.body && data.body.weight) {
         widgetWeight.innerText = data.body.weight.toFixed(1);

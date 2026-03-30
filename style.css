@@ -102,6 +102,12 @@ body {
     animation: loading-bar 1.2s infinite ease-in-out;
 }
 
+@keyframes loading-bar {
+    0%   { left: -100%; }
+    50%  { left: 0%; }
+    100% { left: 100%; }
+}
+
 /* --- 3. LAYOUT & PAGES --- */
 .page {
     display: none;
