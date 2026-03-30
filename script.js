@@ -221,6 +221,11 @@ function renderGrid(data) {
     const widgetExtraHours = document.getElementById('widget-extra-hours');
     if (widgetExtraHours && data.extraTotal) widgetExtraHours.innerText = data.extraTotal;
 
+    const widgetStreak = document.getElementById('widget-streak');
+    if (widgetStreak && data.body && data.body.workouts) {
+        widgetStreak.innerText = calculateStreak(data.body.workouts);
+    }
+
     if (widgetWeight && data.body && data.body.weight) {
         widgetWeight.innerText = data.body.weight.toFixed(1);
     }
