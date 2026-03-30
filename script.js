@@ -118,18 +118,17 @@ window.onload = async () => {
         }
     }, 100);
 
-    document.addEventListener('click', function(e) {
+document.addEventListener('click', function(e) {
         const quickMenu = document.getElementById('quick-menu');
+        if (!quickMenu) return;
         const entryBtn = document.querySelector('.nav-item[onclick*="toggleQuickMenu"]');
-        
         if (!quickMenu.classList.contains('quick-menu-hidden') && 
             !quickMenu.contains(e.target) && 
             !entryBtn?.contains(e.target)) {
             toggleQuickMenu();
         }
     });
-};
-
+    
 async function bootLog(text, delay = 150) {
     const logEl = document.getElementById('boot-text');
     if (logEl) {
