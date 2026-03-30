@@ -898,6 +898,12 @@ padding-bottom: 70px;
     overflow-y: auto;
 }
 
+#reviews.page {
+    height: 100vh;
+    padding: 0;
+    overflow-y: auto;
+}
+
 /* Stats */
 .stats-card {
     background: var(--glass);

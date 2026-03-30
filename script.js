@@ -3497,8 +3497,12 @@ function openCounterEntry() {
     const modal = document.getElementById('counter-entry-modal');
     if (!modal) return;
     selectedHours = null;
+    selectedCounterCat = null;
     document.getElementById('counter-note-input').value = '';
-    document.querySelectorAll('.hours-btn').forEach(b => { b.style.borderColor = '#333'; b.style.color = '#666'; });
+    // Reset bottoni ore
+    document.querySelectorAll('.hours-btn').forEach(b => { 
+        b.style.borderColor = '#333'; b.style.color = '#555'; b.style.background = 'transparent'; 
+    });
 
     // Popola bottoni categoria
     const cats = Object.keys(countersData.byCategory);
@@ -3506,7 +3510,7 @@ function openCounterEntry() {
     selectedCounterCat = cats.length === 1 ? cats[0] : null;
     btnContainer.innerHTML = cats.map(cat => `
         <button onclick="selectCounterCat('${cat}', this)"
-            style="padding:6px 12px; background:${selectedCounterCat === cat ? 'rgba(0,255,65,0.1)' : 'transparent'}; border:1px solid ${selectedCounterCat === cat ? 'var(--accent)' : '#333'}; color:${selectedCounterCat === cat ? 'var(--accent)' : '#555'}; font-family:'JetBrains Mono'; font-size:9px; cursor:pointer; border-radius:4px; letter-spacing:1px;">
+            style="padding:6px 12px; background:transparent; border:1px solid #333; color:#555; font-family:'JetBrains Mono'; font-size:9px; cursor:pointer; border-radius:4px; letter-spacing:1px;">
             ${cat}
         </button>`).join('');
 
@@ -3519,26 +3523,32 @@ function selectCounterCat(cat, btn) {
     document.querySelectorAll('#counter-cat-buttons button').forEach(b => {
         b.style.borderColor = '#333'; b.style.color = '#555'; b.style.background = 'transparent';
     });
-    btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)'; btn.style.background = 'rgba(0,255,65,0.1)';
+    btn.style.borderColor = '#00d4ff'; btn.style.color = '#00d4ff'; btn.style.background = 'rgba(0,212,255,0.08)';
 }
 
 function selectHours(h) {
     selectedHours = h;
     document.querySelectorAll('.hours-btn').forEach(b => {
         const isThis = parseFloat(b.textContent.trim()) === h;
-        b.style.borderColor = isThis ? 'var(--accent)' : '#333';
-        b.style.color = isThis ? 'var(--accent)' : '#666';
-        b.style.background = isThis ? 'rgba(0,255,65,0.08)' : 'transparent';
-    });
+        b.style.borderColor = isThis ? '#00d4ff' : '#333';
+        b.style.color = isThis ? '#00d4ff' : '#555';
+        b.style.background = isThis ? 'rgba(0,212,255,0.08)' : 'transparent';
+        });
 }
 
 function closeCounterEntry() {
     document.getElementById('counter-entry-modal').style.display = 'none';
+    } catch(e) { 
+        if (btn) { btn.disabled = false; btn.textContent = 'SALVA'; }
+        showCustomAlert("ERRORE_CONNESSIONE"); 
+    }
 }
 
 async function submitCounterEntry() {
+    const btn = document.querySelector('#counter-entry-modal button[onclick="submitCounterEntry()"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'SAVING...'; }
     const nota = document.getElementById('counter-note-input').value.trim();
-    // Ore: custom da nota (+X) o preset
+        // Ore: custom da nota (+X) o preset
     let ore = selectedHours;
     const customMatch = nota.match(/\+(\d+([.,]\d+)?)/);
     if (customMatch) ore = parseFloat(customMatch[1].replace(',', '.'));
