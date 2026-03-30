@@ -3538,10 +3538,7 @@ function selectHours(h) {
 
 function closeCounterEntry() {
     document.getElementById('counter-entry-modal').style.display = 'none';
-    } catch(e) { 
-        if (btn) { btn.disabled = false; btn.textContent = 'SALVA'; }
-        showCustomAlert("ERRORE_CONNESSIONE"); 
-    }
+
 }
 
 async function submitCounterEntry() {
@@ -3562,8 +3559,10 @@ async function submitCounterEntry() {
         countersData.details.push({ data: new Date().toISOString(), ore: String(ore), nota: nota.replace(/\+[\d.,]+/, '').trim(), categoria: selectedCounterCat });
         closeCounterEntry();
         renderCounters();
-    } catch(e) { showCustomAlert("ERRORE_CONNESSIONE"); }
-}
+    } catch(e) { 
+        if (btn) { btn.disabled = false; btn.textContent = 'SALVA'; }
+        showCustomAlert("ERRORE_CONNESSIONE"); 
+    }}
 
 function openNewCounter() {
     document.getElementById('counter-name-input').value = '';
