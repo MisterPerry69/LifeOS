@@ -180,84 +180,81 @@
   <!-- ============================================ -->
   <!-- PAGE: BRAIN DUMP -->
   <!-- ============================================ -->
+    <!-- PAGE: COUNTERS -->
+  <!-- ============================================ -->
   <div id="braindump" class="page">
-<div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 20px 12px;">
-  <div style="display: flex; flex-direction: column; gap: 6px;">
-    <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
-      <span class="blink-dot"></span>
-      <span style="font-size: 12px; color: var(--dim-2); letter-spacing: 1px;">Note & Liste</span>
+    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 20px 12px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
+          <span class="blink-dot"></span>
+          <span style="font-size: 12px; color: var(--dim-2); letter-spacing: 1px;">Ore & Progetti</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="timer" style="width: 24px; height: 24px; color: var(--text); opacity: 0.6;"></i>
+          <h1 style="margin: 0; font-family: 'Space Grotesk'; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1;">Counters</h1>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 4px;">
+        <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="nav('home')"></i>
+      </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <i data-lucide="brain" style="width: 24px; height: 24px; color: var(--text); opacity: 0.6; cursor: pointer;" onclick="toggleSidebar()"></i>
-      <h1 style="margin: 0; font-family: 'Space Grotesk'; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1;">Brain Dump</h1>
-    </div>
-  </div>
-  <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-top: 4px;">
-    <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer;" onclick="nav('home')"></i>
 
-  </div>
-</div>
-    <main>
-      <input type="text" id="dump-input" placeholder="Prendi una nota..." onkeypress="sendCmd(event)">
-      <div id="keep-grid"></div>
+    <main style="padding: 0 15px; flex: 1; overflow-y: auto; padding-bottom: 120px;">
+      <div id="counters-grid" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;"></div>
     </main>
 
-    <div id="quick-menu" class="quick-menu-hidden">
-      <div onclick="createNew('NOTE')" style="padding: 12px 20px; color: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
-        <i data-lucide="sticky-note" style="width:14px"></i> NOTA
-      </div>
-      <div onclick="createNew('LISTA')" style="padding: 12px 20px; color: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #111;">
-        <i data-lucide="list-checks" style="width:14px"></i> LISTA
-      </div>
+    <!-- MODAL NUOVA ENTRY -->
+    <div id="counter-entry-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:10000; padding:20px; align-items:center; justify-content:center;">
+      <div style="background:#0a0a0a; border:1px solid var(--accent); border-radius:8px; padding:24px; width:100%; max-width:380px; position:relative;">
+        <i data-lucide="circle-x" onclick="closeCounterEntry()" style="position:absolute; top:16px; right:16px; width:20px; color:#ff5050; cursor:pointer;"></i>
+        <div style="font-family:'Rajdhani'; font-size:1.1rem; color:var(--accent); letter-spacing:2px; margin-bottom:16px;">NUOVA_ENTRY</div>
 
+        <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:8px;">PROGETTO</div>
+        <div id="counter-cat-buttons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;"></div>
+
+        <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:8px;">ORE</div>
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+          <button onclick="selectHours(0.5)"  class="hours-btn" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">0.5</button>
+          <button onclick="selectHours(1)"    class="hours-btn" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">1</button>
+          <button onclick="selectHours(1.5)"  class="hours-btn" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">1.5</button>
+          <button onclick="selectHours(2)"    class="hours-btn" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">2</button>
+        </div>
+        <div style="position:relative; margin-bottom:16px;">
+          <input type="text" id="counter-note-input" placeholder="nota opzionale... (o ore custom: +3)"
+            style="width:100%; background:transparent; border:1px solid #333; color:var(--text); padding:10px 12px; font-family:'JetBrains Mono'; font-size:11px; outline:none; box-sizing:border-box; border-radius:4px;">
+        </div>
+        <button onclick="submitCounterEntry()" style="width:100%; padding:12px; background:var(--accent); color:#000; border:none; font-family:'Rajdhani'; font-weight:700; font-size:1rem; cursor:pointer; border-radius:4px; letter-spacing:1px;">SALVA</button>
+      </div>
     </div>
 
-    <div id="brain-search-overlay" style="position: fixed; bottom: 75px; left: 0; right: 0;padding: 15px; transform: translateY(100%); transition: transform 0.3s ease; z-index: 8000; display: none;">
-      <div style="position: relative;">
-        <i data-lucide="search" style="position: absolute; left: 10px; top: 34%; transform: translateY(-50%); width: 14px; color: #444;"></i>
-        <input type="text" id="brain-search-input" placeholder="SEARCH_NOTES..." style="width: 100%; background: transparent;
-              border: 1px solid var(--accent); padding: 10px 10px 10px 35px; color: var(--accent); font-family: 'JetBrains Mono';
-          font-size: 11px; outline: none;" oninput="filterNotes(this.value)"/>
+    <!-- MODAL NUOVO CONTATORE -->
+    <div id="counter-new-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:10000; padding:20px; align-items:center; justify-content:center;">
+      <div style="background:#0a0a0a; border:1px solid #333; border-radius:8px; padding:24px; width:100%; max-width:380px; position:relative;">
+        <i data-lucide="circle-x" onclick="closeNewCounter()" style="position:absolute; top:16px; right:16px; width:20px; color:#ff5050; cursor:pointer;"></i>
+        <div style="font-family:'Rajdhani'; font-size:1.1rem; color:#fff; letter-spacing:2px; margin-bottom:16px;">NUOVO_CONTATORE</div>
+        <input type="text" id="counter-name-input" placeholder="Nome progetto..."
+          style="width:100%; background:transparent; border:1px solid #333; color:var(--text); padding:10px 12px; font-family:'JetBrains Mono'; font-size:11px; outline:none; box-sizing:border-box; border-radius:4px; margin-bottom:16px;">
+        <button onclick="submitNewCounter()" style="width:100%; padding:12px; background:#fff; color:#000; border:none; font-family:'Rajdhani'; font-weight:700; font-size:1rem; cursor:pointer; border-radius:4px; letter-spacing:1px;">CREA</button>
       </div>
     </div>
 
     <div class="bottom-nav">
-      <div class="nav-item" id="nav-analyst" onclick="createNew('GHOST')">
-        <i data-lucide="cpu" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">GHOST</div>
+      <div class="nav-item" onclick="openNewCounter()">
+        <i data-lucide="clock-plus" style="width: 22px;"></i>
+        <div style="font-size: 8px; margin-top: 4px;">NUOVO</div>
       </div>
-      <div class="nav-item" id="nav-search" onclick="toggleBrainSearch()">
-        <i data-lucide="search" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">SEARCH</div>
-      </div>
+      <div style="flex:1"></div>
       <div class="nav-item nav-home" onclick="nav('home')">
         <div class="home-btn-circle">
           <i data-lucide="home" style="width: 22px; color: var(--accent);"></i>
         </div>
       </div>
-      <div class="nav-item" id="nav-stats" onclick="filterArchive()">
-        <i data-lucide="archive" style="width: 22px;"></i>
-        <div style="font-size: 8px; margin-top: 4px;">ARCHIVE</div>
-      </div>
-      <div class="nav-item" id="nav-entry" onclick="toggleQuickMenu()">
+      <div style="flex:1"></div>
+      <div class="nav-item" onclick="openCounterEntry()">
         <i data-lucide="plus-square" style="width: 22px;"></i>
         <div style="font-size: 8px; margin-top: 4px;">ENTRY</div>
       </div>
     </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- SIDEBAR MENU -->
-  <!-- ============================================ -->
-  <div id="menu-backdrop" onclick="toggleSidebar()"></div>
-  <div id="side-menu">
-    <div style="color: var(--accent); font-size: 10px; margin-bottom: 25px; letter-spacing: 2px; font-weight: 700; padding-left: 10px;">FILESYSTEM_ROOT</div>
-    <div class="menu-item active" onclick="setFilter('ALL', this)"><i data-lucide="layers"></i> <span>TUTTO</span></div>
-    <div class="menu-item" onclick="setFilter('PINNED', this)"><i data-lucide="pin"></i> <span>PINNATI</span></div>
-    <div class="menu-item" onclick="setFilter('LISTA', this)"><i data-lucide="clipboard-list"></i> <span>LISTE</span></div>
-    <div class="menu-item" onclick="setFilter('EXTRA', this)"><i data-lucide="zap"></i> <span>STRAORDINARI</span></div>
-    <div class="menu-item" onclick="setFilter('NOTE', this)"><i data-lucide="file-text"></i> <span>NOTE</span></div>
-
   </div>
 
   <!-- ============================================ -->

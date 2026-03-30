@@ -620,7 +620,9 @@ function openNoteByIndex(index) {
     if (backdrop) backdrop.style.display = 'block';
 }
 
-function openExtraDetail() {
+function openExtraDetail(categoria) {
+    categoria = categoria || "Free Spirits";
+    currentCounterCat = categoria;
     const todoModal = document.getElementById('todo-modal');
     const linkModal = document.getElementById('link-modal');
     const ghostModal = document.getElementById('ghost-modal');
@@ -651,7 +653,10 @@ function openExtraDetail() {
     document.getElementById('detail-type').innerHTML = `
         <div style="display:flex; align-items:center; gap:15px; justify-content:center; width:100%">
             <i class="fas fa-chevron-left" id="prevMonth" style="cursor:pointer; padding:10px;"></i>
-            <span>RECAP: ${monthLabel}</span>
+            <div style="text-align:center;">
+                <div style="font-size:10px; color:var(--dim); letter-spacing:1px;">${categoria.toUpperCase()}</div>
+                <div>RECAP: ${monthLabel}</div>
+            </div>
             <i class="fas fa-chevron-right" id="nextMonth" style="cursor:pointer; padding:10px;"></i>
         </div>
     `;
@@ -662,7 +667,8 @@ function openExtraDetail() {
     try {
         const filteredExtra = (extraItemsGlobal || []).filter(item => {
             const d = new Date(item.data);
-            return !isNaN(d.getTime()) && d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+            const cat = item.categoria || "Free Spirits";
+            return !isNaN(d.getTime()) && d.getMonth() === targetMonth && d.getFullYear() === targetYear && cat === categoria;
         }).sort((a, b) => new Date(b.data) - new Date(a.data));
 
         const monthTotal = filteredExtra.reduce((acc, curr) => acc + (parseFloat(curr.ore) || 0), 0);
@@ -697,13 +703,13 @@ function openExtraDetail() {
     if (nextMonth) nextMonth.onclick = (e) => { e.stopPropagation(); changeDetailMonth(1); };
 }
 
+let currentCounterCat = "Free Spirits";
 function changeDetailMonth(delta) {
     const newOffset = detailMonthOffset + delta;
     if (newOffset > 0) return;
     detailMonthOffset = newOffset;
-    openExtraDetail();
+    openExtraDetail(currentCounterCat);
 }
-
 function closeNoteDetail(forceSave = true) {
     const modal = document.getElementById('note-detail');
     const textArea = document.getElementById('detail-text');
@@ -2925,6 +2931,7 @@ function renderWithData(data) {
     
     historyData = data.history || [];
     extraItemsGlobal = data.extraDetails || [];
+    initCounters(data);
     loadedNotesData = data.notes || [];
     lastStatsData = data;
     allReviews = data.reviews || []; 
@@ -3430,3 +3437,138 @@ async function requestBudgetAI(type) {
 }
 
 function calculateBudget() { switchFinanceTab('budget'); }
+
+// ============================================
+// COUNTERS MODULE
+// ============================================
+
+let countersData = { byCategory: {}, details: [] };
+let selectedCounterCat = null;
+let selectedHours = null;
+
+function initCounters(data) {
+    countersData.byCategory = data.extraByCategory || {};
+    countersData.details = data.extraDetails || [];
+    // Aggiungi categorie esistenti nelle details ma non in byCategory
+    countersData.details.forEach(d => {
+        const c = d.categoria || "Free Spirits";
+        if (!(c in countersData.byCategory)) countersData.byCategory[c] = 0;
+    });
+    renderCounters();
+}
+
+function renderCounters() {
+    const grid = document.getElementById('counters-grid');
+    if (!grid) return;
+    const cats = Object.keys(countersData.byCategory);
+    if (cats.length === 0) {
+        grid.innerHTML = `<div style="text-align:center; opacity:0.3; padding:60px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUN_CONTATORE</div>`;
+        return;
+    }
+    grid.innerHTML = cats.map(cat => {
+        const ore = countersData.byCategory[cat] || 0;
+        // Totale assoluto per questa categoria
+        const totale = countersData.details
+            .filter(d => (d.categoria || "Free Spirits") === cat)
+            .reduce((a, d) => a + (parseFloat(d.ore) || 0), 0);
+        return `
+        <div onclick="openExtraDetail('${cat}')" style="background:var(--glass); border:1px solid var(--border); border-radius:12px; padding:18px 20px; cursor:pointer; backdrop-filter:var(--blur);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <div style="font-size:9px; color:var(--dim); letter-spacing:2px; margin-bottom:6px;">CONTATORE</div>
+                    <div style="font-family:'Space Grotesk'; font-size:1.1rem; font-weight:700;">${cat}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:4px;">QUESTO MESE</div>
+                    <div style="font-family:'Rajdhani'; font-size:1.8rem; font-weight:700; color:var(--accent); line-height:1;">${ore.toFixed(1)}<span style="font-size:0.9rem;">h</span></div>
+                </div>
+            </div>
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between; font-size:9px; color:var(--dim);">
+                <span>TOTALE_ASSOLUTO</span>
+                <span style="font-family:'JetBrains Mono'; color:#aaa;">${totale.toFixed(1)}h</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openCounterEntry() {
+    const modal = document.getElementById('counter-entry-modal');
+    if (!modal) return;
+    selectedHours = null;
+    document.getElementById('counter-note-input').value = '';
+    document.querySelectorAll('.hours-btn').forEach(b => { b.style.borderColor = '#333'; b.style.color = '#666'; });
+
+    // Popola bottoni categoria
+    const cats = Object.keys(countersData.byCategory);
+    const btnContainer = document.getElementById('counter-cat-buttons');
+    selectedCounterCat = cats.length === 1 ? cats[0] : null;
+    btnContainer.innerHTML = cats.map(cat => `
+        <button onclick="selectCounterCat('${cat}', this)"
+            style="padding:6px 12px; background:${selectedCounterCat === cat ? 'rgba(0,255,65,0.1)' : 'transparent'}; border:1px solid ${selectedCounterCat === cat ? 'var(--accent)' : '#333'}; color:${selectedCounterCat === cat ? 'var(--accent)' : '#555'}; font-family:'JetBrains Mono'; font-size:9px; cursor:pointer; border-radius:4px; letter-spacing:1px;">
+            ${cat}
+        </button>`).join('');
+
+    modal.style.display = 'flex';
+    if (window.lucide) lucide.createIcons();
+}
+
+function selectCounterCat(cat, btn) {
+    selectedCounterCat = cat;
+    document.querySelectorAll('#counter-cat-buttons button').forEach(b => {
+        b.style.borderColor = '#333'; b.style.color = '#555'; b.style.background = 'transparent';
+    });
+    btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)'; btn.style.background = 'rgba(0,255,65,0.1)';
+}
+
+function selectHours(h) {
+    selectedHours = h;
+    document.querySelectorAll('.hours-btn').forEach(b => {
+        const isThis = parseFloat(b.textContent.trim()) === h;
+        b.style.borderColor = isThis ? 'var(--accent)' : '#333';
+        b.style.color = isThis ? 'var(--accent)' : '#666';
+        b.style.background = isThis ? 'rgba(0,255,65,0.08)' : 'transparent';
+    });
+}
+
+function closeCounterEntry() {
+    document.getElementById('counter-entry-modal').style.display = 'none';
+}
+
+async function submitCounterEntry() {
+    const nota = document.getElementById('counter-note-input').value.trim();
+    // Ore: custom da nota (+X) o preset
+    let ore = selectedHours;
+    const customMatch = nota.match(/\+(\d+([.,]\d+)?)/);
+    if (customMatch) ore = parseFloat(customMatch[1].replace(',', '.'));
+    if (!ore || !selectedCounterCat) { showCustomAlert("Seleziona progetto e ore"); return; }
+
+    const text = `+${ore}${nota ? ' ' + nota.replace(/\+[\d.,]+/, '').trim() : ''}`;
+    try {
+        await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'note', text, categoria: selectedCounterCat }) });
+        // Aggiorna locale
+        countersData.byCategory[selectedCounterCat] = (countersData.byCategory[selectedCounterCat] || 0) + ore;
+        countersData.details.push({ data: new Date().toISOString(), ore: String(ore), nota: nota.replace(/\+[\d.,]+/, '').trim(), categoria: selectedCounterCat });
+        closeCounterEntry();
+        renderCounters();
+    } catch(e) { showCustomAlert("ERRORE_CONNESSIONE"); }
+}
+
+function openNewCounter() {
+    document.getElementById('counter-name-input').value = '';
+    document.getElementById('counter-new-modal').style.display = 'flex';
+    if (window.lucide) lucide.createIcons();
+    setTimeout(() => document.getElementById('counter-name-input').focus(), 100);
+}
+
+function closeNewCounter() {
+    document.getElementById('counter-new-modal').style.display = 'none';
+}
+
+function submitNewCounter() {
+    const name = document.getElementById('counter-name-input').value.trim();
+    if (!name) return;
+    if (countersData.byCategory[name] !== undefined) { showCustomAlert("Esiste già"); return; }
+    countersData.byCategory[name] = 0;
+    closeNewCounter();
+    renderCounters();
+}
