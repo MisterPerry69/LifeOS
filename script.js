@@ -1426,11 +1426,13 @@ function updateUI(data) {
 
 function toggleQuickMenu() {
     const menu = document.getElementById('quick-menu');
+    if (!menu) return;
     menu.classList.toggle('active');
 }
 
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('quick-menu');
+    if (!menu) return;
     const entryBtn = document.querySelector('#nav-entry');
     if (menu.classList.contains('active') && !menu.contains(e.target) && !entryBtn?.contains(e.target)) {
         menu.classList.remove('active');
