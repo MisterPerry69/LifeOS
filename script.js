@@ -128,7 +128,8 @@ document.addEventListener('click', function(e) {
             toggleQuickMenu();
         }
     });
-    
+};
+
 async function bootLog(text, delay = 150) {
     const logEl = document.getElementById('boot-text');
     if (logEl) {
