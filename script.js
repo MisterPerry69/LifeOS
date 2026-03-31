@@ -207,7 +207,6 @@ async function loadStats() {
 
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
-    if (!grid) return;
     
     lastStatsData = data;
     loadedNotesData = data.notes || [];
@@ -423,8 +422,10 @@ function renderGrid(data) {
         fragment.appendChild(card);
     });
 
-    grid.innerHTML = "";
-    grid.appendChild(fragment);
+    if (grid) {
+        grid.innerHTML = "";
+        grid.appendChild(fragment);
+    }
 }
 
 function formattaData(d) {
