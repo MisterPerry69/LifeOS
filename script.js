@@ -239,6 +239,11 @@ function renderGrid(data) {
         widgetReviews.innerText = totalDone;
     }
 
+    if (grid) {
+    grid.innerHTML = "";
+    grid.appendChild(fragment);
+    }
+
     const fragment = document.createDocumentFragment();
     const isSearching = searchQuery.length > 0;
     
@@ -1427,7 +1432,7 @@ function renderCategoryChart(categories) {
 
 function updateUI(data) {
     loadedNotesData = data.notes; 
-    renderGrid();
+    renderGrid(lastStatsData);
     if (data.extraTotal) document.getElementById('extra-hours-val').innerText = data.extraTotal + "h";
     if (data.finance) document.getElementById('bank-val').innerText = "€ " + data.finance.bank;
 }
