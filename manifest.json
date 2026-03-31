@@ -1,6 +1,6 @@
 {
-  "name": "LifeOS",
-  "short_name": "LifeOS",
+  "name": "brainDUMP",
+  "short_name": "brainDUMP",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0b0b0b",
