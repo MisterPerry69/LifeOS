@@ -3611,7 +3611,7 @@ const PSYCHO_EMOTIONS = [
 
 const ASSEMBLYAI_KEY = "c8f2145df8224898a62a74f6ae686e77";
 let psychoData = { moodLog: [], sessions: [] };
-let selectedPsychoEmotion = null;
+let selectedPsychoEmotion = [];
 let selectedPsychoIntensity = null;
 let psychoCurrentView = 'mood';
 let psychoAudioFile = null;
@@ -3668,15 +3668,18 @@ function buildEmotionPicker() {
 }
 
 function selectPsychoEmotion(label, btn) {
-  selectedPsychoEmotion = label;
-  document.querySelectorAll('#psycho-emotion-picker button').forEach(b => {
-    b.style.borderColor = '#2a2a2a';
-    b.style.color = '#555';
-    b.style.background = 'transparent';
-  });
-  btn.style.borderColor = btn.dataset.color;
-  btn.style.color = '#fff';
-  btn.style.background = btn.dataset.color + '22';
+  const idx = selectedPsychoEmotion.indexOf(label);
+  if (idx > -1) {
+    selectedPsychoEmotion.splice(idx, 1);
+    btn.style.borderColor = '#2a2a2a';
+    btn.style.color = '#a3a3a3';
+    btn.style.background = 'transparent';
+  } else {
+    selectedPsychoEmotion.push(label);
+    btn.style.borderColor = btn.dataset.color;
+    btn.style.color = '#fff';
+    btn.style.background = btn.dataset.color + '22';
+  }
 }
 
 function selectPsychoIntensity(val, btn) {
@@ -3692,13 +3695,13 @@ function selectPsychoIntensity(val, btn) {
 }
 
 async function submitPsychoMood() {
-  if (!selectedPsychoEmotion) return alert("Seleziona un'emozione");
+if (selectedPsychoEmotion.length === 0) return alert("Seleziona almeno un'emozione");
   if (!selectedPsychoIntensity) return alert("Seleziona un'intensità");
   const note = document.getElementById('psycho-mood-note').value.trim();
   try {
     await fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
-      body: JSON.stringify({ service: 'psycho_log_mood', emotion: selectedPsychoEmotion, intensity: selectedPsychoIntensity, note })
+      body: JSON.stringify({ service: 'psycho_log_mood', emotion: selectedPsychoEmotion.join(', '), intensity: selectedPsychoIntensity, note })
     });
     closePsychoEntry();
     setTimeout(loadPsychoData, 1000);
@@ -3841,7 +3844,7 @@ function closePsychoSessionDetail() {
 
 function openPsychoEntry() {
   buildEmotionPicker();
-  selectedPsychoEmotion = null;
+  selectedPsychoEmotion = [];
   selectedPsychoIntensity = null;
   document.getElementById('psycho-mood-note').value = '';
   document.getElementById('psycho-entry-modal').style.display = 'flex';
