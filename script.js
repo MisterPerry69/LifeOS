@@ -3600,13 +3600,13 @@ function submitNewCounter() {
 
 const PSYCHO_EMOTIONS = [
   { label: "Ansioso",   emoji: "😰", color: "#ff6b6b" },
-  { label: "Sereno",    emoji: "😌", color: "#4ade80" },
-  { label: "Stanco",    emoji: "😴", color: "#94a3b8" },
+  { label: "KO",        emoji: "🪫", color: "#94a3b8" },
   { label: "Arrabbiato",emoji: "😤", color: "#ff9500" },
-  { label: "Giù",       emoji: "😔", color: "#6b7280" },
+  { label: "Apatico",   emoji: "🫥", color: "#6b7280" },
+  { label: "Felice",    emoji: "😄", color: "#22c55e" },   
+  { label: "Motivato",  emoji: "🚀", color: "#3b82f6" },   
   { label: "Euforico",  emoji: "🤩", color: "#facc15" },
-  { label: "Confuso",   emoji: "😵", color: "#a78bfa" },
-  { label: "Presente",  emoji: "🧘", color: "#34d399" },
+  { label: "Ok",        emoji: "👍", color: "#4ade80" }
 ];
 
 const ASSEMBLYAI_KEY = "c8f2145df8224898a62a74f6ae686e77";
