@@ -3790,7 +3790,7 @@ function renderPsychoSessions() {
   if (!container) return;
   const sessions = psychoData.sessions || [];
   if (sessions.length === 0) {
-    container.innerHTML = '<div style="text-align:center; color:#333; padding:40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUNA SESSIONE</div>';
+    container.innerHTML = `<div style="text-align:center; color:#333; padding:40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUNA SESSIONE</div>`;
     return;
   }
   container.innerHTML = sessions.map((s, idx) => `
