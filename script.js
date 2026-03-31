@@ -239,11 +239,6 @@ function renderGrid(data) {
         widgetReviews.innerText = totalDone;
     }
 
-    if (grid) {
-    grid.innerHTML = "";
-    grid.appendChild(fragment);
-    }
-
     const fragment = document.createDocumentFragment();
     const isSearching = searchQuery.length > 0;
     
