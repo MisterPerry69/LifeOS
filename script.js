@@ -209,6 +209,7 @@ async function loadStats() {
 
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
+    if (!grid) return;
     
     lastStatsData = data;
     loadedNotesData = data.notes || [];
@@ -1427,7 +1428,7 @@ function renderCategoryChart(categories) {
 
 function updateUI(data) {
     loadedNotesData = data.notes; 
-    renderGrid(lastStatsData);
+    renderGrid();
     if (data.extraTotal) document.getElementById('extra-hours-val').innerText = data.extraTotal + "h";
     if (data.finance) document.getElementById('bank-val').innerText = "€ " + data.finance.bank;
 }
