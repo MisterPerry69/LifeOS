@@ -3659,7 +3659,7 @@ function buildEmotionPicker() {
       style="padding:10px 4px; background:transparent; border:1px solid #2a2a2a;
              border-radius:8px; cursor:pointer; display:flex; flex-direction:column;
              align-items:center; gap:4px; font-family:'JetBrains Mono'; font-size:9px;
-             color:#555; transition:all 0.15s;"
+             color:#a3a3a3; transition:all 0.15s;"
       data-emotion="${e.label}" data-color="${e.color}">
       <span style="font-size:1.4rem;">${e.emoji}</span>
       <span>${e.label}</span>
