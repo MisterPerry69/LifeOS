@@ -3470,7 +3470,6 @@ function initCounters(data) {
 
 function renderCounters() {
     const grid = document.getElementById('counters-grid');
-    if (!grid) return;
     const cats = Object.keys(countersData.byCategory);
     if (cats.length === 0) {
         grid.innerHTML = `<div style="text-align:center; opacity:0.3; padding:60px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUN_CONTATORE</div>`;
