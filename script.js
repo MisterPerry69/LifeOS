@@ -3710,7 +3710,7 @@ function renderPsychoMood() {
   if (!container) return;
   const logs = psychoData.moodLog || [];
   if (logs.length === 0) {
-    container.innerHTML = '<div style="text-align:center; color:#333; padding:40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUN LOG EMOTIVO</div>';
+    container.innerHTML = `<div style="text-align:center; color:#333; padding:40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUN LOG EMOTIVO</div>`;
     return;
   }
   const emotionMap = {};
