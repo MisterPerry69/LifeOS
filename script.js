@@ -208,9 +208,7 @@ async function loadStats() {
 }
 
 function renderGrid(data) {
-    const grid = document.getElementById('keep-grid');
-    if (!grid) return;
-    
+   
     lastStatsData = data;
     loadedNotesData = data.notes || [];
     const loadedReviewsData = data.reviews || [];
@@ -239,6 +237,9 @@ function renderGrid(data) {
         }).length;
         widgetReviews.innerText = totalDone;
     }
+
+    const grid = document.getElementById('keep-grid');
+    if (!grid) return;
 
     const fragment = document.createDocumentFragment();
     const isSearching = searchQuery.length > 0;
