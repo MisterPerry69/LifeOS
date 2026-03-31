@@ -1479,3 +1479,38 @@ padding-bottom: 70px;
 
 .habit-chip.active { color: #000; border-color: transparent; }
 
+
+/* ============================================
+   PSYCHO MODULE
+   ============================================ */
+
+#psycho.page {
+    height: 100vh;
+    padding: 0;
+    overflow: hidden;
+}
+
+#psycho-mood-view,
+#psycho-stats-view,
+#psycho-sessions-view {
+    display: flex;
+    flex-direction: column;
+}
+
+#psycho-session-detail {
+    position: fixed;
+    inset: 0;
+    background: #050505;
+    z-index: 9000;
+    overflow-y: auto;
+    flex-direction: column;
+}
+
+#psycho-entry-modal .review-detail-card {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#psycho-upload-zone:active {
+    border-color: #b56aff;
+}

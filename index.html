@@ -265,7 +265,6 @@
     </div>
 
   </div>
-</div>
 
   <!-- ============================================ -->
   <!-- PAGE: BRAIN DUMP -->
@@ -897,6 +896,151 @@
     </div>
 
     <div id="ai-side-bubble" class="side-bubble" style="display:none; position: fixed; right: 20px; bottom: 90px; width: 250px; background: rgba(10,10,10,0.95); border: 1px solid var(--accent); color: #fff; padding: 15px; border-radius: 4px; z-index: 10000; backdrop-filter: blur(10px); font-family: 'JetBrains Mono'; font-size: 11px; line-height: 1.4;"></div>
+  </div>
+
+
+  <!-- ============================================ -->
+  <!-- PAGE: PSYCHO -->
+  <!-- ============================================ -->
+  <div id="psycho" class="page">
+
+    <div class="header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 20px 12px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
+          <span class="blink-dot" style="background: #b56aff;"></span>
+          <span style="font-size: 12px; color: var(--dim-2); letter-spacing: 1px;">Stato mentale & Sessioni</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="activity" style="width: 24px; height: 24px; color: #b56aff; opacity: 0.8;"></i>
+          <h1 style="margin: 0; font-family: 'Space Grotesk'; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; line-height: 1;">PSYCHO</h1>
+        </div>
+      </div>
+      <i data-lucide="circle-x" style="width: 24px; height: 24px; color: #ff5050; opacity: 0.6; cursor: pointer; margin-top: 28px;" onclick="nav('home')"></i>
+    </div>
+
+    <!-- MOOD VIEW -->
+    <main id="psycho-mood-view" style="padding: 0 15px; flex: 1; overflow-y: auto; padding-bottom: 120px; display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+      <div id="psycho-mood-list" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="text-align:center; color:#333; padding: 40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUN LOG EMOTIVO</div>
+      </div>
+    </main>
+
+    <!-- STATS VIEW -->
+    <main id="psycho-stats-view" style="padding: 0 15px; flex: 1; overflow-y: auto; padding-bottom: 120px; display: none; flex-direction: column; gap: 16px; margin-top: 8px;">
+      <div style="background:#0a0a0a; border:1px solid #222; border-radius:8px; padding:16px;">
+        <div style="font-size:9px; color:var(--dim); letter-spacing:2px; margin-bottom:12px;">INTENSITÀ NEL TEMPO</div>
+        <canvas id="psycho-intensity-chart" style="max-height:180px;"></canvas>
+      </div>
+      <div style="background:#0a0a0a; border:1px solid #222; border-radius:8px; padding:16px;">
+        <div style="font-size:9px; color:var(--dim); letter-spacing:2px; margin-bottom:12px;">EMOZIONI FREQUENTI</div>
+        <div id="psycho-emotion-breakdown" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+      </div>
+    </main>
+
+    <!-- SESSIONS VIEW -->
+    <main id="psycho-sessions-view" style="padding: 0 15px; flex: 1; overflow-y: auto; padding-bottom: 120px; display: none; flex-direction: column; gap: 12px; margin-top: 8px;">
+      <div id="psycho-sessions-list" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="text-align:center; color:#333; padding: 40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUNA SESSIONE</div>
+      </div>
+    </main>
+
+    <div class="bottom-nav">
+      <div class="nav-item" id="psycho-nav-mood" onclick="switchPsychoView('mood')">
+        <i data-lucide="heart-pulse" style="width:22px;"></i>
+        <div style="font-size:8px; margin-top:4px;">MOOD</div>
+      </div>
+      <div class="nav-item" id="psycho-nav-stats" onclick="switchPsychoView('stats')">
+        <i data-lucide="bar-chart-2" style="width:22px;"></i>
+        <div style="font-size:8px; margin-top:4px;">STATS</div>
+      </div>
+      <div class="nav-item nav-home" onclick="nav('home')">
+        <div class="home-btn-circle">
+          <i data-lucide="home" style="width:22px; color:#b56aff;"></i>
+        </div>
+      </div>
+      <div class="nav-item" id="psycho-nav-sessions" onclick="switchPsychoView('sessions')">
+        <i data-lucide="mic" style="width:22px;"></i>
+        <div style="font-size:8px; margin-top:4px;">SESSIONI</div>
+      </div>
+      <div class="nav-item" onclick="openPsychoEntry()">
+        <i data-lucide="plus-square" style="width:22px;"></i>
+        <div style="font-size:8px; margin-top:4px;">ENTRY</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PSYCHO ENTRY -->
+  <div id="psycho-entry-modal" class="note-overlay" style="display:none; justify-content:center; align-items:center;">
+    <div class="review-detail-card" style="border-left: 4px solid #b56aff; padding:25px; width:100%; max-width:420px; position:relative;">
+      <i data-lucide="circle-x" style="position:absolute; top:16px; right:16px; width:22px; height:22px; color:#ff5050; opacity:0.6; cursor:pointer;" onclick="closePsychoEntry()"></i>
+
+      <!-- Tab selector -->
+      <div style="display:flex; gap:0; margin-bottom:20px; border:1px solid #222; border-radius:6px; overflow:hidden;">
+        <button id="psycho-tab-mood" onclick="switchPsychoEntryTab('mood')"
+          style="flex:1; padding:8px; background:rgba(181,106,255,0.15); border:none; border-right:1px solid #222; color:#b56aff; font-family:'Rajdhani'; font-size:11px; font-weight:700; letter-spacing:2px; cursor:pointer;">
+          LOG MOOD
+        </button>
+        <button id="psycho-tab-session" onclick="switchPsychoEntryTab('session')"
+          style="flex:1; padding:8px; background:transparent; border:none; color:#444; font-family:'Rajdhani'; font-size:11px; font-weight:700; letter-spacing:2px; cursor:pointer;">
+          SESSIONE
+        </button>
+      </div>
+
+      <!-- LOG MOOD FORM -->
+      <div id="psycho-form-mood">
+        <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:10px;">COME TI SENTI?</div>
+        <div id="psycho-emotion-picker" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:16px;"></div>
+
+        <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:8px;">INTENSITÀ</div>
+        <div style="display:flex; gap:6px; margin-bottom:16px;" id="psycho-intensity-picker">
+          <button onclick="selectPsychoIntensity(1,this)" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">1</button>
+          <button onclick="selectPsychoIntensity(2,this)" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">2</button>
+          <button onclick="selectPsychoIntensity(3,this)" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">3</button>
+          <button onclick="selectPsychoIntensity(4,this)" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">4</button>
+          <button onclick="selectPsychoIntensity(5,this)" style="flex:1; padding:8px; background:transparent; border:1px solid #333; color:#666; font-family:'JetBrains Mono'; font-size:11px; cursor:pointer; border-radius:4px;">5</button>
+        </div>
+
+        <input type="text" id="psycho-mood-note" placeholder="nota opzionale..."
+          style="width:100%; background:transparent; border:1px solid #333; color:var(--text); padding:10px 12px; font-family:'JetBrains Mono'; font-size:11px; outline:none; box-sizing:border-box; border-radius:4px; margin-bottom:16px;">
+
+        <button onclick="submitPsychoMood()"
+          style="width:100%; padding:12px; background:#b56aff; color:#000; border:none; font-family:'Rajdhani'; font-weight:700; font-size:1rem; cursor:pointer; border-radius:4px; letter-spacing:1px;">
+          SALVA MOOD
+        </button>
+      </div>
+
+      <!-- SESSIONE FORM -->
+      <div id="psycho-form-session" style="display:none;">
+        <div style="font-size:9px; color:var(--dim); letter-spacing:1px; margin-bottom:8px;">CARICA AUDIO SESSIONE</div>
+        <div id="psycho-upload-zone" onclick="document.getElementById('psycho-audio-input').click()"
+          style="border:1px dashed #444; border-radius:8px; padding:24px; text-align:center; cursor:pointer; margin-bottom:16px; transition: border-color 0.2s;">
+          <i data-lucide="upload" style="width:28px; height:28px; color:#444; margin-bottom:8px; display:block; margin-left:auto; margin-right:auto;"></i>
+          <div style="font-family:'JetBrains Mono'; font-size:10px; color:#444;" id="psycho-upload-label">TAP PER SELEZIONARE AUDIO</div>
+        </div>
+        <input type="file" id="psycho-audio-input" accept="audio/*" style="display:none;" onchange="handlePsychoAudioSelect(this)">
+
+        <div id="psycho-transcribe-status" style="display:none; font-family:'JetBrains Mono'; font-size:10px; color:#b56aff; margin-bottom:12px; text-align:center;">
+          <span class="blink-dot" style="background:#b56aff;"></span> <span id="psycho-status-text">TRASCRIZIONE IN CORSO...</span>
+        </div>
+
+        <button id="psycho-process-btn" onclick="processPsychoSession()" disabled
+          style="width:100%; padding:12px; background:#333; color:#666; border:none; font-family:'Rajdhani'; font-weight:700; font-size:1rem; cursor:not-allowed; border-radius:4px; letter-spacing:1px;">
+          ANALIZZA CON AI
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: SESSION DETAIL -->
+  <div id="psycho-session-detail" class="note-overlay" style="display:none; justify-content:flex-start; align-items:flex-start; overflow-y:auto;">
+    <div style="width:100%; padding:20px; padding-bottom:40px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div id="psycho-detail-title" style="font-family:'Rajdhani'; font-size:1.3rem; color:#b56aff; font-weight:700;"></div>
+        <i data-lucide="circle-x" style="width:24px; height:24px; color:#ff5050; opacity:0.6; cursor:pointer; flex-shrink:0;" onclick="closePsychoSessionDetail()"></i>
+      </div>
+      <div id="psycho-detail-content" style="display:flex; flex-direction:column; gap:16px;"></div>
+    </div>
   </div>
 
   <!-- ============================================ -->

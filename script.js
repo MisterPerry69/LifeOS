@@ -163,9 +163,11 @@ function nav(pageId) {
     if (pageId === 'body') {
         initBodyModule();
     }
-    
     if (pageId === 'reviews') {
         loadReviews();
+    }
+    if (pageId === 'psycho') {
+        initPsycho();
     }
 }
 
@@ -207,6 +209,7 @@ async function loadStats() {
 
 function renderGrid(data) {
     const grid = document.getElementById('keep-grid');
+    if (!grid) return;
     
     lastStatsData = data;
     loadedNotesData = data.notes || [];
@@ -422,10 +425,8 @@ function renderGrid(data) {
         fragment.appendChild(card);
     });
 
-    if (grid) {
-        grid.innerHTML = "";
-        grid.appendChild(fragment);
-    }
+    grid.innerHTML = "";
+    grid.appendChild(fragment);
 }
 
 function formattaData(d) {
@@ -3590,4 +3591,344 @@ function submitNewCounter() {
     countersData.byCategory[name] = 0;
     closeNewCounter();
     renderCounters();
+}
+
+
+// ============================================
+// PSYCHO MODULE
+// ============================================
+
+const PSYCHO_EMOTIONS = [
+  { label: "Ansioso",   emoji: "😰", color: "#ff6b6b" },
+  { label: "Sereno",    emoji: "😌", color: "#4ade80" },
+  { label: "Stanco",    emoji: "😴", color: "#94a3b8" },
+  { label: "Arrabbiato",emoji: "😤", color: "#ff9500" },
+  { label: "Giù",       emoji: "😔", color: "#6b7280" },
+  { label: "Euforico",  emoji: "🤩", color: "#facc15" },
+  { label: "Confuso",   emoji: "😵", color: "#a78bfa" },
+  { label: "Presente",  emoji: "🧘", color: "#34d399" },
+];
+
+const ASSEMBLYAI_KEY = "c8f2145df8224898a62a74f6ae686e77";
+let psychoData = { moodLog: [], sessions: [] };
+let selectedPsychoEmotion = null;
+let selectedPsychoIntensity = null;
+let psychoCurrentView = 'mood';
+let psychoAudioFile = null;
+
+async function initPsycho() {
+  switchPsychoView('mood');
+  buildEmotionPicker();
+  await loadPsychoData();
+}
+
+async function loadPsychoData() {
+  try {
+    const res = await fetch(SCRIPT_URL + "?action=get_psycho_data&t=" + Date.now());
+    const data = await res.json();
+    if (data.status === "OK") {
+      psychoData = data;
+      renderPsychoMood();
+      renderPsychoStats();
+      renderPsychoSessions();
+    }
+  } catch(e) {
+    console.error("PSYCHO_LOAD_ERR:", e);
+  }
+}
+
+function switchPsychoView(view) {
+  psychoCurrentView = view;
+  document.getElementById('psycho-mood-view').style.display     = view === 'mood'     ? 'flex' : 'none';
+  document.getElementById('psycho-stats-view').style.display    = view === 'stats'    ? 'flex' : 'none';
+  document.getElementById('psycho-sessions-view').style.display = view === 'sessions' ? 'flex' : 'none';
+
+  ['mood','stats','sessions'].forEach(v => {
+    const el = document.getElementById('psycho-nav-' + v);
+    if (el) el.style.color = v === view ? '#b56aff' : '';
+  });
+
+  if (view === 'stats') renderPsychoStats();
+}
+
+function buildEmotionPicker() {
+  const container = document.getElementById('psycho-emotion-picker');
+  if (!container) return;
+  container.innerHTML = PSYCHO_EMOTIONS.map(e => `
+    <button onclick="selectPsychoEmotion('${e.label}', this)"
+      style="padding:10px 4px; background:transparent; border:1px solid #2a2a2a;
+             border-radius:8px; cursor:pointer; display:flex; flex-direction:column;
+             align-items:center; gap:4px; font-family:'JetBrains Mono'; font-size:9px;
+             color:#555; transition:all 0.15s;"
+      data-emotion="${e.label}" data-color="${e.color}">
+      <span style="font-size:1.4rem;">${e.emoji}</span>
+      <span>${e.label}</span>
+    </button>
+  `).join('');
+}
+
+function selectPsychoEmotion(label, btn) {
+  selectedPsychoEmotion = label;
+  document.querySelectorAll('#psycho-emotion-picker button').forEach(b => {
+    b.style.borderColor = '#2a2a2a';
+    b.style.color = '#555';
+    b.style.background = 'transparent';
+  });
+  btn.style.borderColor = btn.dataset.color;
+  btn.style.color = '#fff';
+  btn.style.background = btn.dataset.color + '22';
+}
+
+function selectPsychoIntensity(val, btn) {
+  selectedPsychoIntensity = val;
+  document.querySelectorAll('#psycho-intensity-picker button').forEach(b => {
+    b.style.borderColor = '#333';
+    b.style.color = '#666';
+    b.style.background = 'transparent';
+  });
+  btn.style.borderColor = '#b56aff';
+  btn.style.color = '#b56aff';
+  btn.style.background = 'rgba(181,106,255,0.15)';
+}
+
+async function submitPsychoMood() {
+  if (!selectedPsychoEmotion) return alert("Seleziona un'emozione");
+  if (!selectedPsychoIntensity) return alert("Seleziona un'intensità");
+  const note = document.getElementById('psycho-mood-note').value.trim();
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ service: 'psycho_log_mood', emotion: selectedPsychoEmotion, intensity: selectedPsychoIntensity, note })
+    });
+    closePsychoEntry();
+    setTimeout(loadPsychoData, 1000);
+  } catch(e) { console.error(e); }
+}
+
+function renderPsychoMood() {
+  const container = document.getElementById('psycho-mood-list');
+  if (!container) return;
+  const logs = psychoData.moodLog || [];
+  if (logs.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:#333; padding:40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUN LOG EMOTIVO</div>';
+    return;
+  }
+  const emotionMap = {};
+  PSYCHO_EMOTIONS.forEach(e => emotionMap[e.label] = e);
+  container.innerHTML = logs.map(log => {
+    const em = emotionMap[log.emotion] || { emoji: '●', color: '#b56aff' };
+    const bars = Array.from({length: 5}, (_, i) =>
+      `<div style="width:10px; height:${6 + (i+1)*3}px; background:${i < log.intensity ? em.color : '#222'}; border-radius:2px;"></div>`
+    ).join('');
+    return `
+      <div style="display:flex; align-items:center; gap:12px; background:#0a0a0a; border:1px solid #1a1a1a; border-left:3px solid ${em.color}; border-radius:8px; padding:12px 14px;">
+        <span style="font-size:1.5rem; flex-shrink:0;">${em.emoji}</span>
+        <div style="flex:1; min-width:0;">
+          <div style="font-family:'Rajdhani'; font-weight:700; color:#fff; letter-spacing:1px;">${log.emotion.toUpperCase()}</div>
+          <div style="font-family:'JetBrains Mono'; font-size:9px; color:#444; margin-top:2px;">${log.date}${log.note ? ' · ' + log.note : ''}</div>
+        </div>
+        <div style="display:flex; align-items:flex-end; gap:2px; flex-shrink:0;">${bars}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderPsychoStats() {
+  const logs = psychoData.moodLog || [];
+  
+  // Emotion breakdown
+  const breakdownEl = document.getElementById('psycho-emotion-breakdown');
+  if (breakdownEl) {
+    const counts = {};
+    logs.forEach(l => counts[l.emotion] = (counts[l.emotion] || 0) + 1);
+    const emotionMap = {};
+    PSYCHO_EMOTIONS.forEach(e => emotionMap[e.label] = e);
+    const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+    breakdownEl.innerHTML = sorted.map(([em, count]) => {
+      const info = emotionMap[em] || { emoji: '●', color: '#b56aff' };
+      return `<div style="display:flex; align-items:center; gap:6px; background:#111; border:1px solid #222; border-radius:20px; padding:5px 10px;">
+        <span>${info.emoji}</span>
+        <span style="font-family:'Rajdhani'; font-size:12px; color:#fff;">${em}</span>
+        <span style="font-family:'JetBrains Mono'; font-size:9px; color:${info.color};">${count}x</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Intensity chart
+  const canvas = document.getElementById('psycho-intensity-chart');
+  if (!canvas || logs.length === 0) return;
+  const last30 = [...logs].reverse().slice(-30);
+  const labels = last30.map(l => l.date.slice(5,10));
+  const intensities = last30.map(l => l.intensity);
+  if (charts['psycho-intensity']) charts['psycho-intensity'].destroy();
+  charts['psycho-intensity'] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: intensities,
+        borderColor: '#b56aff',
+        backgroundColor: 'rgba(181,106,255,0.08)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: '#b56aff',
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min:0, max:5, ticks: { color:'#444', stepSize:1 }, grid: { color:'#111' } },
+        x: { ticks: { color:'#444', maxRotation:0 }, grid: { display:false } }
+      }
+    }
+  });
+}
+
+function renderPsychoSessions() {
+  const container = document.getElementById('psycho-sessions-list');
+  if (!container) return;
+  const sessions = psychoData.sessions || [];
+  if (sessions.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:#333; padding:40px 0; font-family:'JetBrains Mono'; font-size:11px;">NESSUNA SESSIONE</div>';
+    return;
+  }
+  container.innerHTML = sessions.map((s, idx) => `
+    <div onclick="openPsychoSessionDetail(${idx})"
+      style="background:#0a0a0a; border:1px solid #1a1a1a; border-left:3px solid #b56aff; border-radius:8px; padding:14px 16px; cursor:pointer;">
+      <div style="font-family:'Rajdhani'; font-weight:700; color:#fff; letter-spacing:1px; margin-bottom:4px;">${s.title || 'SESSIONE'}</div>
+      <div style="font-family:'JetBrains Mono'; font-size:9px; color:#444; margin-bottom:8px;">${s.date}</div>
+      <div style="font-family:'JetBrains Mono'; font-size:10px; color:#666; line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${s.summary || ''}</div>
+    </div>
+  `).join('');
+}
+
+function openPsychoSessionDetail(idx) {
+  const s = psychoData.sessions[idx];
+  if (!s) return;
+  document.getElementById('psycho-detail-title').textContent = s.title || 'SESSIONE';
+
+  const safeJson = (val) => {
+    try { return typeof val === 'string' ? JSON.parse(val) : val; }
+    catch(e) { return val ? [val] : []; }
+  };
+
+  const section = (label, color, items) => {
+    if (!items || items.length === 0) return '';
+    const isArray = Array.isArray(items);
+    const content = isArray
+      ? items.map(i => `<div style="display:flex; gap:8px; margin-bottom:6px;"><span style="color:${color}; flex-shrink:0;">▸</span><span style="font-family:'JetBrains Mono'; font-size:11px; color:#ccc; line-height:1.4;">${i}</span></div>`).join('')
+      : `<p style="font-family:'JetBrains Mono'; font-size:11px; color:#ccc; line-height:1.5; margin:0;">${items}</p>`;
+    return `<div style="background:#0a0a0a; border:1px solid #1a1a1a; border-left:3px solid ${color}; border-radius:8px; padding:14px;">
+      <div style="font-size:9px; color:${color}; letter-spacing:2px; margin-bottom:10px;">${label}</div>
+      ${content}
+    </div>`;
+  };
+
+  document.getElementById('psycho-detail-content').innerHTML =
+    section('RIASSUNTO', '#b56aff', s.summary) +
+    section('PUNTI CHIAVE', '#00d4ff', safeJson(s.keyPoints)) +
+    section('EMOZIONI RILEVATE', '#ff9500', safeJson(s.emotions)) +
+    section('PROBLEMI PRINCIPALI', '#ff6b6b', safeJson(s.problems)) +
+    section('AZIONI CONCRETE', '#4ade80', safeJson(s.actions));
+
+  document.getElementById('psycho-session-detail').style.display = 'flex';
+}
+
+function closePsychoSessionDetail() {
+  document.getElementById('psycho-session-detail').style.display = 'none';
+}
+
+function openPsychoEntry() {
+  buildEmotionPicker();
+  selectedPsychoEmotion = null;
+  selectedPsychoIntensity = null;
+  document.getElementById('psycho-mood-note').value = '';
+  document.getElementById('psycho-entry-modal').style.display = 'flex';
+  switchPsychoEntryTab('mood');
+}
+
+function closePsychoEntry() {
+  document.getElementById('psycho-entry-modal').style.display = 'none';
+  psychoAudioFile = null;
+}
+
+function switchPsychoEntryTab(tab) {
+  document.getElementById('psycho-form-mood').style.display    = tab === 'mood' ? 'block' : 'none';
+  document.getElementById('psycho-form-session').style.display = tab === 'session' ? 'block' : 'none';
+  document.getElementById('psycho-tab-mood').style.background    = tab === 'mood' ? 'rgba(181,106,255,0.15)' : 'transparent';
+  document.getElementById('psycho-tab-mood').style.color         = tab === 'mood' ? '#b56aff' : '#444';
+  document.getElementById('psycho-tab-session').style.background = tab === 'session' ? 'rgba(181,106,255,0.15)' : 'transparent';
+  document.getElementById('psycho-tab-session').style.color      = tab === 'session' ? '#b56aff' : '#444';
+}
+
+function handlePsychoAudioSelect(input) {
+  if (!input.files || !input.files[0]) return;
+  psychoAudioFile = input.files[0];
+  document.getElementById('psycho-upload-label').textContent = psychoAudioFile.name;
+  document.getElementById('psycho-process-btn').disabled = false;
+  document.getElementById('psycho-process-btn').style.background = '#b56aff';
+  document.getElementById('psycho-process-btn').style.color = '#000';
+  document.getElementById('psycho-process-btn').style.cursor = 'pointer';
+}
+
+async function processPsychoSession() {
+  if (!psychoAudioFile) return;
+  const btn = document.getElementById('psycho-process-btn');
+  const statusEl = document.getElementById('psycho-transcribe-status');
+  const statusText = document.getElementById('psycho-status-text');
+  btn.disabled = true;
+  statusEl.style.display = 'block';
+
+  try {
+    // Step 1: Upload audio to AssemblyAI
+    statusText.textContent = 'UPLOAD IN CORSO...';
+    const uploadRes = await fetch('https://api.assemblyai.com/v2/upload', {
+      method: 'POST',
+      headers: { 'authorization': ASSEMBLYAI_KEY },
+      body: psychoAudioFile
+    });
+    const { upload_url } = await uploadRes.json();
+
+    // Step 2: Request transcription
+    statusText.textContent = 'TRASCRIZIONE IN CORSO...';
+    const transcriptRes = await fetch('https://api.assemblyai.com/v2/transcript', {
+      method: 'POST',
+      headers: { 'authorization': ASSEMBLYAI_KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ audio_url: upload_url, language_detection: true })
+    });
+    const { id: transcriptId } = await transcriptRes.json();
+
+    // Step 3: Poll for result
+    const poll = async () => {
+      const res = await fetch('https://api.assemblyai.com/v2/transcript/' + transcriptId, {
+        headers: { 'authorization': ASSEMBLYAI_KEY }
+      });
+      const result = await res.json();
+      if (result.status === 'completed') return result.text;
+      if (result.status === 'error') throw new Error(result.error);
+      await new Promise(r => setTimeout(r, 3000));
+      return poll();
+    };
+    const transcript = await poll();
+
+    // Step 4: Send to GAS for AI structuring
+    statusText.textContent = 'ANALISI AI IN CORSO...';
+    const gasRes = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ service: 'psycho_process_session', transcript })
+    });
+    const gasData = await gasRes.json();
+
+    if (gasData.status === 'SUCCESS') {
+      statusEl.style.display = 'none';
+      closePsychoEntry();
+      await loadPsychoData();
+      switchPsychoView('sessions');
+    }
+  } catch(e) {
+    statusText.textContent = 'ERRORE: ' + e.message;
+    console.error('PSYCHO_SESSION_ERR:', e);
+    btn.disabled = false;
+  }
 }
