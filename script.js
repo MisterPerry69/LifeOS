@@ -3939,8 +3939,11 @@ async function processPsychoSession() {
 
 function filterByMonth(value) {
     if (!value) return;
-    fetch(`${SCRIPT_URL}?action=filter_by_month&ym=${encodeURIComponent(value)}&t=${Date.now()}`)
-        .then(r => r.json())
-        .then(data => renderFilteredItems(Array.isArray(data) ? data : []))
-        .catch(() => showCustomAlert('ERRORE_RICERCA'));
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'filter_by_month', ym: value })
+    })
+    .then(r => r.json())
+    .then(data => renderFilteredItems(Array.isArray(data) ? data : []))
+    .catch(() => showCustomAlert('ERRORE_RICERCA'));
 }
