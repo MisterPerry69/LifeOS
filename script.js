@@ -1090,10 +1090,10 @@ function addFinanceRow() {
             style="width:90px;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;flex-shrink:0;">
         <input type="text" placeholder="causale"
             style="flex:1;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;">
-        <select style="background:#111;border:1px solid #333;color:#888;padding:9px;font-family:'JetBrains Mono';font-size:10px;outline:none;border-radius:6px;flex-shrink:0;">
+        <select style="background:#111;border:1px solid #333;color:#888;padding:9px;font-family:'JetBrains Mono';font-size:10px;outline:none;border-radius:6px;flex-shrink:0; margin-bottom: 16px;">
             <option>BANK</option><option>TINABA</option><option>PAYPAL</option><option>CASH</option>
         </select>
-        <span onclick="this.parentElement.remove()" style="color:#ff5050;cursor:pointer;font-size:16px;flex-shrink:0;">✕</span>
+        <span onclick="this.parentElement.remove()" style="color:#ff5050;cursor:pointer;font-size:16px;flex-shrink:0; margin-bottom: 16px;">✕</span>
     `;
     container.appendChild(row);
 }
