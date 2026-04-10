@@ -506,10 +506,11 @@ input:focus {
 .note-overlay {
     position: fixed;
     inset: 0;
-    background: var(--bg);
+    background: #0f0f0fb5;
     z-index: 21000;
     display: none;
     flex-direction: column;
+    backdrop-filter: blur(7px);
 }
 
 .note-overlay.active { display: flex !important; }
