@@ -1086,14 +1086,17 @@ function addFinanceRow() {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:8px;align-items:center;';
     row.innerHTML = `
-        <input type="number" placeholder="€" step="0.01"
-            style="width:90px;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;flex-shrink:0;">
+        <button onclick="this.dataset.sign=this.dataset.sign==1?-1:1; this.textContent=this.dataset.sign==1?'+':'−'; this.style.color=this.dataset.sign==1?'#4ade80':'#ff6b6b';"
+            data-sign="-1"
+            style="padding:9px 10px;background:#1a1a1a;border:1px solid #333;color:#ff6b6b;font-family:'JetBrains Mono';font-size:13px;cursor:pointer;border-radius:6px;flex-shrink:0;">−</button>
+        <input type="number" placeholder="15.00" step="0.01" min="0"
+            style="width:80px;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;flex-shrink:0;">
         <input type="text" placeholder="causale"
             style="flex:1;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;">
-        <select style="background:#111;border:1px solid #333;color:#888;padding:9px;font-family:'JetBrains Mono';font-size:10px;outline:none;border-radius:6px;flex-shrink:0; margin-bottom: 16px;">
+        <select style="background:#111;border:1px solid #333;color:#888;padding:9px;font-family:'JetBrains Mono';font-size:10px;outline:none;border-radius:6px;flex-shrink:0;">
             <option>BANK</option><option>TINABA</option><option>PAYPAL</option><option>CASH</option>
         </select>
-        <span onclick="this.parentElement.remove()" style="color:#ff5050;cursor:pointer;font-size:16px;flex-shrink:0; margin-bottom: 16px;">✕</span>
+        <span onclick="this.parentElement.remove()" style="color:#ff5050;cursor:pointer;font-size:16px;flex-shrink:0;">✕</span>
     `;
     container.appendChild(row);
 }
@@ -1102,8 +1105,13 @@ async function submitFinanceSingle() {
     const amount = document.getElementById('fin-amount').value;
     const desc = document.getElementById('fin-desc').value.trim();
     const note = document.getElementById('fin-note').value.trim();
+    const btn = event.currentTarget;
+    btn.textContent = 'SALVATAGGIO...';
+    btn.disabled = true;
+    btn.style.background = '#333';
+    btn.style.color = '#888';
     if (!amount || !desc) return;
-    const text = `${amount < 0 ? '' : '+'}${amount} ${desc}${note ? ', ' + note : ''}`;
+    const text = `${financeSign * Math.abs(amount)} ${desc}${note ? ', ' + note : ''}`;
     await fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         body: JSON.stringify({ service: 'finance_smart_entry', text, wallet: window.activeWallet })
@@ -1111,20 +1119,45 @@ async function submitFinanceSingle() {
     document.getElementById('fin-amount').value = '';
     document.getElementById('fin-desc').value = '';
     document.getElementById('fin-note').value = '';
+    btn.textContent = '✓ SALVATO';
+    btn.style.background = '#4ade80';
+    btn.style.color = '#000';
+    await new Promise(r => setTimeout(r, 700));
     closeFinanceEntry();
     setTimeout(() => loadStats(), 1500);
+}
+
+let financeSign = -1; // default spesa
+
+function toggleFinanceSign() {
+    financeSign = financeSign * -1;
+    const btn = document.getElementById('fin-sign-btn');
+    if (financeSign === 1) {
+        btn.textContent = '+';
+        btn.style.color = '#4ade80';
+    } else {
+        btn.textContent = '−';
+        btn.style.color = '#ff6b6b';
+    }
 }
 
 async function submitFinanceMulti() {
     const rows = document.querySelectorAll('#fin-multi-rows > div');
     const entries = [];
+    const btn = event.currentTarget;
+    btn.textContent = 'SALVATAGGIO...';
+    btn.disabled = true;
+    btn.style.background = '#333';
+    btn.style.color = '#888';
     rows.forEach(row => {
-        const inputs = row.querySelectorAll('input');
-        const select = row.querySelector('select');
-        const amount = inputs[0].value;
-        const desc = inputs[1].value.trim();
-        const wallet = select.value;
-        if (amount && desc) entries.push({ amount, desc, wallet });
+    const signBtn = row.querySelector('button');
+    const sign = parseInt(signBtn.dataset.sign);
+    const inputs = row.querySelectorAll('input');
+    const select = row.querySelector('select');
+    const amount = parseFloat(inputs[0].value);
+    const desc = inputs[1].value.trim();
+    const wallet = select.value;
+    if (amount && desc) entries.push({ amount: sign * Math.abs(amount), desc, wallet });
     });
     if (entries.length === 0) return;
     for (const e of entries) {
@@ -1134,6 +1167,10 @@ async function submitFinanceMulti() {
             body: JSON.stringify({ service: 'finance_smart_entry', text, wallet: e.wallet })
         });
     }
+    btn.textContent = '✓ SALVATO';
+    btn.style.background = '#4ade80';
+    btn.style.color = '#000';
+    await new Promise(r => setTimeout(r, 700));
     closeFinanceEntry();
     setTimeout(() => loadStats(), 1500);
 }
