@@ -1055,16 +1055,106 @@ function toggleAnalyst() {
 }
 
 function toggleFinanceInput(show) {
-    const inputZone = document.getElementById('finance-input-zone');
-    const input = document.getElementById('finance-input');
-    if (show) {
-        inputZone.style.display = 'block';
-        setTimeout(() => { inputZone.classList.add('active'); input.focus(); }, 10);
-    } else {
-        input.blur();
-        inputZone.classList.remove('active');
-        setTimeout(() => inputZone.style.display = 'none', 300);
+    if (show) openFinanceEntry();
+}
+
+function openFinanceEntry() {
+    // Init multipla con una riga
+    document.getElementById('fin-multi-rows').innerHTML = '';
+    addFinanceRow();
+    switchFinanceTab2('single');
+    setWallet(window.activeWallet || 'BANK');
+    document.getElementById('finance-entry-modal').style.display = 'flex';
+}
+
+function closeFinanceEntry() {
+    document.getElementById('finance-entry-modal').style.display = 'none';
+}
+
+function switchFinanceTab2(tab) {
+    ['single','multi','transfer'].forEach(t => {
+        document.getElementById('fin-form-' + t).style.display = t === tab ? 'block' : 'none';
+        const btn = document.getElementById('fin-tab-' + t);
+        btn.style.background = t === tab ? 'rgba(0,212,255,0.1)' : 'transparent';
+        btn.style.color = t === tab ? '#00d4ff' : '#444';
+    });
+}
+
+function addFinanceRow() {
+    const container = document.getElementById('fin-multi-rows');
+    const idx = container.children.length;
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+    row.innerHTML = `
+        <input type="number" placeholder="€" step="0.01"
+            style="width:90px;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;flex-shrink:0;">
+        <input type="text" placeholder="causale"
+            style="flex:1;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;">
+        <select style="background:#111;border:1px solid #333;color:#888;padding:9px;font-family:'JetBrains Mono';font-size:10px;outline:none;border-radius:6px;flex-shrink:0;">
+            <option>BANK</option><option>TINABA</option><option>PAYPAL</option><option>CASH</option>
+        </select>
+        <span onclick="this.parentElement.remove()" style="color:#ff5050;cursor:pointer;font-size:16px;flex-shrink:0;">✕</span>
+    `;
+    container.appendChild(row);
+}
+
+async function submitFinanceSingle() {
+    const amount = document.getElementById('fin-amount').value;
+    const desc = document.getElementById('fin-desc').value.trim();
+    const note = document.getElementById('fin-note').value.trim();
+    if (!amount || !desc) return;
+    const text = `${amount < 0 ? '' : '+'}${amount} ${desc}${note ? ', ' + note : ''}`;
+    await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ service: 'finance_smart_entry', text, wallet: window.activeWallet })
+    });
+    document.getElementById('fin-amount').value = '';
+    document.getElementById('fin-desc').value = '';
+    document.getElementById('fin-note').value = '';
+    closeFinanceEntry();
+    setTimeout(() => loadStats(), 1500);
+}
+
+async function submitFinanceMulti() {
+    const rows = document.querySelectorAll('#fin-multi-rows > div');
+    const entries = [];
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const select = row.querySelector('select');
+        const amount = inputs[0].value;
+        const desc = inputs[1].value.trim();
+        const wallet = select.value;
+        if (amount && desc) entries.push({ amount, desc, wallet });
+    });
+    if (entries.length === 0) return;
+    for (const e of entries) {
+        const text = `${e.amount < 0 ? '' : '+'}${e.amount} ${e.desc}`;
+        await fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            body: JSON.stringify({ service: 'finance_smart_entry', text, wallet: e.wallet })
+        });
     }
+    closeFinanceEntry();
+    setTimeout(() => loadStats(), 1500);
+}
+
+async function submitFinanceTransfer() {
+    const amount = parseFloat(document.getElementById('fin-transfer-amount').value);
+    const from = document.getElementById('fin-transfer-from').value;
+    const to = document.getElementById('fin-transfer-to').value;
+    if (!amount || from === to) return;
+    // Uscita dal conto sorgente
+    await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ service: 'finance_smart_entry', text: `-${amount} trasferimento a ${to}`, wallet: from })
+    });
+    // Entrata nel conto destinazione
+    await fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ service: 'finance_smart_entry', text: `+${amount} trasferimento da ${from}`, wallet: to })
+    });
+    closeFinanceEntry();
+    setTimeout(() => loadStats(), 1500);
 }
 
 const financeIcons = {
