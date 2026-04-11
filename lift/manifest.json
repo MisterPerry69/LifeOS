@@ -1,0 +1,14 @@
+{
+  "name": "LIFT",
+  "short_name": "LIFT",
+  "description": "Workout tracker",
+  "start_url": "/Lift/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#faf9f7",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
