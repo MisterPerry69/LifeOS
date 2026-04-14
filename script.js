@@ -1086,10 +1086,7 @@ function addFinanceRow() {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:8px;align-items:center;';
     row.innerHTML = `
-        <button onclick="this.dataset.sign=this.dataset.sign==1?-1:1; this.textContent=this.dataset.sign==1?'+':'−'; this.style.color=this.dataset.sign==1?'#4ade80':'#ff6b6b';"
-            data-sign="-1"
-            style="padding:9px 10px;background:#1a1a1a;border:1px solid #333;color:#ff6b6b;font-family:'JetBrains Mono';font-size:13px;cursor:pointer;border-radius:6px;flex-shrink:0;">−</button>
-        <input type="number" placeholder="15.00" step="0.01" min="0"
+        <input type="number" placeholder="15.00" min="0"
             style="width:80px;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;flex-shrink:0;">
         <input type="text" placeholder="causale"
             style="flex:1;background:#111;border:1px solid #333;color:#fff;padding:9px;font-family:'JetBrains Mono';font-size:12px;outline:none;border-radius:6px;">
